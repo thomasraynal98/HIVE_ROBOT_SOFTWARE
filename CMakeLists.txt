@@ -1,0 +1,53 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 3.10)
+
+# set the project name.
+PROJECT(HIVE_ROBOT_SYSTEM VERSION 1.0)
+
+# include directories.
+INCLUDE_DIRECTORIES(include)
+INCLUDE_DIRECTORIES(pixhawk/mavlink/include/mavlink/v2.0)
+
+# set good gcc version.
+SET(CMAKE_CXX_STANDARD 17)
+SET(CMAKE_CXX_STANDARD_REQUIRED ON)
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pthread -L/usr/local/lib")
+
+# found package.
+FIND_PACKAGE(OpenCV 4.2 REQUIRED)
+FIND_PACKAGE(OpenXLSX   REQUIRED)
+FIND_PACKAGE(realsense2 REQUIRED)
+FIND_PACKAGE(Eigen3 3.3 REQUIRED NO_MODULE)
+
+# PROGRAMME 01 : GESTION DU SYSTEME YAML ET REDIS + DEBUG
+ADD_EXECUTABLE(01_SYSTEM_MANAGER 
+software/01_system.cpp
+src/00_function.cpp
+include/00_function.h)
+
+TARGET_LINK_LIBRARIES(01_SYSTEM_MANAGER
+    pthread
+    hiredis
+    redis++
+    ${OpenCV_LIBS})
+
+# PROGRAMME 02 : GESTION DES COMMUNICATIONS AVEC LES MCU's (HARDWARE)
+ADD_EXECUTABLE(02_HARDWARE 
+software/02_hardware.cpp
+src/00_function.cpp
+include/00_function.h
+src/00_communication.cpp
+include/00_communication.h
+pixhawk/mavlink/include/mavlink/v2.0
+src/autopilot_interface.cpp
+include/autopilot_interface.h
+src/serial_port.cpp
+include/serial_port.h
+src/udp_port.cpp
+include/udp_port.h)
+
+TARGET_LINK_LIBRARIES(02_HARDWARE
+    pthread
+    hiredis
+    redis++
+    serial
+    ${OpenCV_LIBS})
