@@ -10,6 +10,10 @@
 #include <libserial/SerialPort.h>
 #include <libserial/SerialStream.h>
 
+#include <common/mavlink.h>
+#include "autopilot_interface.h"
+#include "serial_port.h"
+
 #include "00_function.h"
 
 bool port_already_taken(sw::redis::Redis* redis, std::string curr_port_name);

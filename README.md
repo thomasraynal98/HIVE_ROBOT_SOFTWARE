@@ -4,9 +4,11 @@ RANE MK4 software developed by Hive Robotics.
 
 **NOTE:**
 
-***(02/09)* Il semble que la fonction is_open ne passe a false uniquement si on utilise la fonction Close(), en cas de débranchement, après un Open(), elle restera a jamais a True.**
+***(03/09)* Techniquement, si l'on a tout moment la vitesse de mouvement du robot. On peux donc approximé ça position autant de fois que l'on veut par seconde. On peux donc reprojeter les obtacles de manière fine et ne plus être limiter au FPS de l'algorythme de positionnement pour augmenter la sécurité.**
 
 **TODO:**
+
+*(03/09)* Récuperer les informations importantes de status de la pixhawk, ex: local position, nombre de satelite, mode du robot(hold, lost, prés a voler).
 
 **FEATURE:**
 
@@ -21,5 +23,7 @@ RANE MK4 software developed by Hive Robotics.
 *(03/09)* Reset all redis value nécessaire au bon fonctionnement de 02 à chaque lancement.
 
 *(03/09)* Que faire si on detect un port de connection au MCU, mais qu'il est quand même impossible de communiquer, ex: sur-bouqué ? Potentiellement mettre un watchdog chargé de reset le programme de manière plus bas niveau, ex: eteindre rallumer port.
+
+*(03/09)* Ajouter lors du démarage du process 02 une configuration complete des ports de communication, ex: baudrate, bit de parité... 
 
 **WIFI:** 8PfURsp!dvic

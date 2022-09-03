@@ -36,6 +36,9 @@ void init_redis_var(sw::redis::Redis* redis)
     read_yaml(redis, &fsSettings, "HARD_MCU_CARGO_COM_STATE");
     read_yaml(redis, &fsSettings, "HARD_MCU_INTER_COM_STATE");
 
+    read_yaml(redis, &fsSettings, "HARD_PIXHAWK_PORT_NAME");
+    read_yaml(redis, &fsSettings, "HARD_PIXHAWK_COM_STATE");
+
 }
 
 int64_t get_curr_timestamp()
