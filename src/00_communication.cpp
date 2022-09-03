@@ -17,15 +17,122 @@ bool port_already_taken(sw::redis::Redis* redis, std::string curr_port_name)
     return false;
 }
 
-bool com_is_available(sw::redis::Redis* redis, LibSerial::SerialPort* com_mcu, std::string channel_com_state, \
-std::string channel_port_name)
+bool port_is_detected(std::string curr_port_name)
 {
-    if(com_mcu != NULL)
+    struct stat buffer;   
+    if(stat(curr_port_name.c_str(), &buffer) == 0) return true;
+    return false;
+}
+
+bool port_is_ready_to_use(sw::redis::Redis* redis, std::string curr_port_name, std::string curr_port_state, LibSerial::SerialPort* com_manager)
+{
+    if(get_redis_str(redis, curr_port_state).compare("CONNECTED") == 0 && \
+    port_is_detected(get_redis_str(redis, curr_port_name)) && \
+    com_manager->IsOpen())
     {
-        if(get_redis_str(redis, channel_com_state).compare("CONNECTED") == 0)
-        {
-            if(com_mcu->IsOpen()) return true;
-        }
+        return true;
     }
     return false;
+}
+
+int port_opening_process(sw::redis::Redis* redis, std::string curr_port_name, std::string curr_port_state, LibSerial::SerialPort* com_manager)
+{
+    /*
+     * return info
+     * -1 = pas de port spécifié
+     * 0  = ouverture à échoué
+     * 1  = ouverture
+     * 2  = déja ouvert
+     * 3  = problem, il est déja ouvert alors qu'on n'a pas encore ouvert, mal fermé.
+     */
+
+    if(get_redis_str(redis, curr_port_name).compare("NO_VAL") == 0) return -1;
+    if(get_redis_str(redis, curr_port_state).compare("CONNECTED") == 0) return 2;
+
+    if(get_redis_str(redis, curr_port_state).compare("PORT_DETECTED") == 0 && \
+    port_is_detected(get_redis_str(redis, curr_port_name)))
+    {
+        if(!com_manager->IsOpen())
+        {
+            try
+            {
+                com_manager->Open(get_redis_str(redis, curr_port_name));
+                set_redis_var(redis, curr_port_state, "CONNECTED");
+
+                return 1;
+            }
+            catch(...)
+            {
+                set_redis_var(redis, curr_port_state, "DISCONNECTED");
+                set_redis_var(redis, curr_port_name, "NO_VAL");
+
+                return 0;
+            }               
+        }
+    }
+
+    return 3;
+}
+
+int port_closing_process(sw::redis::Redis* redis, std::string curr_port_name, std::string curr_port_state, LibSerial::SerialPort* com_manager)
+{
+    /*
+     * return info
+     * -1 = 
+     * 0  = pas de fermeture
+     * 1  = fermeture
+     */
+
+    if(get_redis_str(redis, curr_port_state).compare("CONNECTED") == 0 && \
+    !port_is_detected(get_redis_str(redis, curr_port_name)))
+    {
+        if(com_manager->IsOpen()) com_manager->Close();
+        set_redis_var(redis, curr_port_state, "DISCONNECTED");
+        set_redis_var(redis, curr_port_name, "NO_VAL");
+
+        return 1;
+    }
+    return 0;
+}
+
+void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::string curr_port_state, LibSerial::SerialPort* com_manager)
+{
+    size_t timeout_ms = 1000;
+    std::string reponse;
+
+    if(port_is_ready_to_use(redis, curr_port_name, curr_port_state, com_manager))
+    {
+        try
+        {
+            com_manager->ReadLine(reponse, '\n', timeout_ms);
+            // std::cout << "DATA FROM XXX : " << reponse << std::endl;
+            // ALL INFORMATION READING BY MCU ESP32.
+        }
+        catch(...)
+        {
+            // std::cout << "PAS REUSSI A LIRE." << std::endl;
+        }
+        
+    }
+    else{usleep(1000000);}
+}
+
+void writing_process(sw::redis::Redis* redis, std::string curr_port_name, std::string curr_port_state, LibSerial::SerialPort* com_manager, std::string mcu_function_str)
+{
+    int flag_open, flag_close;
+
+    std::string event_open_port_str  = "OPEN_COM_MCU_" + mcu_function_str;
+    std::string event_close_port_str = "CLOSE_COM_MCU_" + mcu_function_str;
+
+    flag_open =  port_opening_process(redis, curr_port_name ,curr_port_state, com_manager);
+    if(flag_open == 0)  set_redis_var(redis, "EVENT", get_event_str(0, event_open_port_str, "FAIL"));
+    if(flag_open == 1)  set_redis_var(redis, "EVENT", get_event_str(0, event_open_port_str, "SUCCESS"));
+
+    if(port_is_ready_to_use(redis, curr_port_name, curr_port_state, com_manager))
+    {
+        // SPEAK
+    }
+    
+    flag_close = port_closing_process(redis, curr_port_name, curr_port_state, com_manager);
+    if(flag_close == 1) set_redis_var(redis, "EVENT", get_event_str(0, event_close_port_str, "SUCCESS"));
 }

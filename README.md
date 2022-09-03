@@ -18,4 +18,8 @@ RANE MK4 software developed by Hive Robotics.
 
 *(02/09)* Ajouter dans 01 ou 03 un thread qui permet de lire l'ensemble des êvements généré par le robot et de les sauvegardés.
 
+*(03/09)* Reset all redis value nécessaire au bon fonctionnement de 02 à chaque lancement.
+
+*(03/09)* Que faire si on detect un port de connection au MCU, mais qu'il est quand même impossible de communiquer, ex: sur-bouqué ? Potentiellement mettre un watchdog chargé de reset le programme de manière plus bas niveau, ex: eteindre rallumer port.
+
 **WIFI:** 8PfURsp!dvic
