@@ -39,6 +39,27 @@ void init_redis_var(sw::redis::Redis* redis)
     read_yaml(redis, &fsSettings, "HARD_PIXHAWK_PORT_NAME");
     read_yaml(redis, &fsSettings, "HARD_PIXHAWK_COM_STATE");
 
+    read_yaml(redis, &fsSettings, "ROBOT_INFO_SERVER_ADRESS");
+
+    read_yaml(redis, &fsSettings, "NAV_HMR_MAP_UPDATE");
+    read_yaml(redis, &fsSettings, "NAV_HMR_DOWNLOAD_ADRESS");
+    read_yaml(redis, &fsSettings, "NAV_HMR_LOCAL_PATH");
+    read_yaml(redis, &fsSettings, "NAV_AUTO_DESTINATION");
+    read_yaml(redis, &fsSettings, "NAV_AUTO_MODE_PARKING");
+
+    read_yaml(redis, &fsSettings, "MISSION_PARAM_AUTO_ENABLE");
+    read_yaml(redis, &fsSettings, "MISSION_MOTOR_BRAKE");
+    read_yaml(redis, &fsSettings, "MISSION_UPDATE_GLOBAL_PATH");
+
+    read_yaml(redis, &fsSettings, "MISSION_AUTO_TYPE");
+    read_yaml(redis, &fsSettings, "MISSION_AUTO_STATE");
+    read_yaml(redis, &fsSettings, "MISSION_MANUAL_TYPE");
+    read_yaml(redis, &fsSettings, "MISSION_MANUAL_STATE");
+
+    read_yaml(redis, &fsSettings, "EVENT_MANUAL_CONTROLER_DATA");
+
+    read_yaml(redis, &fsSettings, "HARD_CARGO_STATE");
+    read_yaml(redis, &fsSettings, "MISSION_HARD_CARGO");
 }
 
 int64_t get_curr_timestamp()

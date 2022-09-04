@@ -10,11 +10,19 @@
 #include <libserial/SerialPort.h>
 #include <libserial/SerialStream.h>
 
-#include <common/mavlink.h>
-#include "autopilot_interface.h"
-#include "serial_port.h"
+#include <sio_client.h>
 
 #include "00_function.h"
+
+struct Server_var
+{
+    std::string type_str, channel_str, value;
+    Server_var(std::string _type_str, std::string _channel_str, std::string _value)
+        : type_str(_type_str)
+        , channel_str(_channel_str)
+        , value(_value)
+        {}
+};
 
 bool port_already_taken(sw::redis::Redis* redis, std::string curr_port_name);
 bool port_is_detected(std::string curr_port_name);
@@ -23,3 +31,6 @@ int port_opening_process(sw::redis::Redis* redis, std::string curr_port_name, st
 int port_closing_process(sw::redis::Redis* redis, std::string curr_port_name, std::string curr_port_state, LibSerial::SerialPort* com_manager);
 void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::string curr_port_state, LibSerial::SerialPort* com_manager);
 void writing_process(sw::redis::Redis* redis, std::string curr_port_name, std::string curr_port_state, LibSerial::SerialPort* com_manager, std::string mcu_function_str);
+void bind_events(sio::socket::ptr current_socket);
+void send_msg_server(sio::socket::ptr current_socket, std::string emit_title, std::vector<Server_var>& vect_msg);
+void send_mission_update_server(sio::socket::ptr current_socket, std::string mission_title, std::string mission_state, int flag);

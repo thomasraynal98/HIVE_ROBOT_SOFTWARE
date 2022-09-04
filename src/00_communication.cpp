@@ -136,3 +136,35 @@ void writing_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
     flag_close = port_closing_process(redis, curr_port_name, curr_port_state, com_manager);
     if(flag_close == 1) set_redis_var(redis, "EVENT", get_event_str(0, event_close_port_str, "SUCCESS"));
 }
+
+void send_msg_server(sio::socket::ptr current_socket, std::string emit_title, std::vector<Server_var>& vect_msg)
+{
+    sio::message::ptr socket_msg = sio::object_message::create();
+
+    for(int i = 0; i < vect_msg.size(); i++)
+    {
+        if(vect_msg[i].type_str.compare("s") == 0)
+        {
+            socket_msg->get_map()[vect_msg[i].channel_str] = sio::string_message::create(vect_msg[i].value);
+        }
+        if(vect_msg[i].type_str.compare("i") == 0)
+        {
+            socket_msg->get_map()[vect_msg[i].channel_str] = sio::int_message::create(std::stoi(vect_msg[i].value));
+        }
+        if(vect_msg[i].type_str.compare("d") == 0)
+        {
+            socket_msg->get_map()[vect_msg[i].channel_str] = sio::double_message::create(std::stod(vect_msg[i].value));
+        }
+    }
+
+    current_socket->emit(emit_title, socket_msg);
+}
+
+void send_mission_update_server(sio::socket::ptr current_socket, std::string mission_title, std::string mission_state, int flag)
+{
+    std::vector<Server_var> vect_msg_server;
+    vect_msg_server.push_back(Server_var("s", "MISSION_INFO",       mission_title));
+    vect_msg_server.push_back(Server_var("s", "MISSION_STATE",      mission_state));
+    vect_msg_server.push_back(Server_var("i", "MISSION_START_FLAG", std::to_string(flag)));
+    send_msg_server(current_socket, "ROBOT_MISSION_INFO", vect_msg_server);
+}

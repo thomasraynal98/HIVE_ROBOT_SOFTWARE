@@ -50,4 +50,23 @@ TARGET_LINK_LIBRARIES(02_HARDWARE
     hiredis
     redis++
     serial
+    sioclient
+    ${OpenCV_LIBS})
+
+# PROGRAMME 03 : GESTION DES COMMUNICATIONS AVEC LE SERVER.
+ADD_EXECUTABLE(03_SERVER 
+software/03_server.cpp
+src/00_function.cpp
+include/00_function.h
+src/00_communication.cpp
+include/00_communication.h
+src/00_navigation.cpp 
+include/00_navigation.h)
+
+TARGET_LINK_LIBRARIES(03_SERVER
+    pthread
+    hiredis
+    redis++
+    sioclient
+    serial
     ${OpenCV_LIBS})

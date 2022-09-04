@@ -1,6 +1,10 @@
 #include "00_function.h"
 #include "00_communication.h"
 
+#include <common/mavlink.h>
+#include "autopilot_interface.h"
+#include "serial_port.h"
+
 using namespace sw::redis;
 auto redis = Redis("tcp://127.0.0.1:6379");
 
