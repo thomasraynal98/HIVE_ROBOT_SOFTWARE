@@ -112,6 +112,40 @@ void bind_events(sio::socket::ptr current_socket)
         }
     }));
 
+    current_socket->on("ORDER_MANUALNAV", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+    {
+        int flag = manual_mode_available(&redis);
+
+        if(flag == 10)
+        {
+            if(get_redis_str(&redis, "ROBOT_MODE").compare("AUTO") == 0) 
+            {
+                set_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_MANUAL_MOVE", "START"));
+                send_mission_update_server(current_socket, "MISSION_MANUAL_MOVE", "START", 0);
+            }
+
+            std::string event_manual_controler_data_str = std::to_string(get_curr_timestamp());
+            event_manual_controler_data_str += std::to_string(data->get_vector()[1]->get_double());
+            event_manual_controler_data_str += std::to_string(data->get_vector()[2]->get_double());
+            event_manual_controler_data_str += std::to_string(data->get_vector()[3]->get_double());
+            set_redis_var(&redis, "EVENT_MANUAL_CONTROLER_DATA", event_manual_controler_data_str);
+
+            set_redis_var(&redis, "MISSION_MOTOR_BRAKE",  "FALSE");
+            set_redis_var(&redis, "ROBOT_MODE",           "MANUAL");
+            set_redis_var(&redis, "MISSION_MANUAL_TYPE",  "MANUAL_MOVE");
+            set_redis_var(&redis, "MISSION_MANUAL_STATE", "IN_PROGRESS");
+        }
+        else
+        {
+            set_redis_var(&redis, "MISSION_MOTOR_BRAKE",  "TRUE");
+            set_redis_var(&redis, "ROBOT_MODE",           "MANUAL");
+            set_redis_var(&redis, "MISSION_MANUAL_TYPE",  "MANUAL_MOVE");
+            set_redis_var(&redis, "MISSION_MANUAL_STATE", "INTERRUPTED");
+
+            set_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_MANUAL_MOVE", "MANUAL_NOT_AVAILABLE " + std::to_string(flag)));
+            send_mission_update_server(current_socket, "MISSION_MANUAL_MOVE", "INTERRUPTED", 0);
+        }
+    }));
 
     // (OK) Ordre de deveroullage d'une trappe. (Casier ID, avec/sans code)
     current_socket->on("ORDER_HARDWARE", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
@@ -155,38 +189,6 @@ void bind_events(sio::socket::ptr current_socket)
 
     }));
 
-    current_socket->on("ORDER_MANUALNAV", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
-    {
-        int flag = manual_mode_available(&redis);
-
-        if(flag == 10)
-        {
-            if(get_redis_str(&redis, "ROBOT_MODE").compare("AUTO") == 0) 
-            {
-                set_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_MANUAL_MOVE", "START"));
-                send_mission_update_server(current_socket, "MISSION_MANUAL_MOVE", "START", 0);
-            }
-            set_redis_var(&redis, "ROBOT_MODE",           "MANUAL");
-            set_redis_var(&redis, "MISSION_MANUAL_TYPE",  "MANUAL_MOVE");
-            set_redis_var(&redis, "MISSION_MANUAL_STATE", "IN_PROGRESS");
-
-            std::string event_manual_controler_data_str = std::to_string(get_curr_timestamp());
-            event_manual_controler_data_str += std::to_string(data->get_vector()[1]->get_double());
-            event_manual_controler_data_str += std::to_string(data->get_vector()[2]->get_double());
-            event_manual_controler_data_str += std::to_string(data->get_vector()[3]->get_double());
-            set_redis_var(&redis, "EVENT_MANUAL_CONTROLER_DATA", event_manual_controler_data_str);
-        }
-        else
-        {
-            set_redis_var(&redis, "MISSION_MOTOR_BRAKE",  "TRUE");
-            set_redis_var(&redis, "ROBOT_MODE",           "MANUAL");
-            set_redis_var(&redis, "MISSION_MANUAL_TYPE",  "MANUAL_MOVE");
-            set_redis_var(&redis, "MISSION_MANUAL_STATE", "INTERRUPTED");
-
-            set_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_MANUAL_MOVE", "MANUAL_NOT_AVAILABLE " + std::to_string(flag)));
-            send_mission_update_server(current_socket, "MISSION_MANUAL_MOVE", "INTERRUPTED", 0);
-        }
-    }));
 
     // // (OK) Ordre lancement stream robot (Option de stream)
     // current_socket->on("ORDER_STREAM_ON", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)

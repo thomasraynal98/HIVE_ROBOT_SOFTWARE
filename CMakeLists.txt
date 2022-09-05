@@ -69,4 +69,24 @@ TARGET_LINK_LIBRARIES(03_SERVER
     redis++
     sioclient
     serial
+    OpenXLSX::OpenXLSX
+    ${OpenCV_LIBS})
+
+# PROGRAMME 04 : ANALYSE DE LA SITUATION EST CHOIX COMMANDE MOTOR ROUES.
+ADD_EXECUTABLE(04_NAVIGATION
+software/04_navigation.cpp
+src/00_function.cpp
+include/00_function.h
+src/00_communication.cpp
+include/00_communication.h
+src/00_navigation.cpp 
+include/00_navigation.h)
+
+TARGET_LINK_LIBRARIES(04_NAVIGATION
+    pthread
+    hiredis
+    redis++
+    sioclient
+    serial
+    OpenXLSX::OpenXLSX
     ${OpenCV_LIBS})

@@ -60,6 +60,10 @@ void init_redis_var(sw::redis::Redis* redis)
 
     read_yaml(redis, &fsSettings, "HARD_CARGO_STATE");
     read_yaml(redis, &fsSettings, "MISSION_HARD_CARGO");
+
+    read_yaml(redis, &fsSettings, "NAV_MANUAL_MODE");
+    read_yaml(redis, &fsSettings, "NAV_MAX_SPEED");
+    read_yaml(redis, &fsSettings, "HARD_MOTOR_COMMAND");
 }
 
 int64_t get_curr_timestamp()
@@ -86,6 +90,8 @@ std::string get_redis_str(sw::redis::Redis* redis, std::string channel)
 
 int get_redis_multi_str(sw::redis::Redis* redis, std::string channel, std::vector<std::string>& stockage)
 {
+    stockage.clear();
+    
     std::string multi_str = *(redis->get(channel));
 
     std::string T;
@@ -128,4 +134,10 @@ void read_yaml(sw::redis::Redis* redis, cv::FileStorage* file_mng, std::string c
 double frequency_to_ms(int frequency)
 {
     return 1000 / frequency;
+}
+
+bool time_is_over(int64_t curr_timestamp, int64_t ref_timestamp, int64_t max_duration_ms)
+{
+    if(curr_timestamp - ref_timestamp > max_duration_ms) return true;
+    return false;
 }

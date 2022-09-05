@@ -36,4 +36,8 @@ RANE MK4 software developed by Hive Robotics.
 
 *(04/09)* Au (re)démarage du robot, choisir si l'on veut ouvrir les trappes à cargo ou non en fonction de la situation.
 
+*(05/09)* Pour les events interne qui peuvent aussi mener à un message server, faire un publisher/subscriber.
+
+*(05/09)* Ajouter au pilotage manuel, au niveau de la rotation sur place du robot, une différence de vitesse entre les roues centrals et les 4 roues diagonals.
+
 **WIFI:** 8PfURsp!dvic

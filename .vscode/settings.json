@@ -63,6 +63,7 @@
       "typeinfo": "cpp",
       "variant": "cpp",
       "bitset": "cpp",
-      "typeindex": "cpp"
+      "typeindex": "cpp",
+      "any": "cpp"
     }
   }
