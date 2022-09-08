@@ -19,11 +19,20 @@ int main(int argc, char *argv[])
 {
     try
     {
-        h.connect(get_redis_str(&redis, "ROBOT_INFO_SERVER_ADRESS"));
-        // bind_events(h.socket());
-
-        // std::string name_robot = "Newt";
-        // h.socket()->emit("robot", name_robot);
+        // h.connect(get_redis_str(&redis, "ROBOT_INFO_SERVER_ADRESS"));
+        while(!h.opened())
+        {
+            std::cout << "Test" << std::endl;
+            h.connect("http://0.0.0.0:5000");
+            usleep(10000);
+            std::string name_robot = "Newt";
+            h.socket()->emit("robot", name_robot);
+        }
+        bind_events(h.socket());
+        while(true)
+        {
+            usleep(10000);
+        }
     }
     catch(...)
     {
@@ -126,10 +135,10 @@ void bind_events(sio::socket::ptr current_socket)
                 send_mission_update_server(current_socket, "MISSION_MANUAL_MOVE", "START", 0);
             }
 
-            std::string event_manual_controler_data_str = std::to_string(get_curr_timestamp());
-            event_manual_controler_data_str += std::to_string(data->get_vector()[1]->get_double());
-            event_manual_controler_data_str += std::to_string(data->get_vector()[2]->get_double());
-            event_manual_controler_data_str += std::to_string(data->get_vector()[3]->get_double());
+            std::string event_manual_controler_data_str = std::to_string(get_curr_timestamp()) + "|";
+            event_manual_controler_data_str += std::to_string(data->get_vector()[0]->get_double()) + "|";
+            event_manual_controler_data_str += std::to_string(data->get_vector()[1]->get_double()) + "|";
+            event_manual_controler_data_str += std::to_string(data->get_vector()[2]->get_double()) + "|";
             set_redis_var(&redis, "EVENT_MANUAL_CONTROLER_DATA", event_manual_controler_data_str);
 
             set_redis_var(&redis, "MISSION_MOTOR_BRAKE",  "FALSE");

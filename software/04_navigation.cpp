@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
                     if(flag_manual_mode.compare("STANDARD") == 0 || \
                     flag_manual_mode.compare("STANDARD_MAX") == 0 )
                     {
-                        if(!time_is_over(get_curr_timestamp(), std::stoi(vect_cmd_ctr[0]), 1500))
+                        if(!time_is_over(get_curr_timestamp(), std::stoul(vect_cmd_ctr[0]), 1500))
                         {
                             curr_max_speed    = get_max_speed(&redis, "MANUAL", flag_manual_mode);
                             motor_command_str = map_manual_command(&redis, std::stod(vect_cmd_ctr[1]), std::stod(vect_cmd_ctr[2]), std::stod(vect_cmd_ctr[3]), curr_max_speed);

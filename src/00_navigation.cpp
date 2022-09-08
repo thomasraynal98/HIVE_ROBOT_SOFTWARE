@@ -54,6 +54,8 @@ std::string map_manual_command(sw::redis::Redis* redis, double back_value, doubl
 
     std::string command_motor_str = std::to_string(get_curr_timestamp()) + "|";
 
+    // std::cout << back_value << " " << front_value << " " << angle << " " << max_speed_Ms << std::endl;
+    
     if(back_value < 0.05 && front_value < 0.05)
     {
         command_motor_str += "0|0|0|0|0|0|";
@@ -79,7 +81,7 @@ std::string map_manual_command(sw::redis::Redis* redis, double back_value, doubl
 
         double current_speed = front_value * vitesse_max; 
 
-        if(angle > 0   && angle <= 90)
+        if(angle >= 0   && angle <= 90)
         {
             for(int i = 0; i < 6; i++)
             {

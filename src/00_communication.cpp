@@ -58,6 +58,7 @@ int port_opening_process(sw::redis::Redis* redis, std::string curr_port_name, st
             {
                 com_manager->Open(get_redis_str(redis, curr_port_name));
                 com_manager->SetBaudRate(LibSerial::BaudRate::BAUD_115200);
+                com_manager->FlushIOBuffers();
                 set_redis_var(redis, curr_port_state, "CONNECTED");
 
                 return 1;
@@ -140,7 +141,8 @@ void writing_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
 
             std::vector<std::string> vect_motor_command;
             get_redis_multi_str(redis, "HARD_MOTOR_COMMAND", vect_motor_command);
-            if(!time_is_over(get_curr_timestamp(), std::stoi(vect_motor_command[0]), 1000))
+
+            if(!time_is_over(get_curr_timestamp(), std::stoul(vect_motor_command[0]), 1000))
             {
                 if(get_redis_str(redis, "ROBOT_INFO_MODEL").compare("MK4") == 0)
                 {

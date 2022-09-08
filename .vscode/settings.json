@@ -64,6 +64,7 @@
       "variant": "cpp",
       "bitset": "cpp",
       "typeindex": "cpp",
-      "any": "cpp"
+      "any": "cpp",
+      "source_location": "cpp"
     }
   }
