@@ -57,6 +57,7 @@ int port_opening_process(sw::redis::Redis* redis, std::string curr_port_name, st
             try
             {
                 com_manager->Open(get_redis_str(redis, curr_port_name));
+                com_manager->SetBaudRate(LibSerial::BaudRate::BAUD_115200);
                 set_redis_var(redis, curr_port_state, "CONNECTED");
 
                 return 1;
@@ -130,7 +131,42 @@ void writing_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
 
     if(port_is_ready_to_use(redis, curr_port_name, curr_port_state, com_manager))
     {
-        // SPEAK
+        //====================
+        // SPEAKING SPACE.
+        //====================
+        if(mcu_function_str.compare("MOTOR") == 0)
+        {
+            std::string msg_motor_str = "M|0|";
+
+            std::vector<std::string> vect_motor_command;
+            get_redis_multi_str(redis, "HARD_MOTOR_COMMAND", vect_motor_command);
+            if(!time_is_over(get_curr_timestamp(), std::stoi(vect_motor_command[0]), 1000))
+            {
+                if(get_redis_str(redis, "ROBOT_INFO_MODEL").compare("MK4") == 0)
+                {
+                    for(int i = 1; i < 7; i++) msg_motor_str += vect_motor_command[1] + "|";
+                }
+                if(get_redis_str(redis, "ROBOT_INFO_MODEL").compare("MK4_LIGHT") == 0)
+                {
+                    msg_motor_str += vect_motor_command[2] + "|";
+                    msg_motor_str += vect_motor_command[5] + "|";
+                }
+            }
+            else
+            {
+                if(get_redis_str(redis, "ROBOT_INFO_MODEL").compare("MK4") == 0)
+                {
+                    msg_motor_str = "M|0|0.0|0.0|0.0|0.0|0.0|0.0|";
+                }
+                if(get_redis_str(redis, "ROBOT_INFO_MODEL").compare("MK4_LIGHT") == 0)
+                {
+                    msg_motor_str = "M|0|0.0|0.0|";
+                }
+            }
+            
+            std::cout << "SEND : " << msg_motor_str << std::endl;
+            com_manager->Write(msg_motor_str+'\n'); 
+        }
     }
     
     flag_close = port_closing_process(redis, curr_port_name, curr_port_state, com_manager);

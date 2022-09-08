@@ -1,0 +1,1 @@
+/usr/bin/c++   -std=c++17 -pthread -L/usr/local/lib -L/usr/bin/openssl   CMakeFiles/66_EXEMPLE.dir/software/66_tempo.cpp.o  -o 66_EXEMPLE  -lpthread -lhiredis -lredis++ -lsioclient -lcrypto -lssl -lserial 

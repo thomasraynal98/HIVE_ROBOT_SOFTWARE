@@ -1,0 +1,34 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/mon20/Dev/HIVE_ROBOT_SOFTWARE/software/66_tempo.cpp
+string.h
+-
+iostream
+-
+thread
+-
+chrono
+-
+vector
+-
+math.h
+-
+fstream
+-
+cstdlib
+-
+unistd.h
+-
+sio_client.h
+-
+libserial/SerialPort.h
+-
+libserial/SerialStream.h
+-
+

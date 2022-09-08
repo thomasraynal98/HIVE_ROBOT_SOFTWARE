@@ -145,7 +145,7 @@ void f_thread_read_mcu_inter()
 
 void f_thread_write_mcu_motor()
 {
-    double ms_for_loop = frequency_to_ms(10);
+    double ms_for_loop = frequency_to_ms(std::stoi(get_redis_str(&redis, "HARD_MCU_MOTOR_COM_HZ")));
     auto next = std::chrono::high_resolution_clock::now();
 
     while(true)
@@ -195,7 +195,7 @@ void f_thread_readwrite_pixhawk()
     int baudrate_pixhawk = 115200;
     Autopilot_Interface* autopilot_interface;
 
-    double ms_for_loop = frequency_to_ms(20);
+    double ms_for_loop = frequency_to_ms(std::stoi(get_redis_str(&redis, "HARD_PIXHAWK_COM_HZ")));
     auto next = std::chrono::high_resolution_clock::now();
 
     while(true)

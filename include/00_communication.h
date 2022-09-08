@@ -11,6 +11,12 @@
 #include <libserial/SerialStream.h>
 
 #include <sio_client.h>
+#include <functional>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <vector>
+#include <list>
 
 #include "00_function.h"
 

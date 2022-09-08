@@ -2,12 +2,12 @@
 ---
 # GENERAL INFORMATION
 ROBOT_INFO_ID                    : "1"
-ROBOT_INFO_MODEL                 : "MK4"
+ROBOT_INFO_MODEL                 : "MK4_LIGHT"
 ROBOT_INFO_PSEUDO                : "FLASH"
 ROBOT_INFO_MCU_MOTOR_ID          : "A"
 ROBOT_INFO_MCU_CARGO_ID          : "B"
 ROBOT_INFO_MCU_INTER_ID          : "C"
-ROBOT_INFO_SERVER_ADRESS         : "http://api-devo-docker.herokuapp.com/"
+ROBOT_INFO_SERVER_ADRESS         : "https://api.hiverobotics.fr/"
 ROBOT_MODE                       : "INIT"
 
 # EVENT
@@ -25,6 +25,8 @@ HARD_MCU_INTER_COM_STATE         : "DISCONNECTED"
 HARD_PIXHAWK_COM_STATE           : "DISCONNECTED"
 HARD_MOTOR_COMMAND               : "0000000000000|M1m/s|M2m/s|M3m/s|M4m/s|M5m/s|M6m/s|"
 HARD_CARGO_STATE                 : "0000000000000|BOXA_OPEN|BOXB_OPEN|BOXC_OPEN|"
+HARD_MCU_MOTOR_COM_HZ            : "10.0"
+HARD_PIXHAWK_COM_HZ              : "20.0"
 
 # NAVIGATION
 NAV_HMR_MAP_UPDATE               : "TRUE"
@@ -33,7 +35,7 @@ NAV_HMR_LOCAL_PATH               : "../data/Hive_Map_Database2.xlsx"
 NAV_AUTO_DESTINATION             : "0000000000000|LONGITUDE|LATITUDE|"
 NAV_AUTO_MODE_PARKING            : "NO_VAL"
 NAV_MANUAL_MODE                  : "MANUAL_STANDARD"
-NAV_MAX_SPEED                    : "2.8"
+NAV_MAX_SPEED                    : "0.5"
 
 # ACTION/MISSION
 MISSION_PARAM_AUTO_ENABLE        : "AUTO_SIMPLE"

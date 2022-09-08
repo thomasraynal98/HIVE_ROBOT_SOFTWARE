@@ -5,7 +5,6 @@
 using namespace sw::redis;
 auto redis = Redis("tcp://127.0.0.1:6379");
 
-sio::socket::ptr current_socket;
 sio::client h;
 
 //===================================================================
@@ -21,7 +20,10 @@ int main(int argc, char *argv[])
     try
     {
         h.connect(get_redis_str(&redis, "ROBOT_INFO_SERVER_ADRESS"));
-        bind_events(h.socket());
+        // bind_events(h.socket());
+
+        // std::string name_robot = "Newt";
+        // h.socket()->emit("robot", name_robot);
     }
     catch(...)
     {

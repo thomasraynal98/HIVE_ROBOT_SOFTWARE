@@ -5,6 +5,8 @@
 #include <vector>
 #include <math.h>
 #include <fstream>
+#include <cstdlib>
+#include <unistd.h>
 
 #include <sw/redis++/redis++.h>
 #include <sio_client.h>
@@ -25,3 +27,4 @@ std::string get_event_str(int ID_event, std::string event_description, std::stri
 void read_yaml(sw::redis::Redis* redis, cv::FileStorage* file_mng, std::string channel);
 double frequency_to_ms(int frequency);
 bool time_is_over(int64_t curr_timestamp, int64_t ref_timestamp, int64_t max_duration_ms);
+void print_redis(sw::redis::Redis* redis, std::string channel_str);

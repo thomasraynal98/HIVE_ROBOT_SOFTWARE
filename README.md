@@ -26,7 +26,7 @@ RANE MK4 software developed by Hive Robotics.
 
 *(03/09)* Que faire si on detect un port de connection au MCU, mais qu'il est quand même impossible de communiquer, ex: sur-bouqué ? Potentiellement mettre un watchdog chargé de reset le programme de manière plus bas niveau, ex: eteindre rallumer port.
 
-*(03/09)* Ajouter lors du démarage du process 02 une configuration complete des ports de communication, ex: baudrate, bit de parité... 
+*(03/09)* Ajouter lors du démarage du process 02 une configuration complete des ports de communication, ex: baudrate, bit de parité...
 
 *(04/09)* Completer toute les conditions pour passer en mode auto dans la fonction auto_mode_available(), notament le faite que tout les programmes soit en marche. Pareil pour le mode manuel qui necessite un retour stream obligatoire.
 
@@ -39,5 +39,7 @@ RANE MK4 software developed by Hive Robotics.
 *(05/09)* Pour les events interne qui peuvent aussi mener à un message server, faire un publisher/subscriber.
 
 *(05/09)* Ajouter au pilotage manuel, au niveau de la rotation sur place du robot, une différence de vitesse entre les roues centrals et les 4 roues diagonals.
+
+*(05/09)* AJouter, "si le programme 04 ne tourne pas > envoyer stop motor".
 
 **WIFI:** 8PfURsp!dvic

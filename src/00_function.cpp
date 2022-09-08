@@ -64,6 +64,9 @@ void init_redis_var(sw::redis::Redis* redis)
     read_yaml(redis, &fsSettings, "NAV_MANUAL_MODE");
     read_yaml(redis, &fsSettings, "NAV_MAX_SPEED");
     read_yaml(redis, &fsSettings, "HARD_MOTOR_COMMAND");
+
+    read_yaml(redis, &fsSettings, "HARD_MCU_MOTOR_COM_HZ");
+    read_yaml(redis, &fsSettings, "HARD_PIXHAWK_COM_HZ");
 }
 
 int64_t get_curr_timestamp()
@@ -110,6 +113,8 @@ int get_redis_multi_str(sw::redis::Redis* redis, std::string channel, std::vecto
 
 int get_multi_str(std::string str, std::vector<std::string>& vec_str)
 {
+    vec_str.clear();
+
     std::string T;
     std::stringstream X(str);
 
@@ -138,6 +143,24 @@ double frequency_to_ms(int frequency)
 
 bool time_is_over(int64_t curr_timestamp, int64_t ref_timestamp, int64_t max_duration_ms)
 {
+    // std::cout << curr_timestamp << " " << ref_timestamp << " " << max_duration_ms << std::endl;
+    // std::string temp;
+    // std::cin >> temp;
     if(curr_timestamp - ref_timestamp > max_duration_ms) return true;
     return false;
+}
+
+void print_redis(sw::redis::Redis* redis, std::string channel_str)
+{
+    int max_size = 30;
+    int size_channel_title = channel_str.length();
+
+    std::string format_channel_str = "";
+    format_channel_str += channel_str;
+
+    for(int i = size_channel_title; i < max_size; i++) format_channel_str += " ";
+    format_channel_str += " = ";
+
+    format_channel_str += get_redis_str(redis, channel_str);
+    std::cout << format_channel_str << std::endl;
 }
