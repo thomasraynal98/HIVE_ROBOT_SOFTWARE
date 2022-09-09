@@ -44,4 +44,6 @@ RANE MK4 software developed by Hive Robotics.
 
 *(08/09)* Récuperer des informations concernant l'état des roboclaws, l'état des encodeurs des moteurs, la température des roboclaw et le voltage de la batterie.
 
+*(08/09)* Que faire si l'un des programmes plantes ?
+
 **WIFI:** 8PfURsp!dvic

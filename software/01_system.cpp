@@ -88,12 +88,12 @@ void f_thread_debug()
             print_redis(&redis, "NAV_HMR_DOWNLOAD_ADRESS");
             print_redis(&redis, "NAV_HMR_LOCAL_PATH");
             print_redis(&redis, "NAV_AUTO_DESTINATION");
+            print_redis(&redis, "NAV_AUTO_MODE");
             print_redis(&redis, "NAV_AUTO_MODE_PARKING");
             print_redis(&redis, "NAV_MANUAL_MODE");
             print_redis(&redis, "NAV_MAX_SPEED");
             std::cout << std::endl;
 
-            print_redis(&redis, "MISSION_PARAM_AUTO_ENABLE");
             print_redis(&redis, "MISSION_MOTOR_BRAKE");
             print_redis(&redis, "MISSION_UPDATE_GLOBAL_PATH");
             print_redis(&redis, "MISSION_AUTO_TYPE");

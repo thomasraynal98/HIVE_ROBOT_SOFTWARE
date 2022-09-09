@@ -14,9 +14,9 @@ int auto_mode_available(sw::redis::Redis* redis)
      * 20 = available.
      */
 
-    std::string opt_str = get_redis_str(redis, "MISSION_PARAM_AUTO_ENABLE");
+    std::string opt_str = get_redis_str(redis, "NAV_AUTO_MODE");
     
-    if(opt_str.compare("AUTO_SIMPLE"))
+    if(opt_str.compare("SIMPLE"))
     {
         if(get_redis_str(redis, "HARD_MCU_MOTOR_COM_STATE").compare("CONNECTED") == 0 && \
            get_redis_str(redis, "HARD_PIXHAWK_COM_STATE").compare("CONNECTED")   == 0) return 10;
@@ -28,7 +28,7 @@ int auto_mode_available(sw::redis::Redis* redis)
            get_redis_str(redis, "HARD_PIXHAWK_COM_STATE").compare("CONNECTED")   != 0) return 12;
 
     }
-    if(opt_str.compare("AUTO_STANDARD"))
+    if(opt_str.compare("STANDARD"))
     {
 
     }

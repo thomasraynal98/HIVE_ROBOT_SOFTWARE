@@ -47,7 +47,7 @@ void init_redis_var(sw::redis::Redis* redis)
     read_yaml(redis, &fsSettings, "NAV_AUTO_DESTINATION");
     read_yaml(redis, &fsSettings, "NAV_AUTO_MODE_PARKING");
 
-    read_yaml(redis, &fsSettings, "MISSION_PARAM_AUTO_ENABLE");
+    read_yaml(redis, &fsSettings, "NAV_AUTO_MODE");
     read_yaml(redis, &fsSettings, "MISSION_MOTOR_BRAKE");
     read_yaml(redis, &fsSettings, "MISSION_UPDATE_GLOBAL_PATH");
 
