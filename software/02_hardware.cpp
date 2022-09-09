@@ -211,7 +211,7 @@ void f_thread_readwrite_pixhawk()
             if(pixhawk_com_manager->is_running()) pixhawk_com_manager->stop();
             set_redis_var(&redis, "HARD_PIXHAWK_COM_STATE", "DISCONNECTED");
             set_redis_var(&redis, "HARD_PIXHAWK_PORT_NAME", "NO_VAL");
-            set_redis_var(&redis, "EVENT", get_event_str(0, "CLOSE_COM_PIXHAWK", "SUCCESS"));
+            pub_redis_var(&redis, "EVENT", get_event_str(0, "CLOSE_COM_PIXHAWK", "SUCCESS"));
         }
 
         // READING PROCEDURE
@@ -237,13 +237,13 @@ void f_thread_readwrite_pixhawk()
             if(pixhawk_com_manager->is_running())
             {
                 set_redis_var(&redis, "HARD_PIXHAWK_COM_STATE", "CONNECTED");
-                set_redis_var(&redis, "EVENT", get_event_str(0, "OPEN_COM_PIXHAWK", "SUCCESS"));
+                pub_redis_var(&redis, "EVENT", get_event_str(0, "OPEN_COM_PIXHAWK", "SUCCESS"));
             }
             else
             {
                 set_redis_var(&redis, "HARD_PIXHAWK_COM_STATE", "DISCONNECTED");
                 set_redis_var(&redis, "HARD_PIXHAWK_PORT_NAME", "NO_VAL");
-                set_redis_var(&redis, "EVENT", get_event_str(0, "OPEN_COM_PIXHAWK", "FAIL"));
+                pub_redis_var(&redis, "EVENT", get_event_str(0, "OPEN_COM_PIXHAWK", "FAIL"));
                 usleep(500000);
             }
         }

@@ -127,8 +127,8 @@ void writing_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
     std::string event_close_port_str = "CLOSE_COM_MCU_" + mcu_function_str;
 
     flag_open =  port_opening_process(redis, curr_port_name ,curr_port_state, com_manager);
-    if(flag_open == 0)  set_redis_var(redis, "EVENT", get_event_str(0, event_open_port_str, "FAIL"));
-    if(flag_open == 1)  set_redis_var(redis, "EVENT", get_event_str(0, event_open_port_str, "SUCCESS"));
+    if(flag_open == 0)  pub_redis_var(redis, "EVENT", get_event_str(0, event_open_port_str, "FAIL"));
+    if(flag_open == 1)  pub_redis_var(redis, "EVENT", get_event_str(0, event_open_port_str, "SUCCESS"));
 
     if(port_is_ready_to_use(redis, curr_port_name, curr_port_state, com_manager))
     {
@@ -172,7 +172,7 @@ void writing_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
     }
     
     flag_close = port_closing_process(redis, curr_port_name, curr_port_state, com_manager);
-    if(flag_close == 1) set_redis_var(redis, "EVENT", get_event_str(0, event_close_port_str, "SUCCESS"));
+    if(flag_close == 1) pub_redis_var(redis, "EVENT", get_event_str(0, event_close_port_str, "SUCCESS"));
 }
 
 void send_msg_server(sio::socket::ptr current_socket, std::string emit_title, std::vector<Server_var>& vect_msg)
@@ -204,5 +204,6 @@ void send_mission_update_server(sio::socket::ptr current_socket, std::string mis
     vect_msg_server.push_back(Server_var("s", "MISSION_INFO",       mission_title));
     vect_msg_server.push_back(Server_var("s", "MISSION_STATE",      mission_state));
     vect_msg_server.push_back(Server_var("i", "MISSION_START_FLAG", std::to_string(flag)));
+
     send_msg_server(current_socket, "ROBOT_MISSION_INFO", vect_msg_server);
 }

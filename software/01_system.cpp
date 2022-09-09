@@ -59,11 +59,15 @@ void f_thread_debug()
             print_redis(&redis, "ROBOT_INFO_ID");
             print_redis(&redis, "ROBOT_INFO_MODEL");
             print_redis(&redis, "ROBOT_INFO_PSEUDO");
+            print_redis(&redis, "ROBOT_INFO_EXPLOITATION");
             print_redis(&redis, "ROBOT_INFO_MCU_MOTOR_ID");
             print_redis(&redis, "ROBOT_INFO_MCU_CARGO_ID");
             print_redis(&redis, "ROBOT_INFO_MCU_INTER_ID");
             print_redis(&redis, "ROBOT_INFO_SERVER_ADRESS");
             print_redis(&redis, "ROBOT_MODE");
+            std::cout << std::endl;
+
+            print_redis(&redis, "SERVER_COM_STATE");
             std::cout << std::endl;
 
             print_redis(&redis, "EVENT");

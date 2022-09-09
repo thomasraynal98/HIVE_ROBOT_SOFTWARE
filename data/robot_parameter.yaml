@@ -2,13 +2,17 @@
 ---
 # GENERAL INFORMATION
 ROBOT_INFO_ID                    : "1"
+ROBOT_INFO_EXPLOITATION          : "LA_DEFENSE"
 ROBOT_INFO_MODEL                 : "MK4_LIGHT"
 ROBOT_INFO_PSEUDO                : "FLASH"
 ROBOT_INFO_MCU_MOTOR_ID          : "A"
 ROBOT_INFO_MCU_CARGO_ID          : "B"
 ROBOT_INFO_MCU_INTER_ID          : "C"
-ROBOT_INFO_SERVER_ADRESS         : "https://api.hiverobotics.fr/"
+ROBOT_INFO_SERVER_ADRESS         : "http://0.0.0.0:5000"
 ROBOT_MODE                       : "INIT"
+
+# SERVER
+SERVER_COM_STATE                 : "DISCONNECTED"
 
 # EVENT
 EVENT                            : "0000000000000|EVENT_ID|EVENT_DESCRIPTION|EVENT_INFO|"
@@ -33,14 +37,13 @@ NAV_HMR_MAP_UPDATE               : "TRUE"
 NAV_HMR_DOWNLOAD_ADRESS          : "NO_VAL"
 NAV_HMR_LOCAL_PATH               : "../data/Hive_Map_Database2.xlsx"
 NAV_AUTO_DESTINATION             : "0000000000000|LONGITUDE|LATITUDE|"
-# MISSION_PARAM_AUTO_ENABLE        : "AUTO_SIMPLE"
 NAV_AUTO_MODE                    : "SIMPLE"
 NAV_AUTO_MODE_PARKING            : "NO_VAL"
 NAV_MANUAL_MODE                  : "STANDARD"
 NAV_MAX_SPEED                    : "0.5"
 
 # ACTION/MISSION
-MISSION_MOTOR_BRAKE              : "FALSE"
+MISSION_MOTOR_BRAKE              : "TRUE"
 MISSION_UPDATE_GLOBAL_PATH       : "FALSE"
 MISSION_AUTO_TYPE                : "NO_VAL"
 MISSION_AUTO_STATE               : "NO_VAL"

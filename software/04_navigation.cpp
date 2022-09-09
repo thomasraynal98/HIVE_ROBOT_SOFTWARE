@@ -41,11 +41,11 @@ int main(int argc, char *argv[])
                 vect_road.clear();
                 read_xlsx_hmr(get_redis_str(&redis, "NAV_HMR_LOCAL_PATH"), vect_node, vect_road);
                 set_redis_var(&redis, "NAV_HMR_MAP_UPDATE", "FALSE");
-                set_redis_var(&redis, "EVENT", get_event_str(2, "LOAD_HMR", "SUCCESS"));
+                pub_redis_var(&redis, "EVENT", get_event_str(2, "LOAD_HMR", "SUCCESS"));
             }
             catch(...)
             {
-                set_redis_var(&redis, "EVENT", get_event_str(2, "LOAD_HMR", "FAIL"));
+                pub_redis_var(&redis, "EVENT", get_event_str(2, "LOAD_HMR", "FAIL"));
             }
         }
 
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
                         else
                         {
                             set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "TRUE");
-                            set_redis_var(&redis, "EVENT", get_event_str(2, "MISSION_MANUAL_MOVE", "STANDARD_MODE_OVER_TIME"));
+                            pub_redis_var(&redis, "EVENT", get_event_str(2, "MISSION_MANUAL_MOVE", "STANDARD_MODE_OVER_TIME"));
                         }
                     }
                     else if(false)

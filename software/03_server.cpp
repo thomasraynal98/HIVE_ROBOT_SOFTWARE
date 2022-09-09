@@ -5,11 +5,68 @@
 using namespace sw::redis;
 auto redis = Redis("tcp://127.0.0.1:6379");
 
+std::thread thread_event;
+std::thread thread_server;
+
 sio::client h;
 
 //===================================================================
-// DESCISION : Machine à état et gestion des événements.
+// DESCISION : Gestion des événements & server.
 //===================================================================
+
+void callback_command(std::string channel, std::string msg)
+{
+    set_redis_var(&redis, channel, msg);
+    std::cout << "SUB : " << msg << std::endl;
+}
+
+void f_thread_event()
+{
+    auto sub = redis.subscriber();
+    sub.on_message(callback_command);
+    sub.subscribe("EVENT");
+    while(true) {sub.consume();}
+}
+
+void f_thread_server()
+{
+    set_redis_var(&redis, "SERVER_COM_STATE", "DISCONNECTED");
+    while(true)
+    {
+        if(!h.opened())
+        {
+            usleep(500000);
+
+            if(get_redis_str(&redis, "SERVER_COM_STATE").compare("CONNECTED") == 0)
+            {
+                set_redis_var(&redis, "SERVER_COM_STATE", "DISCONNECTED");
+                pub_redis_var(&redis, "EVENT", get_event_str(1, "DISCONNECTION_SERVER", "SUCCESS"));
+            }
+
+            try
+            {
+                h.connect(get_redis_str(&redis, "ROBOT_INFO_SERVER_ADRESS"));
+                usleep(10000);
+                h.socket()->emit("ROBOT_ID", get_standard_robot_id_str(&redis));
+                usleep(10000);
+            }
+            catch(...)
+            {
+                pub_redis_var(&redis, "EVENT", get_event_str(1, "CONNECTION_SERVER", "FAIL"));
+            }
+        }
+        if(h.opened())
+        {
+            if(get_redis_str(&redis, "SERVER_COM_STATE").compare("DISCONNECTED") == 0)
+            {
+                bind_events(h.socket());
+                set_redis_var(&redis, "SERVER_COM_STATE", "CONNECTED");
+                pub_redis_var(&redis, "EVENT", get_event_str(1, "CONNECTION_SERVER", "SUCCESS"));
+            }
+            usleep(10000);
+        }
+    }
+}
 
 //===================================================================
 // MAIN PROGRAM
@@ -17,27 +74,11 @@ sio::client h;
 
 int main(int argc, char *argv[])
 {
-    try
-    {
-        // h.connect(get_redis_str(&redis, "ROBOT_INFO_SERVER_ADRESS"));
-        while(!h.opened())
-        {
-            std::cout << "Test" << std::endl;
-            h.connect("http://0.0.0.0:5000");
-            usleep(10000);
-            std::string name_robot = "Newt";
-            h.socket()->emit("robot", name_robot);
-        }
-        bind_events(h.socket());
-        while(true)
-        {
-            usleep(10000);
-        }
-    }
-    catch(...)
-    {
-        std::cout << "REMOVE: Impossible de se connecter au server.\nFermeture du programme 03." << std::endl;
-    }
+    thread_event  = std::thread(&f_thread_event);
+    thread_server = std::thread(&f_thread_server);
+
+    thread_event.join();
+    thread_server.join();
 
     return 0;
 }
@@ -61,7 +102,7 @@ void bind_events(sio::socket::ptr current_socket)
         set_redis_var(&redis, "MISSION_AUTO_STATE",  "PAUSE");
         set_redis_var(&redis, "MISSION_MANUAL_STATE",  "PAUSE");
 
-        set_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_PAUSE", "START"));
+        pub_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_PAUSE", "START"));
         send_mission_update_server(current_socket, "MISSION_PAUSE", "START", 0);
     }));
 
@@ -72,7 +113,7 @@ void bind_events(sio::socket::ptr current_socket)
         set_redis_var(&redis, "MISSION_AUTO_STATE",  "IN_PROGESS");
         set_redis_var(&redis, "MISSION_MANUAL_STATE",  "IN_PROGESS");
 
-        set_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_PAUSE", "COMPLETED"));
+        pub_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_PAUSE", "COMPLETED"));
         send_mission_update_server(current_socket, "MISSION_PAUSE", "COMPLETED", 0);
     }));
 
@@ -95,7 +136,7 @@ void bind_events(sio::socket::ptr current_socket)
             set_redis_var(&redis, "MISSION_AUTO_TYPE",          "GOTO");
             set_redis_var(&redis, "MISSION_AUTO_STATE",         "START");
 
-            set_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_AUTO_GOTO", "START"));
+            pub_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_AUTO_GOTO", "START"));
             send_mission_update_server(current_socket, "MISSION_AUTO_GOTO", "START", 0);
         }
         else 
@@ -112,11 +153,11 @@ void bind_events(sio::socket::ptr current_socket)
 
             if(flag == -1)
             {
-                set_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_AUTO_GOTO", "MISSION_PARAM_AUTO_ENABLE_INVALID " + std::to_string(flag)));
+                pub_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_AUTO_GOTO", "MISSION_PARAM_AUTO_ENABLE_INVALID " + std::to_string(flag)));
             }
             else
             {
-                set_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_AUTO_GOTO", "AUTO_NOT_AVAILABLE " + std::to_string(flag)));
+                pub_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_AUTO_GOTO", "AUTO_NOT_AVAILABLE " + std::to_string(flag)));
             }
 
             send_mission_update_server(current_socket, "MISSION_AUTO_GOTO", "INTERRUPTED", flag);
@@ -126,12 +167,12 @@ void bind_events(sio::socket::ptr current_socket)
     current_socket->on("ORDER_MANUALNAV", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
     {
         int flag = manual_mode_available(&redis);
-
+        std::cout << "RECEIP" << std::endl;
         if(flag == 10)
         {
             if(get_redis_str(&redis, "ROBOT_MODE").compare("AUTO") == 0) 
             {
-                set_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_MANUAL_MOVE", "START"));
+                pub_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_MANUAL_MOVE", "START"));
                 send_mission_update_server(current_socket, "MISSION_MANUAL_MOVE", "START", 0);
             }
 
@@ -152,8 +193,7 @@ void bind_events(sio::socket::ptr current_socket)
             set_redis_var(&redis, "ROBOT_MODE",           "MANUAL");
             set_redis_var(&redis, "MISSION_MANUAL_TYPE",  "MANUAL_MOVE");
             set_redis_var(&redis, "MISSION_MANUAL_STATE", "INTERRUPTED");
-
-            set_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_MANUAL_MOVE", "MANUAL_NOT_AVAILABLE " + std::to_string(flag)));
+            pub_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_MANUAL_MOVE", "MANUAL_NOT_AVAILABLE " + std::to_string(flag)));
             send_mission_update_server(current_socket, "MISSION_MANUAL_MOVE", "INTERRUPTED", 0);
         }
     }));
@@ -176,12 +216,12 @@ void bind_events(sio::socket::ptr current_socket)
 
         if(vect_cargo_state[index].compare("OPEN") == 0)
         {
-            set_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_OPEN_BOX" + box_id_str, "ALREADY_COMPLETED"));
+            pub_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_OPEN_BOX" + box_id_str, "ALREADY_COMPLETED"));
             send_mission_update_server(current_socket, "MISSION_OPEN_BOX" + box_id_str, "ALREADY_COMPLETED", 0);
         }
         else
         {
-            set_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_OPEN_BOX" + box_id_str, "START"));
+            pub_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_OPEN_BOX" + box_id_str, "START"));
             send_mission_update_server(current_socket, "MISSION_OPEN_BOX" + box_id_str, "START", 0);
         }
 
@@ -222,7 +262,7 @@ void bind_events(sio::socket::ptr current_socket)
         set_redis_var(&redis, "MISSION_MANUAL_TYPE",  "WAITING");
         set_redis_var(&redis, "MISSION_MANUAL_STATE", "IN_PROGRESS");
 
-        set_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_CANCEL_MISSION", "SUCESS"));
+        pub_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_CANCEL_MISSION", "SUCCESS"));
         send_mission_update_server(current_socket, "MISSION_CANCEL_MISSION", "COMPLETED", 0);
     }));
 

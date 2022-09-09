@@ -46,4 +46,8 @@ RANE MK4 software developed by Hive Robotics.
 
 *(08/09)* Que faire si l'un des programmes plantes ?
 
+*(09/09)* Ajouter les variables SERVER_CONNECTION_TIMESTAMP, SERVER_CONNECTION_DURATION, SERVER_LAST_MSG_TIMESTAMP et SERVER_LAST_MSG_DURATION.
+
+*(09/09)* Gérer la callback du programme Server qui va lire les EVENTS.
+
 **WIFI:** 8PfURsp!dvic

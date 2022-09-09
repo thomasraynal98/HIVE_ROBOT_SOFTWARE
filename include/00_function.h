@@ -19,6 +19,7 @@
 
 void init_redis_var(sw::redis::Redis* redis);
 void set_redis_var(sw::redis::Redis* redis, std::string channel, std::string value);
+void pub_redis_var(sw::redis::Redis* redis, std::string channel, std::string value);
 std::string get_redis_str(sw::redis::Redis* redis, std::string channel);
 int get_redis_multi_str(sw::redis::Redis* redis, std::string channel, std::vector<std::string>& stockage);
 int get_multi_str(std::string str, std::vector<std::string>& vec_str);
@@ -28,3 +29,4 @@ void read_yaml(sw::redis::Redis* redis, cv::FileStorage* file_mng, std::string c
 double frequency_to_ms(int frequency);
 bool time_is_over(int64_t curr_timestamp, int64_t ref_timestamp, int64_t max_duration_ms);
 void print_redis(sw::redis::Redis* redis, std::string channel_str);
+std::string get_standard_robot_id_str(sw::redis::Redis* redis)

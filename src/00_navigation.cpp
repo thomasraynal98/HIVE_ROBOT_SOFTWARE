@@ -43,7 +43,8 @@ int manual_mode_available(sw::redis::Redis* redis)
      * 11 = not available
      */
 
-    if(get_redis_str(redis, "HARD_MCU_MOTOR_COM_STATE").compare("CONNECTED") == 0) return 10;
+    if(get_redis_str(redis, "HARD_MCU_MOTOR_COM_STATE").compare("CONNECTED") == 0 && \
+    get_redis_str(redis, "SERVER_COM_STATE").compare("CONNECTED") == 0) return 10;
     return 11;
 }
 

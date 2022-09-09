@@ -13,14 +13,15 @@ void init_redis_var(sw::redis::Redis* redis)
     cv::FileStorage fsSettings(path_file, cv::FileStorage::READ);
     if(!fsSettings.isOpened())
     {
-        set_redis_var(redis, "EVENT", get_event_str(0, "LOAD_ROBOT_PARAM", "FAIL"));
+        pub_redis_var(redis, "EVENT", get_event_str(0, "LOAD_ROBOT_PARAM", "FAIL"));
         exit(0);
     }
 
-    set_redis_var(redis, "EVENT", get_event_str(0, "LOAD_ROBOT_PARAM", "SUCCESS"));
+    pub_redis_var(redis, "EVENT", get_event_str(0, "LOAD_ROBOT_PARAM", "SUCCESS"));
 
     read_yaml(redis, &fsSettings, "ROBOT_INFO_ID");
     read_yaml(redis, &fsSettings, "ROBOT_INFO_MODEL");
+    read_yaml(redis, &fsSettings, "ROBOT_INFO_EXPLOITATION");
     read_yaml(redis, &fsSettings, "ROBOT_INFO_PSEUDO");
 
     read_yaml(redis, &fsSettings, "ROBOT_INFO_MCU_MOTOR_ID");
@@ -67,6 +68,8 @@ void init_redis_var(sw::redis::Redis* redis)
 
     read_yaml(redis, &fsSettings, "HARD_MCU_MOTOR_COM_HZ");
     read_yaml(redis, &fsSettings, "HARD_PIXHAWK_COM_HZ");
+
+    read_yaml(redis, &fsSettings, "SERVER_COM_STATE");
 }
 
 int64_t get_curr_timestamp()
@@ -84,6 +87,11 @@ std::string get_event_str(int ID_event, std::string event_description, std::stri
 void set_redis_var(sw::redis::Redis* redis, std::string channel, std::string value)
 {
     redis->set(channel, value);
+}
+
+void pub_redis_var(sw::redis::Redis* redis, std::string channel, std::string value)
+{
+    redis->publish(channel, value);
 }
 
 std::string get_redis_str(sw::redis::Redis* redis, std::string channel)
@@ -163,4 +171,13 @@ void print_redis(sw::redis::Redis* redis, std::string channel_str)
 
     format_channel_str += get_redis_str(redis, channel_str);
     std::cout << format_channel_str << std::endl;
+}
+
+std::string get_standard_robot_id_str(sw::redis::Redis* redis)
+{
+    std::string official_id_str = get_redis_str(&redis, "ROBOT_INFO_ID") + "-";
+    official_id_str += get_redis_str(&redis, "ROBOT_INFO_PSEUDO") + "-";
+    official_id_str += get_redis_str(&redis, "ROBOT_INFO_MODEL") + "-";
+    official_id_str += get_redis_str(&redis, "ROBOT_INFO_EXPLOITATION");
+    return official_id_str;
 }
