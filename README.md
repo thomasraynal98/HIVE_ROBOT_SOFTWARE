@@ -8,9 +8,13 @@ RANE MK4 software developed by Hive Robotics.
 
 ##### **TODO:**
 
-*(03/09)* Récuperer les informations importantes de status de la pixhawk, ex: local position, nombre de satelite, mode du robot(hold, lost, prés a voler).
+~~*(03/09)* Récuperer les informations importantes de status de la pixhawk, ex: local position, nombre de satelite, mode du robot(hold, lost, prés a voler).~~
 
-*(04/09)* Gérer le programme 03 lorsqu'il n'arrive pas à ce connecté au server.
+~~*(04/09)* Gérer le programme 03 lorsqu'il n'arrive pas à ce connecté au server.~~
+
+*(12/09)* S'occuper du probleme qui fait que l'on doit d'abord run ./QGroundControl avant de pouvoir acceder au data de la pixhawk en passant par le code.
+
+*(12/09)* Vérifier que les données emis par la pixhawk soit de bonne qualité et qu'elle ne parte pas en couille.
 
 ##### **FEATURE:**
 
@@ -49,5 +53,7 @@ RANE MK4 software developed by Hive Robotics.
 *(09/09)* Ajouter les variables SERVER_CONNECTION_TIMESTAMP, SERVER_CONNECTION_DURATION, SERVER_LAST_MSG_TIMESTAMP et SERVER_LAST_MSG_DURATION.
 
 *(09/09)* Gérer la callback du programme Server qui va lire les EVENTS.
+
+*(09/09)* Ajouter un mode retour à la maison si plus de connection avec le server et qu'aucune livraison n'ai en cours.
 
 **WIFI:** 8PfURsp!dvic

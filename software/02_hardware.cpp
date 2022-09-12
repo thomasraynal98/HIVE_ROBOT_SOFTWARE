@@ -98,7 +98,8 @@ void function_thread_port_detection()
             }
 
             prefix_port_temp = prefix_port2 + std::to_string(i);
-            if(port_is_detected(prefix_port_temp)) 
+            if(port_is_detected(prefix_port_temp) && 
+            get_redis_str(&redis, "HARD_PIXHAWK_COM_STATE").compare("DISCONNECTED") == 0) 
             {
                 set_redis_var(&redis, "HARD_PIXHAWK_COM_STATE", "PORT_DETECTED");
                 set_redis_var(&redis, "HARD_PIXHAWK_PORT_NAME", prefix_port_temp);
@@ -192,7 +193,7 @@ void f_thread_write_mcu_inter()
 void f_thread_readwrite_pixhawk()
 {
     Generic_Port *pixhawk_com_manager;
-    int baudrate_pixhawk = 115200;
+    int baudrate_pixhawk = 57600;
     Autopilot_Interface* autopilot_interface;
 
     double ms_for_loop = frequency_to_ms(std::stoi(get_redis_str(&redis, "HARD_PIXHAWK_COM_HZ")));
@@ -220,19 +221,59 @@ void f_thread_readwrite_pixhawk()
         pixhawk_com_manager->is_running())
         {
             // READ ICI
+            Mavlink_Messages messages = autopilot_interface->current_messages;
+
+            std::string debug_str = "";
+
+            // LOCAL_POSITION_NED
+            // debug_str += std::to_string(messages.local_position_ned.x) + "|";
+            // debug_str += std::to_string(messages.local_position_ned.y) + "|";
+            // debug_str += std::to_string(messages.local_position_ned.z) + "|";
+            // debug_str += std::to_string(messages.local_position_ned.vx) + "|";
+            // debug_str += std::to_string(messages.local_position_ned.vy) + "|";
+            // debug_str += std::to_string(messages.local_position_ned.vz) + "|";
+
+            // GLOBAL_POSITION_INT
+            // debug_str += std::to_string(messages.global_position_int.lon) + "|";
+            // debug_str += std::to_string(messages.global_position_int.lat) + "|";
+            // debug_str += std::to_string(messages.global_position_int.hdg) + "|";
+            // debug_str += std::to_string(messages.global_position_int.vx) + "|";
+            // debug_str += std::to_string(messages.global_position_int.vy) + "|";
+            // debug_str += std::to_string(messages.global_position_int.vz) + "|";
+
+            // MSG SYSTEM STATUS
+            // debug_str += std::to_string(messages.sys_status.load) + "|";
+            // debug_str += std::to_string(messages.sys_status.onboard_control_sensors_enabled) + "|";
+            // debug_str += std::to_string(messages.sys_status.drop_rate_comm) + "|";
+
+            // HIGHRES IMU
+            // debug_str += std::to_string(messages.highres_imu.xgyro) + "|";
+            // debug_str += std::to_string(messages.highres_imu.ygyro) + "|";
+            // debug_str += std::to_string(messages.highres_imu.zgyro) + "|";
+            // debug_str += std::to_string(messages.highres_imu.xacc) + "|";
+            // debug_str += std::to_string(messages.highres_imu.yacc) + "|";
+            // debug_str += std::to_string(messages.highres_imu.zacc) + "|";
+            // debug_str += std::to_string(messages.highres_imu.temperature) + "|";
+
+            // GPS HIL
+            // debug_str += std::to_string(messages.thomas_add.fix_type) + "|";
+            // debug_str += std::to_string(messages.thomas_add.satellites_visible) + "|";
+
+            // std::cout << debug_str << std::endl;
         }
 
         // OPENING PROCEDURE
         if(get_redis_str(&redis, "HARD_PIXHAWK_COM_STATE").compare("PORT_DETECTED") == 0 && \
         port_is_detected(get_redis_str(&redis, "HARD_PIXHAWK_PORT_NAME")))
         {
-            pixhawk_com_manager = new Serial_Port(get_redis_str(&redis, "HARD_PIXHAWK_PORT_NAME").c_str(), baudrate_pixhawk);
+            std::string m = get_redis_str(&redis, "HARD_PIXHAWK_PORT_NAME");
+
+            pixhawk_com_manager = new Serial_Port(m.c_str(), baudrate_pixhawk);
             Autopilot_Interface temp_autopilot_interface(pixhawk_com_manager);
             autopilot_interface = &temp_autopilot_interface;
 
-            if(!pixhawk_com_manager->is_running()) pixhawk_com_manager->start();
+            pixhawk_com_manager->start();
             autopilot_interface->start();
-            usleep(500000);
 
             if(pixhawk_com_manager->is_running())
             {
@@ -244,7 +285,6 @@ void f_thread_readwrite_pixhawk()
                 set_redis_var(&redis, "HARD_PIXHAWK_COM_STATE", "DISCONNECTED");
                 set_redis_var(&redis, "HARD_PIXHAWK_PORT_NAME", "NO_VAL");
                 pub_redis_var(&redis, "EVENT", get_event_str(0, "OPEN_COM_PIXHAWK", "FAIL"));
-                usleep(500000);
             }
         }
 
@@ -264,6 +304,8 @@ void reset_value()
     set_redis_var(&redis, "HARD_MCU_CARGO_PORT_NAME", "NO_VAL");
     set_redis_var(&redis, "HARD_MCU_INTER_COM_STATE", "DISCONNECTED");
     set_redis_var(&redis, "HARD_MCU_INTER_PORT_NAME", "NO_VAL");
+    set_redis_var(&redis, "HARD_PIXHAWK_COM_STATE", "DISCONNECTED");
+    set_redis_var(&redis, "HARD_PIXHAWK_PORT_NAME", "NO_VAL");
 }
 
 int main(int argc, char *argv[])
@@ -287,4 +329,6 @@ int main(int argc, char *argv[])
     thread_write_mcu_cargo.join();
     thread_write_mcu_inter.join();
     thread_readwrite_pixhack.join();
+
+    return 0;
 }

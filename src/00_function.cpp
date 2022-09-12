@@ -175,9 +175,9 @@ void print_redis(sw::redis::Redis* redis, std::string channel_str)
 
 std::string get_standard_robot_id_str(sw::redis::Redis* redis)
 {
-    std::string official_id_str = get_redis_str(&redis, "ROBOT_INFO_ID") + "-";
-    official_id_str += get_redis_str(&redis, "ROBOT_INFO_PSEUDO") + "-";
-    official_id_str += get_redis_str(&redis, "ROBOT_INFO_MODEL") + "-";
-    official_id_str += get_redis_str(&redis, "ROBOT_INFO_EXPLOITATION");
+    std::string official_id_str = get_redis_str(redis, "ROBOT_INFO_ID") + "-";
+    official_id_str += get_redis_str(redis, "ROBOT_INFO_PSEUDO") + "-";
+    official_id_str += get_redis_str(redis, "ROBOT_INFO_MODEL") + "-";
+    official_id_str += get_redis_str(redis, "ROBOT_INFO_EXPLOITATION");
     return official_id_str;
 }

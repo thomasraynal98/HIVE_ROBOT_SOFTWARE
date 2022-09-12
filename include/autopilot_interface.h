@@ -212,7 +212,7 @@ struct Mavlink_Messages {
 	mavlink_attitude_t attitude;
 
 	// System Parameters?
-
+	mavlink_hil_gps_t thomas_add;
 
 	// Time Stamps
 	Time_Stamps time_stamps;
