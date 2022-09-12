@@ -8,7 +8,7 @@ ROBOT_INFO_PSEUDO                : "FLASH"
 ROBOT_INFO_MCU_MOTOR_ID          : "A"
 ROBOT_INFO_MCU_CARGO_ID          : "B"
 ROBOT_INFO_MCU_INTER_ID          : "C"
-ROBOT_INFO_SERVER_ADRESS         : "http://0.0.0.0:5000"
+ROBOT_INFO_SERVER_ADRESS         : "https://api.hiverobotics.fr"
 ROBOT_MODE                       : "INIT"
 
 # SERVER
@@ -31,6 +31,8 @@ HARD_MOTOR_COMMAND               : "0000000000000|M1m/s|M2m/s|M3m/s|M4m/s|M5m/s|
 HARD_CARGO_STATE                 : "0000000000000|BOXA_OPEN|BOXB_OPEN|BOXC_OPEN|"
 HARD_MCU_MOTOR_COM_HZ            : "10.0"
 HARD_PIXHAWK_COM_HZ              : "5.0"
+HARD_GPS_NUMBER                  : "0"
+HARD_GPS_FIX_STATE               : "0"
 
 # NAVIGATION
 NAV_HMR_MAP_UPDATE               : "TRUE"
@@ -41,6 +43,11 @@ NAV_AUTO_MODE                    : "SIMPLE"
 NAV_AUTO_MODE_PARKING            : "NO_VAL"
 NAV_MANUAL_MODE                  : "STANDARD"
 NAV_MAX_SPEED                    : "0.5"
+NAV_GLOBAL_POSITION              : "0000000000000|LONGITUDE|LATITUDE|ORIENTATION|"
+NAV_LOCAL_POSITION               : "0000000000000|X|Y|ORIENTATION|"
+NAV_ROAD_CURRENT_ID              : "0000000000000|0000|"
+NAV_GLOBAL_LOCALISATION_STATE    : "NO_AVAILABLE"
+NAV_AUTO_CROSSING_DIST_M         : "2.0"
 
 # ACTION/MISSION
 MISSION_MOTOR_BRAKE              : "TRUE"

@@ -85,8 +85,81 @@ struct Data_road
     }
 };
 
+struct Navigation_road{
+    Geographic_point* pt_origin;
+    Geographic_point* pt_target;
+    double length_road;
+    double orientation_target;
+    double speed_information;
+    int road_id;
+
+    Navigation_road(Geographic_point* last_node, Geographic_point* next_node, double a, double b, double c, double d)
+        : pt_origin(last_node)
+        , pt_target(next_node)
+        , length_road(a)
+        , orientation_target(b)
+        , speed_information(c)
+        , road_id(d)
+        {}
+};
+
+struct Robot_position
+{
+    double g_longitude, g_latitude, g_hdg;
+    double l_x, l_y, l_hdg;
+    int64_t g_timestamp, l_timestamp;
+
+    Robot_position()
+        : g_longitude(0.0)
+        , g_latitude(0.0)
+        , g_hdg(0.0)
+        , l_x(0.0)
+        , l_y(0.0)
+        , l_hdg(0.0)
+        , g_timestamp(0)
+        , l_timestamp(0)
+        {}
+    
+    void update_pos(sw::redis::Redis* redis)
+    {
+        std::vector<std::string> vect_str;
+
+        get_redis_multi_str(redis, "NAV_GLOBAL_POSITION", vect_str);
+        g_timestamp = std::stoul(vect_str[0]);
+        g_longitude = std::stod(vect_str[1]);
+        g_latitude  = std::stod(vect_str[2]);
+        g_hdg       = std::stod(vect_str[3]);
+
+        vect_str.clear();
+        get_redis_multi_str(redis, "NAV_LOCAL_POSITION", vect_str);
+        l_timestamp = std::stoul(vect_str[0]);
+        l_x         = std::stod(vect_str[1]);
+        l_y         = std::stod(vect_str[2]);
+        l_hdg       = std::stod(vect_str[3]);
+        
+        int gps_state = std::stoi(get_redis_str(redis, "HARD_GPS_FIX_STATE"));
+        if(get_redis_str(redis, "HARD_PIXHAWK_COM_STATE").compare("DISCONNECTED") != 0)
+        {
+            if(gps_state == 0) set_redis_var(redis, "NAV_GLOBAL_LOCALISATION_STATE", "NO_AVAILABLE");
+            if(gps_state == 1) set_redis_var(redis, "NAV_GLOBAL_LOCALISATION_STATE", "INSTABLE");
+            if(gps_state == 2) set_redis_var(redis, "NAV_GLOBAL_LOCALISATION_STATE", "AVAILABLE");
+            if(gps_state == 3) set_redis_var(redis, "NAV_GLOBAL_LOCALISATION_STATE", "OPTIMAL");
+        }
+        else
+        {
+            set_redis_var(redis, "NAV_GLOBAL_LOCALISATION_STATE", "NO_AVAILABLE");
+        }
+    }
+};
+
 int auto_mode_available(sw::redis::Redis* redis);
 int manual_mode_available(sw::redis::Redis* redis);
 std::string map_manual_command(sw::redis::Redis* redis, double back_value, double front_value, double angle, double max_speed_Ms);
 void read_xlsx_hmr(std::string file_path, std::vector<Data_node>& vect_node, std::vector<Data_road>& vect_road);
 double get_max_speed(sw::redis::Redis* redis, std::string robot_mode, std::string mode_param);
+void compute_current_road(sw::redis::Redis* redis, Robot_position* curr_pos, std::vector<Data_road>& road_vector, std::vector<Navigation_road>& destination_route, int opt_flag);
+double compute_shortest_distance_to_road(Navigation_road* road_vector, Robot_position* curr_pos);
+double compute_shortest_distance_to_road(Data_road road_vector, Robot_position* curr_pos);
+double compute_dist_between_geo_point(double latA, double longA, double latB, double longB);
+long double toRadians(const long double degree);
+bool detect_road_shift(sw::redis::Redis* redis, std::string new_road);

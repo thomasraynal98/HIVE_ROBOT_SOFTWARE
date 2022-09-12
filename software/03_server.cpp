@@ -2,6 +2,10 @@
 #include "00_communication.h"
 #include "00_navigation.h"
 
+#include <sio_client.h>
+#define ASIO_STANDALONE 
+#define SIO_TLS
+
 using namespace sw::redis;
 auto redis = Redis("tcp://127.0.0.1:6379");
 

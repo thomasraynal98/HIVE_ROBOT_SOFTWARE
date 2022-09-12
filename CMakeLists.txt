@@ -17,21 +17,20 @@ FIND_PACKAGE(OpenCV 4.2 REQUIRED)
 FIND_PACKAGE(OpenXLSX   REQUIRED)
 FIND_PACKAGE(realsense2 REQUIRED)
 FIND_PACKAGE(Eigen3 3.3 REQUIRED NO_MODULE)
-FIND_PACKAGE(sioclient REQUIRED)
 FIND_PACKAGE(websocketpp REQUIRED)
 find_package(OpenSSL REQUIRED)
 
 # # PROGRAMME 01 : GESTION DU SYSTEME YAML ET REDIS + DEBUG
-# ADD_EXECUTABLE(01_SYSTEM_MANAGER 
-# software/01_system.cpp
-# src/00_function.cpp
-# include/00_function.h)
+ADD_EXECUTABLE(01_SYSTEM_MANAGER 
+software/01_system.cpp
+src/00_function.cpp
+include/00_function.h)
 
-# TARGET_LINK_LIBRARIES(01_SYSTEM_MANAGER
-#     pthread
-#     hiredis
-#     redis++
-#     ${OpenCV_LIBS})
+TARGET_LINK_LIBRARIES(01_SYSTEM_MANAGER
+    pthread
+    hiredis
+    redis++
+    ${OpenCV_LIBS})
 
 # PROGRAMME 02 : GESTION DES COMMUNICATIONS AVEC LES MCU's (HARDWARE)
 ADD_EXECUTABLE(02_HARDWARE 
@@ -45,8 +44,6 @@ src/autopilot_interface.cpp
 include/autopilot_interface.h
 src/serial_port.cpp
 include/serial_port.h)
-# src/udp_port.cpp
-# include/udp_port.h)
 
 TARGET_LINK_LIBRARIES(02_HARDWARE
     pthread
@@ -58,42 +55,44 @@ TARGET_LINK_LIBRARIES(02_HARDWARE
     ${OpenCV_LIBS})
 
 # PROGRAMME 03 : GESTION DES COMMUNICATIONS AVEC LE SERVER.
-# ADD_EXECUTABLE(03_SERVER 
-# software/03_server.cpp
-# src/00_function.cpp
-# include/00_function.h
-# src/00_communication.cpp
-# include/00_communication.h
-# src/00_navigation.cpp 
-# include/00_navigation.h)
+ADD_EXECUTABLE(03_SERVER 
+software/03_server.cpp
+src/00_function.cpp
+include/00_function.h
+src/00_communication.cpp
+include/00_communication.h
+src/00_navigation.cpp 
+include/00_navigation.h)
 
-# TARGET_LINK_LIBRARIES(03_SERVER
-#     pthread
-#     hiredis
-#     redis++
-#     sioclient
-#     serial
-#     OpenXLSX::OpenXLSX
-#     ${OpenCV_LIBS})
+TARGET_LINK_LIBRARIES(03_SERVER
+    pthread
+    hiredis
+    redis++
+    serial
+    OpenXLSX::OpenXLSX
+    ssl
+    crypto 
+    /usr/local/lib/libsioclient_tls.so
+    ${OpenCV_LIBS})
 
-# # PROGRAMME 04 : ANALYSE DE LA SITUATION EST CHOIX COMMANDE MOTOR ROUES.
-# ADD_EXECUTABLE(04_NAVIGATION
-# software/04_navigation.cpp
-# src/00_function.cpp
-# include/00_function.h
-# src/00_communication.cpp
-# include/00_communication.h
-# src/00_navigation.cpp 
-# include/00_navigation.h)
+# PROGRAMME 04 : ANALYSE DE LA SITUATION EST CHOIX COMMANDE MOTOR ROUES.
+ADD_EXECUTABLE(04_NAVIGATION
+software/04_navigation.cpp
+src/00_function.cpp
+include/00_function.h
+src/00_communication.cpp
+include/00_communication.h
+src/00_navigation.cpp 
+include/00_navigation.h)
 
-# TARGET_LINK_LIBRARIES(04_NAVIGATION
-#     pthread
-#     hiredis
-#     redis++
-#     sioclient
-#     serial
-#     OpenXLSX::OpenXLSX
-#     ${OpenCV_LIBS})
+TARGET_LINK_LIBRARIES(04_NAVIGATION
+    pthread
+    hiredis
+    redis++
+    sioclient
+    serial
+    OpenXLSX::OpenXLSX
+    ${OpenCV_LIBS})
 
 # # PROGRAMME 66 : WTF.
 # ADD_EXECUTABLE(66_EXEMPLE

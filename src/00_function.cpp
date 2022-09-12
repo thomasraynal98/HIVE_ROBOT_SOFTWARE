@@ -70,6 +70,14 @@ void init_redis_var(sw::redis::Redis* redis)
     read_yaml(redis, &fsSettings, "HARD_PIXHAWK_COM_HZ");
 
     read_yaml(redis, &fsSettings, "SERVER_COM_STATE");
+
+    read_yaml(redis, &fsSettings, "HARD_GPS_NUMBER");
+    read_yaml(redis, &fsSettings, "HARD_GPS_FIX_STATE");
+    read_yaml(redis, &fsSettings, "NAV_GLOBAL_POSITION");
+    read_yaml(redis, &fsSettings, "NAV_LOCAL_POSITION");
+    read_yaml(redis, &fsSettings, "NAV_ROAD_CURRENT_ID");
+    read_yaml(redis, &fsSettings, "NAV_GLOBAL_LOCALISATION_STATE");
+    read_yaml(redis, &fsSettings, "NAV_AUTO_CROSSING_DIST_M");
 }
 
 int64_t get_curr_timestamp()

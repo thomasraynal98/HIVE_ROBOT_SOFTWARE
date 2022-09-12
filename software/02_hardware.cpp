@@ -226,20 +226,24 @@ void f_thread_readwrite_pixhawk()
             std::string debug_str = "";
 
             // LOCAL_POSITION_NED
-            // debug_str += std::to_string(messages.local_position_ned.x) + "|";
-            // debug_str += std::to_string(messages.local_position_ned.y) + "|";
-            // debug_str += std::to_string(messages.local_position_ned.z) + "|";
+            debug_str = std::to_string(get_curr_timestamp()) + "|";
+            debug_str += std::to_string(messages.local_position_ned.x) + "|";
+            debug_str += std::to_string(messages.local_position_ned.y) + "|";
+            debug_str += std::to_string(messages.local_position_ned.z) + "|";
             // debug_str += std::to_string(messages.local_position_ned.vx) + "|";
             // debug_str += std::to_string(messages.local_position_ned.vy) + "|";
             // debug_str += std::to_string(messages.local_position_ned.vz) + "|";
+            set_redis_var(&redis, "NAV_LOCAL_POSITION", debug_str);
 
             // GLOBAL_POSITION_INT
-            // debug_str += std::to_string(messages.global_position_int.lon) + "|";
-            // debug_str += std::to_string(messages.global_position_int.lat) + "|";
-            // debug_str += std::to_string(messages.global_position_int.hdg) + "|";
+            debug_str = std::to_string(get_curr_timestamp()) + "|";
+            debug_str += std::to_string(messages.global_position_int.lon) + "|";
+            debug_str += std::to_string(messages.global_position_int.lat) + "|";
+            debug_str += std::to_string(messages.global_position_int.hdg) + "|";
             // debug_str += std::to_string(messages.global_position_int.vx) + "|";
             // debug_str += std::to_string(messages.global_position_int.vy) + "|";
             // debug_str += std::to_string(messages.global_position_int.vz) + "|";
+            set_redis_var(&redis, "NAV_GLOBAL_POSITION", debug_str);
 
             // MSG SYSTEM STATUS
             // debug_str += std::to_string(messages.sys_status.load) + "|";
@@ -256,8 +260,8 @@ void f_thread_readwrite_pixhawk()
             // debug_str += std::to_string(messages.highres_imu.temperature) + "|";
 
             // GPS HIL
-            // debug_str += std::to_string(messages.thomas_add.fix_type) + "|";
-            // debug_str += std::to_string(messages.thomas_add.satellites_visible) + "|";
+            set_redis_var(&redis, "HARD_GPS_FIX_STATE", std::to_string(messages.thomas_add.fix_type));
+            set_redis_var(&redis, "HARD_GPS_NUMBER", std::to_string(messages.thomas_add.satellites_visible));
 
             // std::cout << debug_str << std::endl;
         }

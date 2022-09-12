@@ -106,6 +106,60 @@ void f_thread_debug()
             print_redis(&redis, "MISSION_MANUAL_STATE");
             print_redis(&redis, "MISSION_HARD_CARGO");
         }
+
+        if(display_mode.compare("MODE2") == 0)
+        {
+            std::system("clear");
+
+            print_redis(&redis, "ROBOT_MODE");
+            print_redis(&redis, "SERVER_COM_STATE");
+            std::cout << std::endl;
+
+            print_redis(&redis, "EVENT");
+            print_redis(&redis, "EVENT_MANUAL_CONTROLER_DATA");
+            std::cout << std::endl;
+
+            print_redis(&redis, "HARD_MCU_MOTOR_PORT_NAME");
+            print_redis(&redis, "HARD_MCU_CARGO_PORT_NAME");
+            print_redis(&redis, "HARD_MCU_INTER_PORT_NAME");
+            print_redis(&redis, "HARD_PIXHAWK_PORT_NAME");
+            print_redis(&redis, "HARD_MCU_MOTOR_COM_STATE");
+            print_redis(&redis, "HARD_MCU_CARGO_COM_STATE");
+            print_redis(&redis, "HARD_MCU_INTER_COM_STATE");
+            print_redis(&redis, "HARD_PIXHAWK_COM_STATE");
+            print_redis(&redis, "HARD_MOTOR_COMMAND");
+            print_redis(&redis, "HARD_CARGO_STATE");
+            print_redis(&redis, "HARD_MCU_MOTOR_COM_HZ");
+            print_redis(&redis, "HARD_PIXHAWK_COM_HZ");
+            std::cout << std::endl;
+
+            print_redis(&redis, "NAV_HMR_MAP_UPDATE");
+            print_redis(&redis, "NAV_HMR_DOWNLOAD_ADRESS");
+            print_redis(&redis, "NAV_HMR_LOCAL_PATH");
+            print_redis(&redis, "NAV_AUTO_DESTINATION");
+            print_redis(&redis, "NAV_AUTO_MODE");
+            print_redis(&redis, "NAV_AUTO_MODE_PARKING");
+            print_redis(&redis, "NAV_MANUAL_MODE");
+            print_redis(&redis, "NAV_MAX_SPEED");
+            std::cout << std::endl;
+
+            print_redis(&redis, "MISSION_MOTOR_BRAKE");
+            print_redis(&redis, "MISSION_UPDATE_GLOBAL_PATH");
+            print_redis(&redis, "MISSION_AUTO_TYPE");
+            print_redis(&redis, "MISSION_AUTO_STATE");
+            print_redis(&redis, "MISSION_MANUAL_TYPE");
+            print_redis(&redis, "MISSION_MANUAL_STATE");
+            print_redis(&redis, "MISSION_HARD_CARGO");
+
+            std::cout << std::endl;
+            print_redis(&redis, "HARD_GPS_NUMBER");
+            print_redis(&redis, "HARD_GPS_FIX_STATE");
+            print_redis(&redis, "NAV_GLOBAL_LOCALISATION_STATE");
+            print_redis(&redis, "NAV_GLOBAL_POSITION");
+            print_redis(&redis, "NAV_LOCAL_POSITION");
+            print_redis(&redis, "NAV_ROAD_CURRENT_ID");
+            print_redis(&redis, "NAV_AUTO_CROSSING_DIST_M");
+        }
     }
 }
 

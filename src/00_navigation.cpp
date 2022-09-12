@@ -263,3 +263,204 @@ double get_max_speed(sw::redis::Redis* redis, std::string robot_mode, std::strin
 
     return 0.0;
 }
+
+void compute_current_road(sw::redis::Redis* redis, Robot_position* curr_pos, std::vector<Data_road>& road_vector, std::vector<Navigation_road>& destination_route, int opt_flag)
+{
+    /*
+        Description : 
+            Cette fonction très importante permet de déterminer la route sur laquelle le robot
+            se trouve actuellement. Elle prend aussi en entré un systême d'option qui permet
+            de faire la différence entre un robot en AUTONAV et un robot pas en AUTONAV.
+    */
+
+    if(opt_flag == 0)
+    { 
+        // INITIALISATION PROCESS. OR MANUAL
+        double min_dist     = 9999; // km
+        double dist         = 0;    // km
+        int current_road_ID = 0;
+
+        for(int i = 0; i < road_vector.size(); i++)
+        {
+            dist = compute_shortest_distance_to_road(road_vector[i], curr_pos);
+
+            if(dist < min_dist)
+            {
+                min_dist = dist;
+                current_road_ID = road_vector[i].road_ID;
+            }
+        }
+
+        if(detect_road_shift(redis, std::to_string(current_road_ID)))
+        {
+            std::vector<std::string> vect_curr_road;
+            get_redis_multi_str(redis, "NAV_ROAD_CURRENT_ID", vect_curr_road);
+            pub_redis_var(redis, "EVENT", get_event_str(2, "CHANGE_ROAD", vect_curr_road[1] + ">" + std::to_string(current_road_ID)));
+        }
+        std::string redis_msg_str = std::to_string(get_curr_timestamp()) + "|";     
+        redis_msg_str += std::to_string(current_road_ID) + "|";
+        set_redis_var(redis, "NAV_ROAD_CURRENT_ID", redis_msg_str);
+    }
+    if(opt_flag == 1)
+    {
+        // AUTONAV PROCESS.
+
+        std::vector<std::string> vect_curr_road;
+        get_redis_multi_str(redis, "NAV_ROAD_CURRENT_ID", vect_curr_road);
+
+        int current_road_ID = std::stoi(vect_curr_road[1]);
+
+        double distance_next_node = 9999; // KM
+
+        double distance_next_road = 9999;
+        double distance_curr_road = 9999;
+
+        // First, check if we are far of next NODE.
+        for(int i = 0; i < destination_route.size(); i++)
+        {
+            if(destination_route[i].road_id == current_road_ID)
+            {
+                // IDEE 1 : next road plus proche que la current road.
+                distance_curr_road = compute_shortest_distance_to_road(&destination_route[i]  , curr_pos);        
+                distance_next_road = compute_shortest_distance_to_road(&destination_route[i+1], curr_pos);
+                if(distance_next_road <= distance_curr_road)
+                {
+                    pub_redis_var(redis, "EVENT", get_event_str(2, "CHANGE_ROAD_1", vect_curr_road[1] + ">" + std::to_string(destination_route[i+1].road_id)));
+                    std::string redis_msg_str = std::to_string(get_curr_timestamp()) + "|";
+                    redis_msg_str += std::to_string(destination_route[i+1].road_id) + "|";
+                    set_redis_var(redis, "NAV_ROAD_CURRENT_ID", redis_msg_str);
+                    return;
+                }
+
+                // IDEE 2 : le next node est à moins de NAV_AUTO_CROSSING_DIST_M mètre.
+                distance_next_node = compute_dist_between_geo_point(curr_pos->g_latitude, curr_pos->g_longitude, destination_route[i].pt_target->latitude, destination_route[i].pt_target->longitude);          
+                if(distance_next_node < std::stod(get_redis_str(redis, "NAV_AUTO_CROSSING_DIST_M")) && \
+                (i+1 < destination_route.size()))
+                {
+                    pub_redis_var(redis, "EVENT", get_event_str(2, "CHANGE_ROAD_2", vect_curr_road[1] + ">" + std::to_string(destination_route[i+1].road_id)));
+                    std::string redis_msg_str = std::to_string(get_curr_timestamp()) + "|";
+                    redis_msg_str += std::to_string(destination_route[i+1].road_id) + "|";
+                    set_redis_var(redis, "NAV_ROAD_CURRENT_ID", redis_msg_str);
+                    return;
+                }
+            }
+        }
+     
+    }
+}
+
+double compute_shortest_distance_to_road(Data_road road_vector, Robot_position* curr_pos)
+{
+    // POTENTIELLEMENT UN PROBLEME AVEC LA DIFFERENCE D'ECHELLE ENTRE LONGITUDE ET LATITUDE.
+
+    double px = road_vector.B->point.longitude - road_vector.A->point.longitude;
+    double py = road_vector.B->point.latitude  - road_vector.A->point.latitude;
+    
+    double norm = px*px + py*py;
+
+    double u = ((curr_pos->g_longitude - road_vector.A->point.longitude) * px + (curr_pos->g_latitude - road_vector.A->point.latitude) * py) / norm;
+
+    if(u > 1.0) u = 1.0;
+    else if (u < 0.0) u = 0.0;
+
+    double x = road_vector.A->point.longitude + u * px;
+    double y = road_vector.A->point.latitude  + u * py;
+
+    //  (x,y) represent the nearest point from current position to segment.
+
+    return compute_dist_between_geo_point(x, y, curr_pos->g_latitude, curr_pos->g_longitude);
+
+    // // Distance.
+    // double lat1  = toRadians(x);
+    // double long1 = toRadians(y);
+    // double lat2  = toRadians(curr_pos->g_latitude);
+    // double long2 = toRadians(curr_pos->g_longitude);
+
+    // // Haversine Formula
+    // long double dlong = long2 - long1;
+    // long double dlat = lat2 - lat1;
+
+    // long double ans = pow(sin(dlat / 2), 2) + cos(lat1) * cos(lat2) * pow(sin(dlong / 2), 2);
+
+    // ans = 2 * asin(sqrt(ans));
+    // long double R = 6371;
+    // double length = ans * R;
+
+    // return length;
+}
+
+double compute_shortest_distance_to_road(Navigation_road* road_vector, Robot_position* curr_pos)
+{
+    // POTENTIELLEMENT UN PROBLEME AVEC LA DIFFERENCE D'ECHELLE ENTRE LONGITUDE ET LATITUDE.
+
+    double px = road_vector->pt_target->longitude - road_vector->pt_origin->longitude;
+    double py = road_vector->pt_target->latitude  - road_vector->pt_origin->latitude;
+    
+    double norm = px*px + py*py;
+
+    double u = ((curr_pos->g_longitude - road_vector->pt_origin->longitude) * px + (curr_pos->g_latitude - road_vector->pt_origin->latitude) * py) / norm;
+
+    if(u > 1.0) u = 1.0;
+    else if (u < 0.0) u = 0.0;
+
+    double x = road_vector->pt_origin->longitude + u * px;
+    double y = road_vector->pt_origin->latitude  + u * py;
+
+    //  (x,y) represent the nearest point from current position to segment.
+
+    return compute_dist_between_geo_point(x, y, curr_pos->g_latitude, curr_pos->g_longitude);
+
+    // // Distance.
+    // double lat1  = toRadians(x);
+    // double long1 = toRadians(y);
+    // double lat2  = toRadians(curr_pos->g_latitude);
+    // double long2 = toRadians(curr_pos->g_longitude);
+
+    // // Haversine Formula
+    // long double dlong = long2 - long1;
+    // long double dlat = lat2 - lat1;
+
+    // long double ans = pow(sin(dlat / 2), 2) + cos(lat1) * cos(lat2) * pow(sin(dlong / 2), 2);
+
+    // ans = 2 * asin(sqrt(ans));
+    // long double R = 6371;
+    // double length = ans * R;
+
+    // return length;
+}
+
+double compute_dist_between_geo_point(double latA, double longA, double latB, double longB)
+{
+    double lat1 = toRadians(latA);
+    double long1 = toRadians(longA);
+    double lat2 = toRadians(latB);
+    double long2 = toRadians(longB);
+    // Haversine Formula
+    long double dlong = long2 - long1;
+    long double dlat = lat2 - lat1;
+
+    long double ans = pow(sin(dlat / 2), 2) +
+                        cos(lat1) * cos(lat2) *
+                        pow(sin(dlong / 2), 2);
+
+    ans = 2 * asin(sqrt(ans));
+    long double R = 6371;
+    return ans * R;
+}
+
+long double toRadians(const long double degree)
+{
+    long double one_deg = (M_PI) / 180;
+    return (one_deg * degree);
+}
+
+bool detect_road_shift(sw::redis::Redis* redis, std::string new_road)
+{
+    std::vector<std::string> vect_redis_str;
+    get_redis_multi_str(redis, "NAV_ROAD_CURRENT_ID", vect_redis_str);
+    if(vect_redis_str[1].compare(new_road) == 0)
+    {
+        return false;
+    }
+    return true;
+}

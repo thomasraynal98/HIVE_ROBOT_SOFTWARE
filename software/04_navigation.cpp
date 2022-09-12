@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
     std::vector<Data_node> vect_node;
     std::vector<Data_road> vect_road;
 
-    double ms_for_loop = frequency_to_ms(50);
+    double ms_for_loop = frequency_to_ms(2);
     auto next = std::chrono::high_resolution_clock::now();
 
     std::string motor_command_str = "0000000000000|0.0|0.0|0.0|0.0|0.0|0.0|";
@@ -18,6 +18,11 @@ int main(int argc, char *argv[])
 
     std::vector<std::string> vect_cmd_ctr;
     set_redis_var(&redis, "EVENT_MANUAL_CONTROLER_DATA", "0000000000000|0.0|0.0|0.0|");
+
+    Robot_position curr_position = Robot_position();
+    set_redis_var(&redis, "NAV_GLOBAL_POSITION", "0000000000000|0.0|0.0|0.0|");
+    set_redis_var(&redis, "NAV_LOCAL_POSITION", "0000000000000|0.0|0.0|0.0|");
+    std::vector<Navigation_road> destination_route;
 
     while(true)
     {
@@ -45,6 +50,7 @@ int main(int argc, char *argv[])
             }
             catch(...)
             {
+                set_redis_var(&redis, "NAV_HMR_MAP_UPDATE", "TRUE");
                 pub_redis_var(&redis, "EVENT", get_event_str(2, "LOAD_HMR", "FAIL"));
             }
         }
@@ -52,6 +58,14 @@ int main(int argc, char *argv[])
         //==============================================
         // LOCALISATION : Mettre à jour en lisant var.
         //==============================================
+        
+        curr_position.update_pos(&redis);
+        compute_current_road(&redis, &curr_position, vect_road, destination_route, 0);
+
+        // if(get_redis_str(&redis, "NAV_GLOBAL_LOCALISATION_STATE").compare("NO_AVAILABLE") != 0)
+        // {
+
+        // }
 
         //==============================================
         // NAVIGATION :
