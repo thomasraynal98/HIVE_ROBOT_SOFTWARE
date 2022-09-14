@@ -489,3 +489,123 @@ double compute_weight_road(Data_road* road)
 {
     return road->length / road->max_speed; // en heure decimal.
 }
+
+bool compute_navigation_path(int idx_start, int idx_endof, std::vector<Path_node>& graph, std::vector<Data_road>& road_vector, std::vector<Data_road*>& path_road_vector)
+{
+    path_road_vector.clear();
+
+    // GOOD INDEX.
+    int detection = 0;
+    for(int i = 0; i < graph.size(); i++)
+    {
+        if(graph[i].index_node == idx_start || graph[i].index_node == idx_endof) detection++;
+    }
+    if(detection < 2) return false;
+
+    // INIT A* PARAM.
+    for(int i = 0; i < graph.size(); i++)
+    {
+        graph[i].closet = false;
+        graph[i].gscore = 99999;
+        graph[i].fscore = 99999;
+        graph[i].come_from = NULL;
+    }
+
+    std::priority_queue<TuplePath,std::vector<TuplePath>,std::greater<TuplePath>> openList;   
+
+    // INITIALISATION START
+    Path_node* start_node;
+    Path_node* endof_node;
+
+    for(int idx_graph = 0; idx_graph < graph.size(); idx_graph++)
+    {
+        if(graph[idx_graph].index_node == idx_start)
+        {
+            start_node = &graph[idx_graph];
+            start_node->gscore = 0;
+        }
+        if(graph[idx_graph].index_node == idx_endof)
+        {
+            endof_node = &graph[idx_graph];
+        }
+    }
+    
+    TuplePath start_tuple(0.0, start_node);
+    openList.emplace(start_tuple);
+
+    while(!openList.empty())
+    {
+        TuplePath p = openList.top();
+        std::get<1>(p)->closet = true;
+        openList.pop();
+
+        // POUR CHAQUE VOISIN
+        for(int idx_voisin = 0; idx_voisin < std::get<1>(p)->connection_weight.size(); idx_voisin++)
+        {
+            // // VERIFIER SI ON EST A DESTINATION
+            if(std::get<1>(p)->connection_data[idx_voisin]->index_node == endof_node->index_node)
+            {
+                std::get<1>(p)->connection_data[idx_voisin]->come_from = std::get<1>(p);
+                Path_node* next_node = std::get<1>(p)->connection_data[idx_voisin];
+
+                // double distance_km = 0;
+                // double time_total_decimal = 0;
+                while(next_node->come_from != NULL && next_node->index_node != idx_start)
+                {
+                    // FOUND ROAD BETWEEN.
+                    for(int i = 0; i < road_vector.size(); i++)
+                    {
+                        if(road_vector[i].A->node_ID == next_node->index_node && \
+                        road_vector[i].B->node_ID == next_node->come_from->index_node)
+                        {
+                            // std::cout << " ROAD " << road_vector[i].road_ID << std::endl;
+                            path_road_vector.push_back(&road_vector[i]);
+                            // distance_km += road_vector[i].length;
+                            // time_total_decimal += (road_vector[i].length/road_vector[i].max_speed);
+                        }
+                        if(road_vector[i].B->node_ID == next_node->index_node && \
+                        road_vector[i].A->node_ID == next_node->come_from->index_node)
+                        {
+                            // std::cout << " ROAD " << road_vector[i].road_ID << std::endl;
+                            path_road_vector.push_back(&road_vector[i]);
+                            // distance_km += road_vector[i].length;
+                            // time_total_decimal += (road_vector[i].length/road_vector[i].max_speed);
+                        }
+                    }
+
+                    next_node = next_node->come_from;
+                }
+                // std::cout << std::setprecision(3);
+                // std::cout << "DISTANCE TOTAL : " << distance_km << " KM (" << std::ceil(time_total_decimal*60) << "Min)" << std::endl;
+
+                return true;
+            }
+
+            //  // CALCULER LE TENTATIVE_GSCORE = GSCORE[CURRENT] + DEPLACEMENT[CURRENT<>VOISIN]
+            double tentative_gscode = std::get<1>(p)->gscore + std::get<1>(p)->connection_weight[idx_voisin];
+
+            //  // IF TENTATIVE_GSCORE < GSCORE[VOISIN] //SETUP A 99999 DE BASE
+            if(tentative_gscode < std::get<1>(p)->connection_data[idx_voisin]->gscore)
+            {
+                //  //  // VOISIN PARENT = CURRENT
+                std::get<1>(p)->connection_data[idx_voisin]->come_from = std::get<1>(p);
+
+                //  //  // GSCORE[VOISIN] = TENTATIVE_GSCORE
+                std::get<1>(p)->connection_data[idx_voisin]->gscore = tentative_gscode;
+
+                //  //  // FSCORE[VOISIN] = TENTATIVE_GSCORE + DISTANCE[VOISIN<>DESTINATION]
+                // std::get<1>(p)->connection_data[idx_voisin]->fscore = tentative_gscode + compute_distance_to_end(*endof_node->n, *std::get<1>(p)->connection_data[idx_voisin]->n);
+                std::get<1>(p)->connection_data[idx_voisin]->fscore = tentative_gscode + get_angular_distance(endof_node->n->point, std::get<1>(p)->connection_data[idx_voisin]->n->point)/1000;
+
+                //  //  // IF VOISIN N'A PAS ENCORE ETAIT VISITER [CLOSET=FALSE]
+                if(!std::get<1>(p)->connection_data[idx_voisin]->closet)
+                {
+                    //  //  //  // AJOUT VOISIN DANS OPENLIST
+                    openList.emplace(std::get<1>(p)->connection_data[idx_voisin]->fscore, std::get<1>(p)->connection_data[idx_voisin]);
+                }
+            }
+        }
+    }
+
+    return false;
+}

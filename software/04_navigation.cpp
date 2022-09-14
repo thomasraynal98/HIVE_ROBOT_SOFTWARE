@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
     // std::vector<Navigation_road> vect_navigation;
 
     std::vector<Path_node> graph;
-    // std::vector<Data_road*> vect_brut_road;
+    std::vector<Data_road*> vect_brut_road;
 
     while(true)
     {
@@ -95,11 +95,15 @@ int main(int argc, char *argv[])
 
                 int node_endof_ID = get_node_ID_from_road(vect_road, destination_road_ID);
 
-                // vect_brut_road.clear();
-                // vect_navigation.clear();
-
-                // if(compute_navigation_path(index_start, index_endof, graph, vect_road, vect_brut_road))
-                // {
+                std::cout << "START" << std::endl;
+                if(compute_navigation_path(node_start_ID, node_endof_ID, graph, vect_road, vect_brut_road))
+                {
+                    // std::string global_path_str = "";
+                    // for(auto p_road : vect_brut_road)
+                    // {
+                    //     global_path_str += std::to_string(p_road->road_ID) + "|";
+                    // }
+                    // std::cout << global_path_str << std::endl;
                 //     // std::cout << "DEB25" << std::endl;
                 //     // brut_navigation_to_navigable_route(vect_brut_road, vect_navigation);
                 //     // std::cout << "DEB3" << std::endl;
@@ -115,7 +119,11 @@ int main(int argc, char *argv[])
                 // {
                 //     // set_redis_var(&redis, "MISSION_AUTO_STATE",     "INTERRUPTED");
                 //     // pub_redis_var(&redis, "EVENT", get_event_str(2, "COMPUTE_GLOBAL_PATH", "NO_SOLUTION"));
-                // }
+                }
+                else
+                {
+                    std::cout << "FAIL" << std::endl;
+                }
             }
             else
             {

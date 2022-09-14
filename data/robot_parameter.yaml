@@ -38,7 +38,7 @@ HARD_GPS_FIX_STATE               : "0"
 # NAVIGATION
 NAV_HMR_MAP_UPDATE               : "TRUE"
 NAV_HMR_DOWNLOAD_ADRESS          : "NO_VAL"
-NAV_HMR_LOCAL_PATH               : "../data/HIVE_MAP_DB_1.txt"
+NAV_HMR_LOCAL_PATH               : "../data/HMD_1.txt"
 NAV_AUTO_DESTINATION             : "0000000000000|LONGITUDE|LATITUDE|"
 NAV_AUTO_MODE                    : "SIMPLE"
 NAV_AUTO_MODE_PARKING            : "NO_VAL"

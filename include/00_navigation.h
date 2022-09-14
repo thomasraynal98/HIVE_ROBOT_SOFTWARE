@@ -2,6 +2,10 @@
 #include "00_function.h"
 
 #include <OpenXLSX.hpp>
+#include <iomanip>
+#include <sstream>
+#include <iostream>
+#include <vector>
 
 struct Geographic_point
 {
@@ -109,6 +113,7 @@ struct Robot_position
 };
 
 // [!] Pour faire le A*.
+
 struct Path_node{
     int index_node;
     Data_node* n;
@@ -128,6 +133,7 @@ struct Path_node{
         , come_from(NULL)
         {}
 };
+typedef std::tuple<double, Path_node*> TuplePath;
 
 int auto_mode_available(sw::redis::Redis* redis);
 int manual_mode_available(sw::redis::Redis* redis);
@@ -142,3 +148,4 @@ double get_dist_from_pos_to_toad(Geographic_point* pointA, Geographic_point* poi
 void update_path_node(std::vector<Data_node>& vector_node, std::vector<Data_road>& road_vector, std::vector<Path_node>& graph);
 double compute_weight_road(Data_road* road);
 int get_node_ID_from_road(std::vector<Data_road>& vect_road, int road_ID);
+bool compute_navigation_path(int idx_start, int idx_endof, std::vector<Path_node>& graph, std::vector<Data_road>& road_vector, std::vector<Data_road*>& path_road_vector);
