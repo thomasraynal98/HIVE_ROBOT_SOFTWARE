@@ -52,35 +52,7 @@ struct Data_road
 
     void init_data_road()
     {
-        max_speed = 7.001;
-        available = true;
-        
-        // Calcul distance between point->
-        double d = B->point->longitude - A->point->longitude;
-        double x = cos(B->point->latitude) * sin(d);
-        double y = cos(A->point->latitude) * sin(B->point->latitude) - (sin(A->point->latitude) * cos(B->point->latitude) * cos(d));
-        deg_to_B = atan2(x,y) * 180 / 3.14;
-        if(deg_to_B < 0) deg_to_B = 180 + (180 + deg_to_B);
-
-        deg_to_A = deg_to_B + 180;
-        if(deg_to_A > 360) deg_to_A = deg_to_A - 360;
-
-        // Distance.
-        double lat1  = toRadians(A->point->latitude);
-        double long1 = toRadians(A->point->longitude);
-        double lat2  = toRadians(B->point->latitude);
-        double long2 = toRadians(B->point->longitude);
-        // Haversine Formula
-        long double dlong = long2 - long1;
-        long double dlat = lat2 - lat1;
-    
-        long double ans = pow(sin(dlat / 2), 2) +
-                            cos(lat1) * cos(lat2) *
-                            pow(sin(dlong / 2), 2);
-    
-        ans = 2 * asin(sqrt(ans));
-        long double R = 6371;
-        length = ans * R;
+        // [!] Rien à faire car tout est setup dans le téléchargement du txt.
     }
 };
 
@@ -136,6 +108,27 @@ struct Robot_position
     }
 };
 
+// [!] Pour faire le A*.
+struct Path_node{
+    int index_node;
+    Data_node* n;
+    bool closet;
+    double fscore;
+    double gscore;
+    std::vector<Path_node*> connection_data;
+    std::vector<double> connection_weight;
+    Path_node* come_from; 
+
+    Path_node(int id, Data_node* a)
+        : n(a)
+        , closet(false)
+        , fscore(99999)
+        , gscore(99999)
+        , index_node(id)
+        , come_from(NULL)
+        {}
+};
+
 int auto_mode_available(sw::redis::Redis* redis);
 int manual_mode_available(sw::redis::Redis* redis);
 std::string map_manual_command(sw::redis::Redis* redis, double back_value, double front_value, double angle, double max_speed_Ms);
@@ -146,3 +139,6 @@ double get_bearing(Geographic_point* pointA, Geographic_point* pointB);
 long double deg_to_rad(const long double degree);
 double get_angular_distance(Geographic_point* pointA, Geographic_point* pointB);
 double get_dist_from_pos_to_toad(Geographic_point* pointA, Geographic_point* pointB, Geographic_point* pointC);
+void update_path_node(std::vector<Data_node>& vector_node, std::vector<Data_road>& road_vector, std::vector<Path_node>& graph);
+double compute_weight_road(Data_road* road);
+int get_node_ID_from_road(std::vector<Data_road>& vect_road, int road_ID);

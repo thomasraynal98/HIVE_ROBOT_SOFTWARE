@@ -257,12 +257,45 @@ int get_road_ID_from_pos(sw::redis::Redis* redis, std::vector<Data_road>& vect_r
             }
         }
 
+        // [?] Nous avons quitter les routes officiel en mode manuel. 
+        if(min_dist_m >= 15.0) 
+        {
+            std::vector<std::string> vect_redis_str;
+            get_redis_multi_str(redis, "NAV_ROAD_CURRENT_ID", vect_redis_str);
+            if(vect_redis_str[1].compare("-1") != 0)
+            {
+                pub_redis_var(redis, "EVENT", get_event_str(2, "MANUAL_NAV", "LEAVE_THE_MAP"));
+            }
+            return -1;
+        }
+
         return road_ID;
     }
 
     //==============================================
     // MODE AUTOMATIQUE
     //==============================================
+
+    if(get_redis_str(redis, "ROBOT_MODE").compare("AUTO") == 0)
+    {
+        double min_dist_m = 99999000;
+        double dist_m     = 99999000;
+        int road_ID       = -1;
+
+        for(int i = 0; i < vect_road.size(); i++)
+        {
+            dist_m = get_dist_from_pos_to_toad(vect_road[i].A->point, vect_road[i].B->point, curr_pos);
+
+            if(min_dist_m >= dist_m)
+            {
+                road_ID = vect_road[i].road_ID;
+                min_dist_m = dist_m;
+            }
+        }
+        return road_ID;
+    }
+
+    return -1;
 }
 
 double get_dist_from_pos_to_toad(Geographic_point* pointA, Geographic_point* pointB, Geographic_point* pointC)
@@ -404,4 +437,55 @@ long double deg_to_rad(const long double degree)
 {
     long double one_deg = (M_PI) / 180;
     return (one_deg * degree);
+}
+
+int get_node_ID_from_road(std::vector<Data_road>& vect_road, int road_ID)
+{
+    for(auto road : vect_road)
+    {
+        if(road.road_ID == road_ID)
+        {
+            // [!] On retourne forcement l'index du node A.
+            return road.A->node_ID;
+        }
+    }
+    return -1;
+}
+
+void update_path_node(std::vector<Data_node>& vector_node, std::vector<Data_road>& road_vector, std::vector<Path_node>& graph)
+{
+    for(int idx_node = 0; idx_node < vector_node.size(); idx_node++)
+    {
+        Path_node new_path_node(vector_node[idx_node].node_ID, &vector_node[idx_node]);
+        graph.push_back(new_path_node);
+    }
+    for(int idx_road = 0; idx_road < road_vector.size(); idx_road++)
+    {
+        if(road_vector[idx_road].available)
+        {
+            for(int idx_path = 0; idx_path < graph.size(); idx_path++)
+            {
+                if(graph[idx_path].index_node == road_vector[idx_road].A->node_ID)
+                {
+                    // 1 FOUND PATH NODE CONNECTION
+                    for(int idx_path2 = 0; idx_path2 < graph.size(); idx_path2++)
+                    {
+                        if(graph[idx_path2].index_node == road_vector[idx_road].B->node_ID)
+                        {
+                            graph[idx_path].connection_data.push_back(&graph[idx_path2]);
+                            graph[idx_path2].connection_data.push_back(&graph[idx_path]);
+                            // 2 COMPUTE WEIGHT
+                            graph[idx_path].connection_weight.push_back(compute_weight_road(&road_vector[idx_road]));
+                            graph[idx_path2].connection_weight.push_back(compute_weight_road(&road_vector[idx_road]));
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+double compute_weight_road(Data_road* road)
+{
+    return road->length / road->max_speed; // en heure decimal.
 }
