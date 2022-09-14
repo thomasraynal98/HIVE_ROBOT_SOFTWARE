@@ -14,17 +14,16 @@ struct Geographic_point
 };
 
 struct Data_node
-{
-    Geographic_point point;
+{   
     int node_ID;
+    Geographic_point* point;
     double col_idx, row_idx;
 
-    Data_node(int a, double b, double c)
-        : point(b,c)
-        , node_ID(a)
-        , col_idx(0)
-        , row_idx(0)
-        {}
+    Data_node(int a, Geographic_point* b)
+        : node_ID(a)
+        , col_idx(0.0)
+        , row_idx(0.0)
+        {   point = new Geographic_point(b->longitude, b->latitude);}
 };
 
 struct Data_road
@@ -56,10 +55,10 @@ struct Data_road
         max_speed = 7.001;
         available = true;
         
-        // Calcul distance between point.
-        double d = B->point.longitude - A->point.longitude;
-        double x = cos(B->point.latitude) * sin(d);
-        double y = cos(A->point.latitude) * sin(B->point.latitude) - (sin(A->point.latitude) * cos(B->point.latitude) * cos(d));
+        // Calcul distance between point->
+        double d = B->point->longitude - A->point->longitude;
+        double x = cos(B->point->latitude) * sin(d);
+        double y = cos(A->point->latitude) * sin(B->point->latitude) - (sin(A->point->latitude) * cos(B->point->latitude) * cos(d));
         deg_to_B = atan2(x,y) * 180 / 3.14;
         if(deg_to_B < 0) deg_to_B = 180 + (180 + deg_to_B);
 
@@ -67,10 +66,10 @@ struct Data_road
         if(deg_to_A > 360) deg_to_A = deg_to_A - 360;
 
         // Distance.
-        double lat1  = toRadians(A->point.latitude);
-        double long1 = toRadians(A->point.longitude);
-        double lat2  = toRadians(B->point.latitude);
-        double long2 = toRadians(B->point.longitude);
+        double lat1  = toRadians(A->point->latitude);
+        double long1 = toRadians(A->point->longitude);
+        double lat2  = toRadians(B->point->latitude);
+        double long2 = toRadians(B->point->longitude);
         // Haversine Formula
         long double dlong = long2 - long1;
         long double dlat = lat2 - lat1;
@@ -85,26 +84,9 @@ struct Data_road
     }
 };
 
-struct Navigation_road{
-    Geographic_point* pt_origin;
-    Geographic_point* pt_target;
-    double length_road;
-    double orientation_target;
-    double speed_information;
-    int road_id;
-
-    Navigation_road(Geographic_point* last_node, Geographic_point* next_node, double a, double b, double c, double d)
-        : pt_origin(last_node)
-        , pt_target(next_node)
-        , length_road(a)
-        , orientation_target(b)
-        , speed_information(c)
-        , road_id(d)
-        {}
-};
-
 struct Robot_position
 {
+    Geographic_point* point;
     double g_longitude, g_latitude, g_hdg;
     double l_x, l_y, l_hdg;
     int64_t g_timestamp, l_timestamp;
@@ -118,7 +100,7 @@ struct Robot_position
         , l_hdg(0.0)
         , g_timestamp(0)
         , l_timestamp(0)
-        {}
+        {point = new Geographic_point(0.0,0.0);}
     
     void update_pos(sw::redis::Redis* redis)
     {
@@ -129,6 +111,8 @@ struct Robot_position
         g_longitude = std::stod(vect_str[1]);
         g_latitude  = std::stod(vect_str[2]);
         g_hdg       = std::stod(vect_str[3]);
+        point->longitude = g_longitude;
+        point->latitude  = g_latitude;
 
         vect_str.clear();
         get_redis_multi_str(redis, "NAV_LOCAL_POSITION", vect_str);
@@ -155,11 +139,10 @@ struct Robot_position
 int auto_mode_available(sw::redis::Redis* redis);
 int manual_mode_available(sw::redis::Redis* redis);
 std::string map_manual_command(sw::redis::Redis* redis, double back_value, double front_value, double angle, double max_speed_Ms);
-void read_xlsx_hmr(std::string file_path, std::vector<Data_node>& vect_node, std::vector<Data_road>& vect_road);
+void Read_TXT_file(std::string path, std::vector<Data_node>& vector_node, std::vector<Data_road>& road_vector);
 double get_max_speed(sw::redis::Redis* redis, std::string robot_mode, std::string mode_param);
-void compute_current_road(sw::redis::Redis* redis, Robot_position* curr_pos, std::vector<Data_road>& road_vector, std::vector<Navigation_road>& destination_route, int opt_flag);
-double compute_shortest_distance_to_road(Navigation_road* road_vector, Robot_position* curr_pos);
-double compute_shortest_distance_to_road(Data_road road_vector, Robot_position* curr_pos);
-double compute_dist_between_geo_point(double latA, double longA, double latB, double longB);
-long double toRadians(const long double degree);
-bool detect_road_shift(sw::redis::Redis* redis, std::string new_road);
+int get_road_ID_from_pos(sw::redis::Redis* redis, std::vector<Data_road>& vect_road, Geographic_point* curr_pos);
+double get_bearing(Geographic_point* pointA, Geographic_point* pointB);
+long double deg_to_rad(const long double degree);
+double get_angular_distance(Geographic_point* pointA, Geographic_point* pointB);
+double get_dist_from_pos_to_toad(Geographic_point* pointA, Geographic_point* pointB, Geographic_point* pointC);

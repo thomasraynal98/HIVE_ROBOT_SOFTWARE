@@ -129,10 +129,10 @@ void bind_events(sio::socket::ptr current_socket)
         if(flag == 10 || flag == 20)
         {
             set_redis_var(&redis, "NAV_AUTO_MODE_PARKING", data->get_map()["OPT_DEST"]->get_string());
-            
-            std::string destination_str = std::to_string(get_curr_timestamp());
-            destination_str += std::to_string(data->get_map()["LONGITUDE"]->get_double());
-            destination_str += std::to_string(data->get_map()["LATITUDE"]->get_double());
+
+            std::string destination_str = std::to_string(get_curr_timestamp()) + "|";
+            destination_str += std::to_string(data->get_map()["LONGITUDE"]->get_double()) + "|";
+            destination_str += std::to_string(data->get_map()["LATITUDE"]->get_double()) + "|";
             set_redis_var(&redis, "NAV_AUTO_DESTINATION",       destination_str);
             set_redis_var(&redis, "MISSION_MOTOR_BRAKE",        "TRUE");
             set_redis_var(&redis, "MISSION_UPDATE_GLOBAL_PATH", "TRUE");

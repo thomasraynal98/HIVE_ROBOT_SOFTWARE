@@ -18,7 +18,8 @@ FIND_PACKAGE(OpenXLSX   REQUIRED)
 FIND_PACKAGE(realsense2 REQUIRED)
 FIND_PACKAGE(Eigen3 3.3 REQUIRED NO_MODULE)
 FIND_PACKAGE(websocketpp REQUIRED)
-find_package(OpenSSL REQUIRED)
+FIND_PACKAGE(OpenSSL REQUIRED)
+FIND_PACKAGE(sioclient REQUIRED)
 
 # # PROGRAMME 01 : GESTION DU SYSTEME YAML ET REDIS + DEBUG
 ADD_EXECUTABLE(01_SYSTEM_MANAGER 
@@ -70,9 +71,10 @@ TARGET_LINK_LIBRARIES(03_SERVER
     redis++
     serial
     OpenXLSX::OpenXLSX
-    ssl
-    crypto 
-    /usr/local/lib/libsioclient_tls.so
+    # ssl
+    # crypto 
+    # /usr/local/lib/libsioclient_tls.so
+    sioclient
     ${OpenCV_LIBS})
 
 # PROGRAMME 04 : ANALYSE DE LA SITUATION EST CHOIX COMMANDE MOTOR ROUES.

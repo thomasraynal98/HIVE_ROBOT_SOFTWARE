@@ -16,8 +16,11 @@ int auto_mode_available(sw::redis::Redis* redis)
 
     std::string opt_str = get_redis_str(redis, "NAV_AUTO_MODE");
     
-    if(opt_str.compare("SIMPLE"))
+    if(opt_str.compare("SIMPLE") == 0)
     {
+        if(get_redis_str(redis, "HARD_MCU_MOTOR_COM_STATE").compare("CONNECTED") == 0) return 10;
+        // HARD REMOVE
+
         if(get_redis_str(redis, "HARD_MCU_MOTOR_COM_STATE").compare("CONNECTED") == 0 && \
            get_redis_str(redis, "HARD_PIXHAWK_COM_STATE").compare("CONNECTED")   == 0) return 10;
 
@@ -28,7 +31,7 @@ int auto_mode_available(sw::redis::Redis* redis)
            get_redis_str(redis, "HARD_PIXHAWK_COM_STATE").compare("CONNECTED")   != 0) return 12;
 
     }
-    if(opt_str.compare("STANDARD"))
+    if(opt_str.compare("STANDARD") == 0)
     {
 
     }
@@ -153,99 +156,60 @@ std::string map_manual_command(sw::redis::Redis* redis, double back_value, doubl
     }
 }
 
-void read_xlsx_hmr(std::string file_path, std::vector<Data_node>& vect_node, std::vector<Data_road>& vect_road)
-{
-    OpenXLSX::XLDocument doc;
-    doc.open(file_path);
+void Read_TXT_file(std::string path, std::vector<Data_node>& vector_node, std::vector<Data_road>& road_vector)
+{ 
+    vector_node.clear();
+    road_vector.clear();
 
-    // ADD NODE.
-    auto wks = doc.workbook().worksheet("GEO_POINT");
+    std::ifstream file(path);
+    std::string str; 
 
-    for(auto& row : wks.rows())
+    std::string data_type;
+
+    while (std::getline(file, str))
     {
-        bool end = false;
-        int i = 0;
+        std::vector<std::string> vect_str;
 
-        int id = -1;
-        double longitude = 0;
-        double latitude = 0;
-
-        for(auto cell : row.cells(3))
+        get_multi_str(str, vect_str);
+        if(vect_str.size() == 1) data_type = vect_str[0];
+        else
         {
-            if(cell.value().type() == OpenXLSX::XLValueType::Empty) break;
-            end = true;
-            if(i == 0) id        = std::stoi(cell.value());
-            if(i == 1) longitude = std::stod(cell.value());
-            if(i == 2) latitude  = std::stod(cell.value());
-            i++;
-        }
-
-        if(!end) break;
-
-        vect_node.push_back(Data_node(id, longitude, latitude));
-    }
-
-    // ADD ROAD.
-    auto wks2 = doc.workbook().worksheet("PATH");
-
-    for(auto& row : wks2.rows())
-    {
-        bool end = false;
-        int i = 0;
-
-        int id_road = -1;
-        int id_pointA = 0;
-        int id_pointB = 0;
-        double deg_to_A = 0;
-        double deg_to_B = 0;
-        double length = 0;
-        bool available = true;
-        double speed = 0;
-
-        for(auto cell : row.cells(8))
-        {
-            if(cell.value().type() == OpenXLSX::XLValueType::Empty) break;
-
-            end = true;
-            if(i == 0) id_road   = std::stoi(cell.value());
-            if(i == 1) id_pointA = std::stoi(cell.value());
-            if(i == 2) id_pointB = std::stoi(cell.value());
-            if(i == 3) deg_to_A  = std::stod(cell.value());
-            if(i == 4) deg_to_B  = std::stod(cell.value());
-            if(i == 5) length    = std::stod(cell.value());
-            if(i == 6)
+            if(data_type.compare("NODE") == 0)
             {
-                int tempo = std::stoi(cell.value());
-                if(tempo == 1) available = true;
-                else{available = false;}
+                Geographic_point pt_temp = Geographic_point(std::stod(vect_str[1]), std::stod(vect_str[2]));
+                Data_node new_data(std::stoi(vect_str[0]), &pt_temp);
+                vector_node.push_back(new_data);
             }
-            if(i == 7) speed     = std::stod(cell.value());
-            i++;
-        }
-
-        if(!end) break;
-
-        Data_node* tempo_save;
-        for(int i = 0; i < vect_node.size(); i++)
-        {
-            if(id_pointA == vect_node[i].node_ID) { tempo_save = &vect_node[i]; break;}
-        }
-        for(int i = 0; i < vect_node.size(); i++)
-        {
-            if(id_pointB == vect_node[i].node_ID)
+            
+            if(data_type.compare("ROAD") == 0)
             {
-                Data_road new_road(id_road, tempo_save, &vect_node[i]);
-                new_road.available = available;
-                new_road.deg_to_A = deg_to_A;
-                new_road.deg_to_B = deg_to_B;
-                new_road.length = length;
-                new_road.max_speed = speed;
-                vect_road.push_back(new_road);
+                Data_node* tempo_save_A;
+                Data_node* tempo_save_B;
+                for(int i = 0; i < vector_node.size(); i++)
+                {
+                    if(vector_node[i].node_ID == std::stoi(vect_str[1]))
+                    {
+                        tempo_save_A = &vector_node[i];
+                    }
+                    if(vector_node[i].node_ID == std::stoi(vect_str[2]))
+                    {
+                        tempo_save_B = &vector_node[i];
+                    }
+                }
+
+                Data_road new_road(std::stoi(vect_str[0]), tempo_save_A, tempo_save_B);
+
+                if(std::stoi(vect_str[6]) == 1) new_road.available = true;
+                else{new_road.available = false;}
+
+                new_road.deg_to_A = std::stod(vect_str[3]);
+                new_road.deg_to_B = std::stod(vect_str[4]);
+                new_road.length = std::stod(vect_str[5]);
+                new_road.max_speed = std::stod(vect_str[7]);
+                road_vector.push_back(new_road);
             }
         }
     }
-
-    doc.close();
 }
 
 double get_max_speed(sw::redis::Redis* redis, std::string robot_mode, std::string mode_param)
@@ -264,203 +228,180 @@ double get_max_speed(sw::redis::Redis* redis, std::string robot_mode, std::strin
     return 0.0;
 }
 
-void compute_current_road(sw::redis::Redis* redis, Robot_position* curr_pos, std::vector<Data_road>& road_vector, std::vector<Navigation_road>& destination_route, int opt_flag)
+int get_road_ID_from_pos(sw::redis::Redis* redis, std::vector<Data_road>& vect_road, Geographic_point* curr_pos)
 {
     /*
-        Description : 
-            Cette fonction très importante permet de déterminer la route sur laquelle le robot
-            se trouve actuellement. Elle prend aussi en entré un systême d'option qui permet
-            de faire la différence entre un robot en AUTONAV et un robot pas en AUTONAV.
+        Description : Cette fonction va retourner le numéro d'ID de la route la plus
+        proche du point géographique. Cependant la manière d'attribué une route va 
+        dependre du mode dans lequel le robot se trouve.
     */
 
-    if(opt_flag == 0)
-    { 
-        // INITIALISATION PROCESS. OR MANUAL
-        double min_dist     = 9999; // km
-        double dist         = 0;    // km
-        int current_road_ID = 0;
+    //==============================================
+    // MODE MANUEL
+    //==============================================
 
-        for(int i = 0; i < road_vector.size(); i++)
-        {
-            dist = compute_shortest_distance_to_road(road_vector[i], curr_pos);
-
-            if(dist < min_dist)
-            {
-                min_dist = dist;
-                current_road_ID = road_vector[i].road_ID;
-            }
-        }
-
-        if(detect_road_shift(redis, std::to_string(current_road_ID)))
-        {
-            std::vector<std::string> vect_curr_road;
-            get_redis_multi_str(redis, "NAV_ROAD_CURRENT_ID", vect_curr_road);
-            pub_redis_var(redis, "EVENT", get_event_str(2, "CHANGE_ROAD", vect_curr_road[1] + ">" + std::to_string(current_road_ID)));
-        }
-        std::string redis_msg_str = std::to_string(get_curr_timestamp()) + "|";     
-        redis_msg_str += std::to_string(current_road_ID) + "|";
-        set_redis_var(redis, "NAV_ROAD_CURRENT_ID", redis_msg_str);
-    }
-    if(opt_flag == 1)
+    if(get_redis_str(redis, "ROBOT_MODE").compare("AUTO") != 0)
     {
-        // AUTONAV PROCESS.
+        double min_dist_m = 99999000;
+        double dist_m     = 99999000;
+        int road_ID       = -1;
 
-        std::vector<std::string> vect_curr_road;
-        get_redis_multi_str(redis, "NAV_ROAD_CURRENT_ID", vect_curr_road);
-
-        int current_road_ID = std::stoi(vect_curr_road[1]);
-
-        double distance_next_node = 9999; // KM
-
-        double distance_next_road = 9999;
-        double distance_curr_road = 9999;
-
-        // First, check if we are far of next NODE.
-        for(int i = 0; i < destination_route.size(); i++)
+        for(int i = 0; i < vect_road.size(); i++)
         {
-            if(destination_route[i].road_id == current_road_ID)
-            {
-                // IDEE 1 : next road plus proche que la current road.
-                distance_curr_road = compute_shortest_distance_to_road(&destination_route[i]  , curr_pos);        
-                distance_next_road = compute_shortest_distance_to_road(&destination_route[i+1], curr_pos);
-                if(distance_next_road <= distance_curr_road)
-                {
-                    pub_redis_var(redis, "EVENT", get_event_str(2, "CHANGE_ROAD_1", vect_curr_road[1] + ">" + std::to_string(destination_route[i+1].road_id)));
-                    std::string redis_msg_str = std::to_string(get_curr_timestamp()) + "|";
-                    redis_msg_str += std::to_string(destination_route[i+1].road_id) + "|";
-                    set_redis_var(redis, "NAV_ROAD_CURRENT_ID", redis_msg_str);
-                    return;
-                }
+            dist_m = get_dist_from_pos_to_toad(vect_road[i].A->point, vect_road[i].B->point, curr_pos);
 
-                // IDEE 2 : le next node est à moins de NAV_AUTO_CROSSING_DIST_M mètre.
-                distance_next_node = compute_dist_between_geo_point(curr_pos->g_latitude, curr_pos->g_longitude, destination_route[i].pt_target->latitude, destination_route[i].pt_target->longitude);          
-                if(distance_next_node < std::stod(get_redis_str(redis, "NAV_AUTO_CROSSING_DIST_M")) && \
-                (i+1 < destination_route.size()))
-                {
-                    pub_redis_var(redis, "EVENT", get_event_str(2, "CHANGE_ROAD_2", vect_curr_road[1] + ">" + std::to_string(destination_route[i+1].road_id)));
-                    std::string redis_msg_str = std::to_string(get_curr_timestamp()) + "|";
-                    redis_msg_str += std::to_string(destination_route[i+1].road_id) + "|";
-                    set_redis_var(redis, "NAV_ROAD_CURRENT_ID", redis_msg_str);
-                    return;
-                }
+            if(min_dist_m >= dist_m)
+            {
+                road_ID = vect_road[i].road_ID;
+                min_dist_m = dist_m;
             }
         }
-     
+
+        return road_ID;
     }
+
+    //==============================================
+    // MODE AUTOMATIQUE
+    //==============================================
 }
 
-double compute_shortest_distance_to_road(Data_road road_vector, Robot_position* curr_pos)
+double get_dist_from_pos_to_toad(Geographic_point* pointA, Geographic_point* pointB, Geographic_point* pointC)
 {
-    // POTENTIELLEMENT UN PROBLEME AVEC LA DIFFERENCE D'ECHELLE ENTRE LONGITUDE ET LATITUDE.
+    /*
+        Description : Cette fonction est chargé de calculé la distance entre un point 
+        géographique et une route en coordonnées GPS.
+        [!] pointA et pointB sont les extrémités de la route et pointC le point GPS.
+        [?] Les commentaires sont volontairement laissé pour faciliter la relecture.
+    */
 
-    double px = road_vector.B->point.longitude - road_vector.A->point.longitude;
-    double py = road_vector.B->point.latitude  - road_vector.A->point.latitude;
+    /*
+        La première étape et de prendre les extremiter de la route, ici point A et B et d'obtenir leur angle
+        depuis le point C et leur distance.
+    */
+
+    double d_ca = get_angular_distance(pointC, pointA);
+    double d_cb = get_angular_distance(pointC, pointB);
+
+    double a_ca = get_bearing(pointC, pointA);
+    double a_cb = get_bearing(pointC, pointB);
+
+    /*
+        On peux donc dire que l'on a les points A et B en coordonnées polaires par rapport au centre 0,0 ou
+        se situe le point C. On va maintenant passé de ces coordonnées polaires à des coordonnées carthésiennes.
+    */
+
+    double xa = d_ca * cos(deg_to_rad(a_ca));
+    double ya = d_ca * sin(deg_to_rad(a_ca));
+
+    double xb = d_cb * cos(deg_to_rad(a_cb));
+    double yb = d_cb * sin(deg_to_rad(a_cb));
+
+    /*
+        A partir d'ici on effectue la fonction classique pour trouver le point projeter sur le segment.
+    */
+
+    double A = 0 - xa;
+    double B = 0 - ya;
+    double C = xb - xa;
+    double D = yb - ya;
+
+    double dot = A * C + B * D;
+    double len_sq = C * C + D * D;
+    double param = -1;
+    if(len_sq != 0) param = dot / len_sq;
+
+    double XX, YY;
+
+    if(param < 0) 
+    {
+        XX = xa;
+        YY = ya;
+    }
+    else if(param > 1)
+    {
+        XX = xb;
+        YY = yb;
+    }
+    else
+    {
+        XX = xa + param * C;
+        YY = ya + param * D;
+    }
+
+    double dx = 0 - XX;
+    double dy = 0 - YY;
+    double dist_m = sqrt(pow(dx,2)+pow(dy,2));
+
+    return dist_m;
+
+    /*
+        [?] Si besoin de cette data.
+        Maintenant que l'on a les coordonnées dans l'espaces carthésien simplifiés il faut le repassé en polaire
+        puis de polaire repassé en géographique.
+        La première partie consiste à récuperer l'angle entre le point C et le point projeté (XX,YY).
+        La deuxième partie (POUR LE DEBUG) consiste à définir le point P en coordonnées géographique.
+    */
+
+    // double new_angle = 2 * atan(YY/(XX+sqrt(pow(XX,2)+pow(YY,2))));
+    // new_angle = new_angle*180/M_PI;
     
-    double norm = px*px + py*py;
+    // double lat_c_r  = deg_to_rad(pointC->latitude);
+    // double long_c_r = deg_to_rad(pointC->longitude);
 
-    double u = ((curr_pos->g_longitude - road_vector.A->point.longitude) * px + (curr_pos->g_latitude - road_vector.A->point.latitude) * py) / norm;
+    // double lat_p  = asin(sin(lat_c_r)*cos(dist_m/6371000) + cos(lat_c_r)*sin(dist_m/6371000)*cos(deg_to_rad(new_angle)));
+    // double long_p = long_c_r + atan2(sin(deg_to_rad(new_angle))*sin(dist_m/6371000)*cos(lat_c_r), cos(dist_m/6371000)-sin(lat_c_r)*sin(lat_p));
 
-    if(u > 1.0) u = 1.0;
-    else if (u < 0.0) u = 0.0;
+    // projec_pos->longitude = long_p;
+    // projec_pos->latitude  = lat_p;
 
-    double x = road_vector.A->point.longitude + u * px;
-    double y = road_vector.A->point.latitude  + u * py;
-
-    //  (x,y) represent the nearest point from current position to segment.
-
-    return compute_dist_between_geo_point(x, y, curr_pos->g_latitude, curr_pos->g_longitude);
-
-    // // Distance.
-    // double lat1  = toRadians(x);
-    // double long1 = toRadians(y);
-    // double lat2  = toRadians(curr_pos->g_latitude);
-    // double long2 = toRadians(curr_pos->g_longitude);
-
-    // // Haversine Formula
-    // long double dlong = long2 - long1;
-    // long double dlat = lat2 - lat1;
-
-    // long double ans = pow(sin(dlat / 2), 2) + cos(lat1) * cos(lat2) * pow(sin(dlong / 2), 2);
-
-    // ans = 2 * asin(sqrt(ans));
-    // long double R = 6371;
-    // double length = ans * R;
-
-    // return length;
+    // std::cout << std::setprecision(8);
+    // // std::cout << "La distance est de " << dist_m << " (" << new_angle << "°) vers LONG:" << long_p*180/M_PI << " LAT:" << lat_p*180/M_PI << std::endl;
+    // return dist_m;
 }
 
-double compute_shortest_distance_to_road(Navigation_road* road_vector, Robot_position* curr_pos)
+double get_angular_distance(Geographic_point* pointA, Geographic_point* pointB)
 {
-    // POTENTIELLEMENT UN PROBLEME AVEC LA DIFFERENCE D'ECHELLE ENTRE LONGITUDE ET LATITUDE.
-
-    double px = road_vector->pt_target->longitude - road_vector->pt_origin->longitude;
-    double py = road_vector->pt_target->latitude  - road_vector->pt_origin->latitude;
+    double lat1  = pointA->latitude;
+    double long1 = pointA->longitude;
+    double lat2  = pointB->latitude;
+    double long2 = pointB->longitude;
     
-    double norm = px*px + py*py;
+    double R = 6371000;
+    double r1 = lat1 * M_PI / 180;
+    double r2 = lat2 * M_PI / 180;
+    double dl = (lat2 - lat1) * M_PI/180;
+    double dd = (long2 - long1) * M_PI/180;
 
-    double u = ((curr_pos->g_longitude - road_vector->pt_origin->longitude) * px + (curr_pos->g_latitude - road_vector->pt_origin->latitude) * py) / norm;
+    double a = sin(dl/2) * sin(dl/2) + cos(r1) * cos(r2) * sin(dd/2) * sin(dd/2);
+    double c = 2 * atan2(sqrt(a), sqrt(1-a));
 
-    if(u > 1.0) u = 1.0;
-    else if (u < 0.0) u = 0.0;
+    // [?] c represente la distance angulaire.
+    // return c
 
-    double x = road_vector->pt_origin->longitude + u * px;
-    double y = road_vector->pt_origin->latitude  + u * py;
-
-    //  (x,y) represent the nearest point from current position to segment.
-
-    return compute_dist_between_geo_point(x, y, curr_pos->g_latitude, curr_pos->g_longitude);
-
-    // // Distance.
-    // double lat1  = toRadians(x);
-    // double long1 = toRadians(y);
-    // double lat2  = toRadians(curr_pos->g_latitude);
-    // double long2 = toRadians(curr_pos->g_longitude);
-
-    // // Haversine Formula
-    // long double dlong = long2 - long1;
-    // long double dlat = lat2 - lat1;
-
-    // long double ans = pow(sin(dlat / 2), 2) + cos(lat1) * cos(lat2) * pow(sin(dlong / 2), 2);
-
-    // ans = 2 * asin(sqrt(ans));
-    // long double R = 6371;
-    // double length = ans * R;
-
-    // return length;
+    return R * c;
 }
 
-double compute_dist_between_geo_point(double latA, double longA, double latB, double longB)
+double get_bearing(Geographic_point* pointA, Geographic_point* pointB)
 {
-    double lat1 = toRadians(latA);
-    double long1 = toRadians(longA);
-    double lat2 = toRadians(latB);
-    double long2 = toRadians(longB);
-    // Haversine Formula
-    long double dlong = long2 - long1;
-    long double dlat = lat2 - lat1;
+    double lat1  = deg_to_rad(pointA->latitude);
+    double long1 = deg_to_rad(pointA->longitude);
+    double lat2  = deg_to_rad(pointB->latitude);
+    double long2 = deg_to_rad(pointB->longitude);
 
-    long double ans = pow(sin(dlat / 2), 2) +
-                        cos(lat1) * cos(lat2) *
-                        pow(sin(dlong / 2), 2);
+    double y = sin(long2 - long1) * cos(lat2);
+    double x = cos(lat1)*sin(lat2) - sin(lat1)*cos(lat2)*cos(long2 - long1);
+    double o = atan2(y, x);
 
-    ans = 2 * asin(sqrt(ans));
-    long double R = 6371;
-    return ans * R;
+    if(o*180/M_PI < 0.0)
+    {
+        return 360 + o*180/M_PI;
+    }
+
+    return o*180/M_PI;
 }
 
-long double toRadians(const long double degree)
+long double deg_to_rad(const long double degree)
 {
     long double one_deg = (M_PI) / 180;
     return (one_deg * degree);
-}
-
-bool detect_road_shift(sw::redis::Redis* redis, std::string new_road)
-{
-    std::vector<std::string> vect_redis_str;
-    get_redis_multi_str(redis, "NAV_ROAD_CURRENT_ID", vect_redis_str);
-    if(vect_redis_str[1].compare(new_road) == 0)
-    {
-        return false;
-    }
-    return true;
 }

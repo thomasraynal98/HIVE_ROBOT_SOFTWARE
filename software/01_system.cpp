@@ -154,11 +154,12 @@ void f_thread_debug()
             std::cout << std::endl;
             print_redis(&redis, "HARD_GPS_NUMBER");
             print_redis(&redis, "HARD_GPS_FIX_STATE");
+            print_redis(&redis, "NAV_AUTO_CROSSING_DIST_M");
             print_redis(&redis, "NAV_GLOBAL_LOCALISATION_STATE");
             print_redis(&redis, "NAV_GLOBAL_POSITION");
             print_redis(&redis, "NAV_LOCAL_POSITION");
             print_redis(&redis, "NAV_ROAD_CURRENT_ID");
-            print_redis(&redis, "NAV_AUTO_CROSSING_DIST_M");
+            print_redis(&redis, "NAV_AUTO_DESTINATION_ROAD_ID");
         }
     }
 }

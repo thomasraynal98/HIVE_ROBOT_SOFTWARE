@@ -46,7 +46,7 @@ void init_redis_var(sw::redis::Redis* redis)
     read_yaml(redis, &fsSettings, "NAV_HMR_DOWNLOAD_ADRESS");
     read_yaml(redis, &fsSettings, "NAV_HMR_LOCAL_PATH");
     read_yaml(redis, &fsSettings, "NAV_AUTO_DESTINATION");
-    read_yaml(redis, &fsSettings, "NAV_AUTO_MODE_PARKING");
+    read_yaml(redis, &fsSettings, "NAV_AUTO_MgetODE_PARKING");
 
     read_yaml(redis, &fsSettings, "NAV_AUTO_MODE");
     read_yaml(redis, &fsSettings, "MISSION_MOTOR_BRAKE");
@@ -78,6 +78,7 @@ void init_redis_var(sw::redis::Redis* redis)
     read_yaml(redis, &fsSettings, "NAV_ROAD_CURRENT_ID");
     read_yaml(redis, &fsSettings, "NAV_GLOBAL_LOCALISATION_STATE");
     read_yaml(redis, &fsSettings, "NAV_AUTO_CROSSING_DIST_M");
+    read_yaml(redis, &fsSettings, "NAV_AUTO_DESTINATION_ROAD_ID");
 }
 
 int64_t get_curr_timestamp()
