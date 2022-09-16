@@ -454,6 +454,8 @@ int get_node_ID_from_road(std::vector<Data_road>& vect_road, int road_ID)
 
 void update_path_node(std::vector<Data_node>& vector_node, std::vector<Data_road>& road_vector, std::vector<Path_node>& graph)
 {
+    graph.clear();
+
     for(int idx_node = 0; idx_node < vector_node.size(); idx_node++)
     {
         Path_node new_path_node(vector_node[idx_node].node_ID, &vector_node[idx_node]);
@@ -608,4 +610,161 @@ bool compute_navigation_path(int idx_start, int idx_endof, std::vector<Path_node
     }
 
     return false;
+}
+
+void process_final_roadmap(sw::redis::Redis* redis, std::vector<Data_road*>& path_road_vector, std::vector<Data_road>& road_vector, std::vector<Roadmap_node>& vect_roadmap)
+{
+    /*
+        Description : l'objectif de cette fonction va être de récuperer le chemin brut obtenue par
+        l'algorythme de A* et le transformé en feuille de route navigable.
+    */
+
+    //==============================================
+    // ROTATE VECTOR.
+    //==============================================
+    std::reverse(path_road_vector.begin(),path_road_vector.end());
+
+    //==============================================
+    // LES ROUTES MANQUANTES.
+    //==============================================
+
+    int curr_road_ID, dest_road_ID;
+
+    std::vector<std::string> vect_str;
+    get_redis_multi_str(redis, "NAV_ROAD_CURRENT_ID", vect_str);
+    curr_road_ID = std::stoi(vect_str[1]); 
+    get_redis_multi_str(redis, "NAV_AUTO_DESTINATION_ROAD_ID", vect_str);
+    dest_road_ID = std::stoi(vect_str[1]); 
+
+    if(curr_road_ID != path_road_vector[0]->road_ID)
+    {
+        for(int i = 0; i < road_vector.size(); i++)
+        {
+            if(curr_road_ID == road_vector[i].road_ID)
+            {
+                path_road_vector.insert(path_road_vector.begin(), &road_vector[i]);
+                break;
+            }
+        }
+    }
+
+    if(dest_road_ID != path_road_vector[path_road_vector.size()-1]->road_ID)
+    {
+        for(int i = 0; i < road_vector.size(); i++)
+        {
+            if(dest_road_ID == road_vector[i].road_ID)
+            {
+                path_road_vector.push_back(&road_vector[i]);
+                break;
+            }
+        }
+    }
+    
+    //==============================================
+    // TRANSFORMER LE BRUT EN NET (UTILISABLE)
+    //==============================================
+
+    for(int i = path_road_vector.size()-1; i >= 0; i--)
+    {
+        if(i == path_road_vector.size()-1)
+        {
+            get_redis_multi_str(redis, "NAV_AUTO_DESTINATION", vect_str);
+            Geographic_point dest = Geographic_point(std::stod(vect_str[1]), std::stod(vect_str[2]));
+
+            Roadmap_node rm_node  = Roadmap_node();
+            rm_node.road          = path_road_vector[i];
+
+            std::vector<Data_node*> tempo_vect; 
+            detect_connection(path_road_vector[i], path_road_vector[i-1], tempo_vect);
+
+            rm_node.node_start    = tempo_vect[0];
+            rm_node.node_target   = tempo_vect[1];
+
+            rm_node.dest_dist_m   = get_angular_distance(rm_node.node_start->point , &dest);
+            rm_node.dest_time_s   = get_time_to_travel_s(rm_node.dest_dist_m, rm_node.road->max_speed);
+
+            vect_roadmap.push_back(rm_node);
+        }
+        if(i != path_road_vector.size()-1 && i != 0)
+        {
+            Roadmap_node rm_node  = Roadmap_node();
+            rm_node.road          = path_road_vector[i];
+
+            std::vector<Data_node*> tempo_vect; 
+            detect_connection(path_road_vector[i], path_road_vector[i-1], tempo_vect);
+
+            rm_node.node_start    = tempo_vect[0];
+            rm_node.node_target   = tempo_vect[1];
+
+            rm_node.dest_dist_m   = vect_roadmap[vect_roadmap.size()-1].dest_dist_m + get_angular_distance(rm_node.node_start->point , rm_node.node_target->point);
+            rm_node.dest_time_s   = vect_roadmap[vect_roadmap.size()-1].dest_time_s + get_time_to_travel_s(rm_node.dest_dist_m, rm_node.road->max_speed);
+
+            vect_roadmap.push_back(rm_node);
+        }
+        if(i == 0)
+        {
+            get_redis_multi_str(redis, "NAV_GLOBAL_POSITION", vect_str);
+            Geographic_point curr = Geographic_point(std::stod(vect_str[1]), std::stod(vect_str[2]));
+
+            Roadmap_node rm_node  = Roadmap_node();
+            rm_node.road          = path_road_vector[i];
+
+            std::vector<Data_node*> tempo_vect; 
+            detect_connection(path_road_vector[i], path_road_vector[i+1], tempo_vect);
+
+            rm_node.node_start    = tempo_vect[1];
+            rm_node.node_target   = tempo_vect[0];
+
+            rm_node.dest_dist_m   = vect_roadmap[vect_roadmap.size()-1].dest_dist_m + get_angular_distance(rm_node.node_target->point , &curr);
+            rm_node.dest_time_s   = vect_roadmap[vect_roadmap.size()-1].dest_time_s + get_time_to_travel_s(rm_node.dest_dist_m, rm_node.road->max_speed);
+
+            vect_roadmap.push_back(rm_node);
+        }
+    }
+}
+
+bool detect_connection(Data_road* road1, Data_road* road2, std::vector<Data_node*>& tempo_vect)
+{
+    /*
+        Description : Cette fonction permet de detecter le point qui relie la road1 à
+        la road2.
+    */
+
+    tempo_vect.clear();
+
+    if(road1->A->node_ID == road2->A->node_ID)
+    {
+        // Du coup on connais le sens de direction.
+        tempo_vect.push_back(road1->A);
+        tempo_vect.push_back(road1->B);
+        return true;
+    }
+    if(road1->A->node_ID == road2->B->node_ID)
+    {
+        // Du coup on connais le sens de direction.
+        tempo_vect.push_back(road1->A);
+        tempo_vect.push_back(road1->B);
+        return true;
+    }
+    if(road1->B->node_ID == road2->B->node_ID)
+    {
+        // Du coup on connais le sens de direction.
+        tempo_vect.push_back(road1->B);
+        tempo_vect.push_back(road1->A);
+        return true;
+    }
+    if(road1->B->node_ID == road2->A->node_ID)
+    {
+        // Du coup on connais le sens de direction.
+        tempo_vect.push_back(road1->B);
+        tempo_vect.push_back(road1->A);
+        return true;
+    }
+    return false;
+}
+
+int get_time_to_travel_s(double distance, double speed)
+{
+    // distance en mètre, speed en km/h, return en seconde. 
+    return distance / (speed*1000/3600);
 }

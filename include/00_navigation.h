@@ -135,6 +135,22 @@ struct Path_node{
 };
 typedef std::tuple<double, Path_node*> TuplePath;
 
+struct Roadmap_node{
+    Data_road* road;
+    Data_node* node_target;
+    Data_node* node_start;
+    double dest_dist_m;
+    int dest_time_s;
+
+    Roadmap_node()
+        : road(NULL)
+        , node_target(NULL)
+        , node_start(NULL)
+        , dest_dist_m(0.0)
+        , dest_time_s(0)
+        {}
+};
+
 int auto_mode_available(sw::redis::Redis* redis);
 int manual_mode_available(sw::redis::Redis* redis);
 std::string map_manual_command(sw::redis::Redis* redis, double back_value, double front_value, double angle, double max_speed_Ms);
@@ -149,3 +165,7 @@ void update_path_node(std::vector<Data_node>& vector_node, std::vector<Data_road
 double compute_weight_road(Data_road* road);
 int get_node_ID_from_road(std::vector<Data_road>& vect_road, int road_ID);
 bool compute_navigation_path(int idx_start, int idx_endof, std::vector<Path_node>& graph, std::vector<Data_road>& road_vector, std::vector<Data_road*>& path_road_vector);
+
+void process_final_roadmap(sw::redis::Redis* redis, std::vector<Data_road*>& path_road_vector, std::vector<Data_road>& road_vector, std::vector<Roadmap_node>& vect_roadmap);
+bool detect_connection(Data_road* road1, Data_road* road2, std::vector<Data_node*>& tempo_vect);
+int get_time_to_travel_s(double distance, double speed);

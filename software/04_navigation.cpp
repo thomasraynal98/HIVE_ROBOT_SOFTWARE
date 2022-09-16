@@ -26,6 +26,7 @@ int main(int argc, char *argv[])
 
     std::vector<Path_node> graph;
     std::vector<Data_road*> vect_brut_road;
+    std::vector<Roadmap_node> vect_roadmap;
 
     while(true)
     {
@@ -79,8 +80,6 @@ int main(int argc, char *argv[])
             if(std::stoi(vect_str[1]) != -1)
             {
                 pub_redis_var(&redis, "EVENT", get_event_str(2, "COMPUTE_GLOBAL_PATH", "START"));
-
-                // graph.clear();
                 update_path_node(vect_node, vect_road, graph);
 
                 int node_start_ID = get_node_ID_from_road(vect_road, std::stoi(vect_str[1]));
@@ -95,7 +94,6 @@ int main(int argc, char *argv[])
 
                 int node_endof_ID = get_node_ID_from_road(vect_road, destination_road_ID);
 
-                std::cout << "START" << std::endl;
                 if(compute_navigation_path(node_start_ID, node_endof_ID, graph, vect_road, vect_brut_road))
                 {
                     // std::string global_path_str = "";
@@ -104,25 +102,25 @@ int main(int argc, char *argv[])
                     //     global_path_str += std::to_string(p_road->road_ID) + "|";
                     // }
                     // std::cout << global_path_str << std::endl;
-                //     // std::cout << "DEB25" << std::endl;
-                //     // brut_navigation_to_navigable_route(vect_brut_road, vect_navigation);
-                //     // std::cout << "DEB3" << std::endl;
-                //     // destination_route_correction(&redis, vect_road, vect_navigation);
-                //     // std::cout << "DEB4" << std::endl;
-                //     // print_vect_navigation(vect_navigation);
 
-                //     // set_redis_var(&redis, "MISSION_MOTOR_BRAKE",    "FALSE");
-                //     // set_redis_var(&redis, "MISSION_AUTO_STATE",     "IN_PROGRESS");
-                //     // pub_redis_var(&redis, "EVENT", get_event_str(2, "COMPUTE_GLOBAL_PATH", "COMPLETED"));
-                // }
-                // else
-                // {
-                //     // set_redis_var(&redis, "MISSION_AUTO_STATE",     "INTERRUPTED");
-                //     // pub_redis_var(&redis, "EVENT", get_event_str(2, "COMPUTE_GLOBAL_PATH", "NO_SOLUTION"));
+                    process_final_roadmap(&redis, vect_brut_road, vect_road, vect_roadmap);
+
+                    // std::string global_path_str = "";
+                    // for(int i = vect_roadmap.size()-1; i >= 0; i--)
+                    // {
+                    //     global_path_str += std::to_string(vect_roadmap[i].node_start->node_ID) + " > ";
+                    //     global_path_str += std::to_string(vect_roadmap[i].road->road_ID) + " > ";
+                    //     global_path_str += std::to_string(vect_roadmap[i].node_target->node_ID) + " > (";
+                    //     global_path_str += std::to_string(vect_roadmap[i].dest_dist_m) + "m ~";
+                    //     global_path_str += std::to_string(vect_roadmap[i].dest_time_s) + "s) > ";
+                    // }
+                    // std::cout << global_path_str << std::endl;
+
+                    pub_redis_var(&redis, "EVENT", get_event_str(2, "COMPUTE_GLOBAL_PATH", "SUCCESS"));
                 }
                 else
                 {
-                    std::cout << "FAIL" << std::endl;
+                    pub_redis_var(&redis, "EVENT", get_event_str(2, "COMPUTE_GLOBAL_PATH", "NO_PATH_POSSIBLE"));
                 }
             }
             else
