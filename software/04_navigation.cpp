@@ -111,12 +111,15 @@ int main(int argc, char *argv[])
                     //     global_path_str += std::to_string(vect_roadmap[i].node_start->node_ID) + " > ";
                     //     global_path_str += std::to_string(vect_roadmap[i].road->road_ID) + " > ";
                     //     global_path_str += std::to_string(vect_roadmap[i].node_target->node_ID) + " > (";
-                    //     global_path_str += std::to_string(vect_roadmap[i].dest_dist_m) + "m ~";
+                    //     global_path_str += std::to_string(vect_roadmap[i].dest_dist_to_road_m) + "m ~";
                     //     global_path_str += std::to_string(vect_roadmap[i].dest_time_s) + "s) > ";
                     // }
                     // std::cout << global_path_str << std::endl;
 
                     pub_redis_var(&redis, "EVENT", get_event_str(2, "COMPUTE_GLOBAL_PATH", "SUCCESS"));
+                    set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "FALSE");
+                    set_redis_var(&redis, "MISSION_AUTO_TYPE",   "WAITING");
+                    set_redis_var(&redis, "MISSION_AUTO_STATE",  "IN_PROGRESS");
                 }
                 else
                 {
@@ -154,7 +157,7 @@ int main(int argc, char *argv[])
                     {
                         if(!time_is_over(get_curr_timestamp(), std::stoul(vect_cmd_ctr[0]), 1500))
                         {
-                            curr_max_speed    = get_max_speed(&redis, "MANUAL", flag_manual_mode);
+                            curr_max_speed    = get_max_speed(&redis, "MANUAL", flag_manual_mode, vect_road);
                             motor_command_str = map_manual_command(&redis, std::stod(vect_cmd_ctr[1]), std::stod(vect_cmd_ctr[2]), std::stod(vect_cmd_ctr[3]), curr_max_speed);
                         }
                         else
@@ -173,9 +176,200 @@ int main(int argc, char *argv[])
             //==========================================
             // Autonomous mode nav.
             //==========================================
-            if(get_redis_str(&redis, "ROBOT_MODE").compare("AUTO") == 0)
+            if(compare_redis_var(&redis, "ROBOT_MODE", "AUTO"))
             {
-                
+                if(compare_redis_var(&redis, "MISSION_AUTO_TYPE", "GOTO") && \
+                compare_redis_var(&redis, "MISSION_AUTO_STATE", "IN_PROGRESS") && \
+                (auto_mode_available(&redis) == 10 || auto_mode_available(&redis) == 20))
+                {
+                    if(compare_redis_var(&redis, "NAV_AUTO_MODE", "SIMPLE"))
+                    {
+                        std::vector<std::string> vect_str;
+                        get_redis_multi_str(&redis, "NAV_ROAD_CURRENT_ID", vect_str);
+                        int curr_road_id = std::stoi(vect_str[1]);
+                        get_redis_multi_str(&redis, "NAV_AUTO_DESTINATION_ROAD_ID", vect_str);
+                        int dest_road_id = std::stoi(vect_str[1]);
+                        get_redis_multi_str(&redis, "NAV_AUTO_DESTINATION", vect_str);
+                        Geographic_point dest = Geographic_point(std::stod(vect_str[1]), std::stod(vect_str[2]));
+
+                        if(curr_road_id == dest_road_id && \
+                        get_angular_distance(curr_position.point, &dest) <= std::stod(get_redis_str(&redis, "NAV_AUTO_DESTINATION_CROSSING_M")))
+                        {
+                            set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "TRUE");
+                            set_redis_var(&redis, "MISSION_AUTO_STATE",  "COMPLETED");
+                            pub_redis_var(&redis, "EVENT", get_event_str(2, "MISSION_AUTO_GOTO", "SUCCESS"));
+                        }
+                        else
+                        {
+                            // [?] Get node of the road.
+                            Geographic_point* curr_start_node;
+                            Geographic_point* curr_target_node;
+
+                            for(int i = 0; i < vect_roadmap.size(); i++)
+                            {
+                                if(vect_roadmap[i].road->road_ID == curr_road_id)
+                                {
+                                    curr_start_node  = vect_roadmap[i].node_start->point;
+                                    curr_target_node = vect_roadmap[i].node_target->point;
+                                    break;
+                                }
+                            }
+
+                            // [?] Project this point on polaire ref.
+                            double d_ca = get_angular_distance(curr_position.point, curr_start_node);
+                            double d_cb = get_angular_distance(curr_position.point, curr_target_node);
+
+                            double a_ca = get_bearing(curr_position.point, curr_start_node);
+                            double a_cb = get_bearing(curr_position.point, curr_target_node);
+
+                            double xa   = d_ca * cos(deg_to_rad(a_ca));
+                            double ya   = d_ca * sin(deg_to_rad(a_ca));
+
+                            double xb   = d_cb * cos(deg_to_rad(a_cb));
+                            double yb   = d_cb * sin(deg_to_rad(a_cb));
+
+                            // [?] Estimate futur point [!] upgrade !
+                            get_redis_multi_str(&redis, "HARD_MOTOR_COMMAND", vect_str);
+                            double robot_curr_speed = 0.0;
+                            for(int i = 1; i < vect_str.size(); i++)
+                            {
+                                robot_curr_speed += std::stod(vect_str[i]);
+                            }
+                            robot_curr_speed = robot_curr_speed / 6;
+
+                            double xf   = robot_curr_speed * cos(deg_to_rad(curr_position.g_hdg));
+                            double yf   = robot_curr_speed * sin(deg_to_rad(curr_position.g_hdg));
+
+                            // [?] Check if point futur is on the road, with projection point.
+                            double A    = xf - xa;
+                            double B    = yf - ya;
+                            double C    = xb - xa;
+                            double D    = yb - ya;
+
+                            double dot    = A * C + B * D;
+                            double len_sq = C * C + D * D;
+                            double param  = -1;
+                            if(len_sq != 0) param = dot / len_sq;
+
+                            double XX, YY;
+
+                            if(param < 0) 
+                            {
+                                XX = xa;
+                                YY = ya;
+                            }
+                            else if(param > 1)
+                            {
+                                XX = xb;
+                                YY = yb;
+                            }
+                            else
+                            {
+                                XX = xa + param * C;
+                                YY = ya + param * D;
+                            }
+
+                            double dx             = xf - XX;
+                            double dy             = yf - YY;
+                            double dist_to_road_m = sqrt(pow(dx,2)+pow(dy,2));
+
+                            double xt, yt;
+                            double xs, ys;
+
+                            // [?] Update seek point [xs,ys] (target point).
+                            if(dist_to_road_m >= std::stod(get_redis_str(&redis, "NAV_AUTO_ROAD_RADIUS")))
+                            {
+                                double ddx = XX - xb;
+                                double ddy = YY - yb;
+                                double dist_proj_to_target = sqrt(pow(ddx,2)+pow(ddy,2));
+
+                                if(dist_proj_to_target >= std::stod(get_redis_str(&redis, "NAV_AUTO_TARGET_EXTENSION")))
+                                {
+                                    // TODO: Avancer de x mètres le point projeter sur road.
+                                    double bearing_start_target = get_bearing(curr_start_node, curr_target_node);
+                                    xt = xa + std::stod(get_redis_str(&redis, "NAV_AUTO_TARGET_EXTENSION")) * cos(deg_to_rad(bearing_start_target));
+                                    yt = ya + std::stod(get_redis_str(&redis, "NAV_AUTO_TARGET_EXTENSION")) * sin(deg_to_rad(bearing_start_target));
+                                }
+                                else
+                                {
+                                    xt = xb;
+                                    yt = yb;
+                                }
+
+                                xs = xt + (-xf);
+                                ys = yt + (-yf);
+                            }
+                            else
+                            {
+                                xs = xf;
+                                ys = yf;
+                            }
+
+                            // [?] Transform target point to motor command.
+                            double perfect_motor_speed = sqrt(pow(xs,2)+pow(ys,2));
+                            double curr_max_speed      = get_max_speed(&redis, "AUTO", "NO_MODE", vect_road);
+                            double final_max_speed     = 0.0;
+                            if(perfect_motor_speed > curr_max_speed)
+                            {
+                                final_max_speed = curr_max_speed;
+                            }
+                            else
+                            {
+                                final_max_speed = perfect_motor_speed;
+                            }
+
+                            // [?] final_angle : angle to go to target.
+                            // [?] diff_angle  : diff bewteen curr angle and final_angle.
+                            double final_angle = 2 * atan(ys / (xs + sqrt(pow(xs, 2) + pow(ys, 2))));
+                            if(final_angle < 0) final_angle + 2 * M_PI;
+                            final_angle = final_angle * 180 / M_PI;
+
+                            double diff_angle = 0;
+
+                            if(curr_position.g_hdg - final_angle > 0)
+                            {
+                                if(curr_position.g_hdg - final_angle > 180)
+                                {
+                                    // Va vers droite
+                                    diff_angle = 360 - (curr_position.g_hdg - final_angle);
+                                }
+                                else
+                                {
+                                    // Va vers gauche
+                                    diff_angle = -(curr_position.g_hdg - final_angle);
+                                }
+                            }
+                            else
+                            {
+                                if(curr_position.g_hdg - final_angle < -180)
+                                {
+                                    // Va vers gauche
+                                    diff_angle = -(360 - (final_angle - curr_position.g_hdg));
+                                }
+                                else
+                                {   
+                                    // Va vers droite
+                                    diff_angle = final_angle - curr_position.g_hdg;
+                                }   
+                            }
+
+
+                            double right_speed = (2*final_max_speed+deg_to_rad(diff_angle)*std::stod(get_redis_str(&redis, "HARD_WHEEL_DISTANCE"))) / (2*std::stod(get_redis_str(&redis, "HARD_WHEEL_DISTANCE")));
+                            double left_speed  = (2*final_max_speed-deg_to_rad(diff_angle)*std::stod(get_redis_str(&redis, "HARD_WHEEL_DISTANCE"))) / (2*std::stod(get_redis_str(&redis, "HARD_WHEEL_DISTANCE")));
+
+                            motor_command_str = std::to_string(get_curr_timestamp()) + "|";
+                            
+                            for(int i = 0; i < 3; i++)
+                            {
+                                motor_command_str += std::to_string(left_speed) + "|";
+                            }
+                            for(int i = 3; i < 6; i++)
+                            {
+                                motor_command_str += std::to_string(right_speed) + "|";
+                            }
+                        }
+                    }
+                }
             }
         }
 

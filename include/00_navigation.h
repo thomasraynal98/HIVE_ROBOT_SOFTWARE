@@ -155,7 +155,7 @@ int auto_mode_available(sw::redis::Redis* redis);
 int manual_mode_available(sw::redis::Redis* redis);
 std::string map_manual_command(sw::redis::Redis* redis, double back_value, double front_value, double angle, double max_speed_Ms);
 void Read_TXT_file(std::string path, std::vector<Data_node>& vector_node, std::vector<Data_road>& road_vector);
-double get_max_speed(sw::redis::Redis* redis, std::string robot_mode, std::string mode_param);
+double get_max_speed(sw::redis::Redis* redis, std::string robot_mode, std::string mode_param, std::vector<Data_road>& road_vector);
 int get_road_ID_from_pos(sw::redis::Redis* redis, std::vector<Data_road>& vect_road, Geographic_point* curr_pos);
 double get_bearing(Geographic_point* pointA, Geographic_point* pointB);
 long double deg_to_rad(const long double degree);
@@ -169,3 +169,4 @@ bool compute_navigation_path(int idx_start, int idx_endof, std::vector<Path_node
 void process_final_roadmap(sw::redis::Redis* redis, std::vector<Data_road*>& path_road_vector, std::vector<Data_road>& road_vector, std::vector<Roadmap_node>& vect_roadmap);
 bool detect_connection(Data_road* road1, Data_road* road2, std::vector<Data_node*>& tempo_vect);
 int get_time_to_travel_s(double distance, double speed);
+double get_distance(double xa, double ya, double xb, double yb);

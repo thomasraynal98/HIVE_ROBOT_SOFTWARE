@@ -79,6 +79,13 @@ void init_redis_var(sw::redis::Redis* redis)
     read_yaml(redis, &fsSettings, "NAV_GLOBAL_LOCALISATION_STATE");
     read_yaml(redis, &fsSettings, "NAV_AUTO_CROSSING_DIST_M");
     read_yaml(redis, &fsSettings, "NAV_AUTO_DESTINATION_ROAD_ID");
+
+    read_yaml(redis, &fsSettings, "NAV_AUTO_ROAD_RADIUS");
+    read_yaml(redis, &fsSettings, "NAV_AUTO_TARGET_EXTENSION");
+    read_yaml(redis, &fsSettings, "NAV_AUTO_DESTINATION_CROSSING_M");
+
+    read_yaml(redis, &fsSettings, "HARD_WHEEL_DISTANCE");
+    read_yaml(redis, &fsSettings, "HARD_WHEEL_DISTANCE");
 }
 
 int64_t get_curr_timestamp()
@@ -189,4 +196,10 @@ std::string get_standard_robot_id_str(sw::redis::Redis* redis)
     official_id_str += get_redis_str(redis, "ROBOT_INFO_MODEL") + "-";
     official_id_str += get_redis_str(redis, "ROBOT_INFO_EXPLOITATION");
     return official_id_str;
+}
+
+bool compare_redis_var(sw::redis::Redis* redis, std::string channel, std::string compare)
+{
+    if(get_redis_str(redis, channel).compare(compare) == 0) return true;
+    return false;
 }

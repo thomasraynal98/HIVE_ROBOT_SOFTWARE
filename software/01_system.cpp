@@ -160,6 +160,9 @@ void f_thread_debug()
             print_redis(&redis, "NAV_LOCAL_POSITION");
             print_redis(&redis, "NAV_ROAD_CURRENT_ID");
             print_redis(&redis, "NAV_AUTO_DESTINATION_ROAD_ID");
+            print_redis(&redis, "NAV_AUTO_ROAD_RADIUS");
+            print_redis(&redis, "NAV_AUTO_TARGET_EXTENSION");
+            print_redis(&redis, "NAV_AUTO_DESTINATION_CROSSING_M");
         }
     }
 }

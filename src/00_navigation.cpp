@@ -18,6 +18,7 @@ int auto_mode_available(sw::redis::Redis* redis)
     
     if(opt_str.compare("SIMPLE") == 0)
     {
+        // HARD REMOVE
         if(get_redis_str(redis, "HARD_MCU_MOTOR_COM_STATE").compare("CONNECTED") == 0) return 10;
         // HARD REMOVE
 
@@ -212,7 +213,7 @@ void Read_TXT_file(std::string path, std::vector<Data_node>& vector_node, std::v
     }
 }
 
-double get_max_speed(sw::redis::Redis* redis, std::string robot_mode, std::string mode_param)
+double get_max_speed(sw::redis::Redis* redis, std::string robot_mode, std::string mode_param, std::vector<Data_road>& road_vector)
 {
     if(robot_mode.compare("MANUAL") == 0)
     {
@@ -222,7 +223,24 @@ double get_max_speed(sw::redis::Redis* redis, std::string robot_mode, std::strin
 
     if(robot_mode.compare("AUTO") == 0)
     {
-        return 0.0;
+        if(compare_redis_var(redis, "ROBOT_INFO_MODEL", "MK4_LIGHT"))
+        {
+            return 0.2;
+        }
+        if(compare_redis_var(redis, "ROBOT_INFO_MODEL", "MK4"))
+        {
+            std::vector<std::string> vect_str;
+            get_redis_multi_str(redis, "NAV_ROAD_CURRENT_ID", vect_str);
+            int curr_road_id = std::stoi(vect_str[1]);
+
+            for(int i = 0; i < road_vector.size(); i++)
+            {
+                if(road_vector[i].road_ID == curr_road_id)
+                {
+                    return road_vector[i].max_speed;
+                }
+            }
+        }
     }
 
     return 0.0;
@@ -767,4 +785,9 @@ int get_time_to_travel_s(double distance, double speed)
 {
     // distance en mètre, speed en km/h, return en seconde. 
     return distance / (speed*1000/3600);
+}
+
+double get_distance(double xa, double ya, double xb, double yb)
+{
+    return sqrt(pow(xa-xb,2)+pow(ya-yb,2));
 }
