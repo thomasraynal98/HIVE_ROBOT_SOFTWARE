@@ -319,7 +319,7 @@ int main(int argc, char *argv[])
                             }
 
                             // [?] final_angle : angle to go to target.
-                            // [?] diff_angle  : diff bewteen curr angle and final_angle.
+                            // [?] diff_angle  : diff bewteen curr angle and final_angle. [-pi,0,pi]
                             double final_angle = 2 * atan(ys / (xs + sqrt(pow(xs, 2) + pow(ys, 2))));
                             if(final_angle < 0) final_angle + 2 * M_PI;
                             final_angle = final_angle * 180 / M_PI;
@@ -353,20 +353,71 @@ int main(int argc, char *argv[])
                                 }   
                             }
 
+                            double beta_angle    = 90 - abs(diff_angle);
+                            double radius_circle = sqrt(pow(xs/2,2)+pow(ys/2,2))/cos(deg_to_rad(beta_angle));
 
-                            double right_speed = (2*final_max_speed+deg_to_rad(diff_angle)*std::stod(get_redis_str(&redis, "HARD_WHEEL_DISTANCE"))) / (2*std::stod(get_redis_str(&redis, "HARD_WHEEL_DISTANCE")));
-                            double left_speed  = (2*final_max_speed-deg_to_rad(diff_angle)*std::stod(get_redis_str(&redis, "HARD_WHEEL_DISTANCE"))) / (2*std::stod(get_redis_str(&redis, "HARD_WHEEL_DISTANCE")));
+                            //[!] Le threshold résoud le probleme de la rotation arriere.
+                            double opt_treshold = 145;
+                            if(diff_angle > opt_treshold)
+                            {
+                                //[!] Il faut faire demi tour vers la droite.
+                                motor_command_str = std::to_string(get_curr_timestamp()) + "|";
+                                if(compare_redis_var(&redis, "ROBOT_INFO_MODEL", "MK4"))
+                                {
+                                    motor_command_str += "0.5|0.2|0.5|-0.5|-0.2|-0.5|"
+                                }
+                                if(compare_redis_var(&redis, "ROBOT_INFO_MODEL", "MK4_LIGHT"))
+                                {
+                                    motor_command_str += "0.2|0.2|0.2|-0.2|-0.2|-0.2|"
+                                }
+                            }
+                            if(diff_angle < -opt_treshold)
+                            {
+                                //[!] Il faut faire demi tour vers la gauche.
+                                motor_command_str = std::to_string(get_curr_timestamp()) + "|";
+                                if(compare_redis_var(&redis, "ROBOT_INFO_MODEL", "MK4"))
+                                {
+                                    motor_command_str += "-0.5|-0.2|-0.5|0.5|0.2|0.5|"
+                                }
+                                if(compare_redis_var(&redis, "ROBOT_INFO_MODEL", "MK4_LIGHT"))
+                                {
+                                    motor_command_str += "-0.2|-0.2|-0.2|0.2|0.2|0.2|"
+                                }
+                            }
+                            if(diff_angle <= opt_treshold && diff_angle >= -opt_treshold)
+                            {
+                                //[?] Si l'angle est entre le threshold et la zone normal, on fait en sorte qu'une seul partie des
+                                //[?] roues tournent.
+                                if(abs(diff_angle) > 90) radius_circle = std::stod(get_redis_str(&redis, "HARD_WHEEL_DISTANCE"))/2;
 
-                            motor_command_str = std::to_string(get_curr_timestamp()) + "|";
-                            
-                            for(int i = 0; i < 3; i++)
-                            {
-                                motor_command_str += std::to_string(left_speed) + "|";
-                            }
-                            for(int i = 3; i < 6; i++)
-                            {
-                                motor_command_str += std::to_string(right_speed) + "|";
-                            }
+                                double rapport = 2 * M_PI * (radius_circle + std::stod(get_redis_str(&redis, "HARD_WHEEL_DISTANCE"))/2)  / final_max_speed;
+                                double inter_motor_speed = 2 * M_PI * (radius_circle - std::stod(get_redis_str(&redis, "HARD_WHEEL_DISTANCE"))/2) / rapport;
+                                if(diff_angle >= 0)
+                                {
+                                    motor_command_str = std::to_string(get_curr_timestamp()) + "|";
+                                    for(int i = 0; i < 3; i++)
+                                    {
+                                        motor_command_str += std::to_string(final_max_speed) + "|";
+                                    }
+                                    for(int i = 3; i < 6; i++)
+                                    {
+                                        motor_command_str += std::to_string(inter_motor_speed) + "|";
+                                    }
+                                }
+                                else
+                                {
+                                    motor_command_str = std::to_string(get_curr_timestamp()) + "|";
+                                    for(int i = 0; i < 3; i++)
+                                    {
+                                        motor_command_str += std::to_string(inter_motor_speed) + "|";
+                                    }
+                                    for(int i = 3; i < 6; i++)
+                                    {
+                                        motor_command_str += std::to_string(final_max_speed) + "|";
+                                    }
+                                }
+                                
+                            }             
                         }
                     }
                 }

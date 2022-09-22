@@ -84,7 +84,7 @@ void init_redis_var(sw::redis::Redis* redis)
     read_yaml(redis, &fsSettings, "NAV_AUTO_TARGET_EXTENSION");
     read_yaml(redis, &fsSettings, "NAV_AUTO_DESTINATION_CROSSING_M");
 
-    read_yaml(redis, &fsSettings, "HARD_WHEEL_DISTANCE");
+    read_yaml(redis, &fsSettings, "HARD_WHEEL_RADIUS");
     read_yaml(redis, &fsSettings, "HARD_WHEEL_DISTANCE");
 }
 

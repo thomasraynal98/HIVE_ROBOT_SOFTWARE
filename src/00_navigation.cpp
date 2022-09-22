@@ -206,7 +206,7 @@ void Read_TXT_file(std::string path, std::vector<Data_node>& vector_node, std::v
                 new_road.deg_to_A = std::stod(vect_str[3]);
                 new_road.deg_to_B = std::stod(vect_str[4]);
                 new_road.length = std::stod(vect_str[5]);
-                new_road.max_speed = std::stod(vect_str[7]);
+                new_road.max_speed = std::stod(vect_str[7]) * 1000 / 3600;
                 road_vector.push_back(new_road);
             }
         }
