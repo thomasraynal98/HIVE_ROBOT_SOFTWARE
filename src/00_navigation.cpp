@@ -14,6 +14,9 @@ int auto_mode_available(sw::redis::Redis* redis)
      * 20 = available.
      */
 
+    // REMOVE: 
+    return 10;
+
     std::string opt_str = get_redis_str(redis, "NAV_AUTO_MODE");
     
     if(opt_str.compare("SIMPLE") == 0)
@@ -47,6 +50,9 @@ int manual_mode_available(sw::redis::Redis* redis)
      * 11 = not available
      */
 
+    // REMOVE:
+    return 10;
+
     if(get_redis_str(redis, "HARD_MCU_MOTOR_COM_STATE").compare("CONNECTED") == 0 && \
     get_redis_str(redis, "SERVER_COM_STATE").compare("CONNECTED") == 0) return 10;
     return 11;
@@ -59,8 +65,11 @@ std::string map_manual_command(sw::redis::Redis* redis, double back_value, doubl
 
     std::string command_motor_str = std::to_string(get_curr_timestamp()) + "|";
 
-    // std::cout << back_value << " " << front_value << " " << angle << " " << max_speed_Ms << std::endl;
+    std::cout << back_value << " " << front_value << " " << angle << " " << max_speed_Ms << std::endl;
     
+    front_value = front_value / 100;
+    back_value  = back_value / 100;
+
     if(back_value < 0.05 && front_value < 0.05)
     {
         command_motor_str += "0|0|0|0|0|0|";
@@ -72,7 +81,8 @@ std::string map_manual_command(sw::redis::Redis* redis, double back_value, doubl
         return command_motor_str;
     }
 
-    double vitesse_max = max_speed_Ms; // m/s
+    // double vitesse_max = max_speed_Ms; // m/s
+    double vitesse_max = 1.0;
 
     if(front_value > 0.05)
     {
@@ -84,7 +94,7 @@ std::string map_manual_command(sw::redis::Redis* redis, double back_value, doubl
          * 270 - 360 = rotation gauche
          */
 
-        double current_speed = front_value * vitesse_max; 
+        double current_speed = front_value * (vitesse_max); 
 
         if(angle >= 0   && angle <= 90)
         {
@@ -108,8 +118,8 @@ std::string map_manual_command(sw::redis::Redis* redis, double back_value, doubl
         {
             for(int i = 0; i < 6; i++)
             {
-                if(i < 3) command_motor_str += std::to_string(current_speed) + "|";
-                if(i >= 3) command_motor_str += std::to_string(-1*current_speed) + "|";
+                if(i < 3) command_motor_str += std::to_string(0.2) + "|";
+                if(i >= 3) command_motor_str += std::to_string(-1*0.2) + "|";
             }
             return command_motor_str;
         }
@@ -117,8 +127,8 @@ std::string map_manual_command(sw::redis::Redis* redis, double back_value, doubl
         {
             for(int i = 0; i < 6; i++)
             {
-                if(i < 3) command_motor_str += std::to_string(-1*current_speed) + "|";
-                if(i >= 3) command_motor_str += std::to_string(current_speed) + "|";
+                if(i < 3) command_motor_str += std::to_string(-1*0.2) + "|";
+                if(i >= 3) command_motor_str += std::to_string(0.2) + "|";
             }
             return command_motor_str;
         }
@@ -184,30 +194,33 @@ void Read_TXT_file(std::string path, std::vector<Data_node>& vector_node, std::v
             
             if(data_type.compare("ROAD") == 0)
             {
-                Data_node* tempo_save_A;
-                Data_node* tempo_save_B;
-                for(int i = 0; i < vector_node.size(); i++)
+                if(std::stoi(vect_str[6]) == 1)
                 {
-                    if(vector_node[i].node_ID == std::stoi(vect_str[1]))
+                    Data_node* tempo_save_A;
+                    Data_node* tempo_save_B;
+                    for(int i = 0; i < vector_node.size(); i++)
                     {
-                        tempo_save_A = &vector_node[i];
+                        if(vector_node[i].node_ID == std::stoi(vect_str[1]))
+                        {
+                            tempo_save_A = &vector_node[i];
+                        }
+                        if(vector_node[i].node_ID == std::stoi(vect_str[2]))
+                        {
+                            tempo_save_B = &vector_node[i];
+                        }
                     }
-                    if(vector_node[i].node_ID == std::stoi(vect_str[2]))
-                    {
-                        tempo_save_B = &vector_node[i];
-                    }
+
+                    Data_road new_road(std::stoi(vect_str[0]), tempo_save_A, tempo_save_B);
+
+                    if(std::stoi(vect_str[6]) == 1) new_road.available = true;
+                    else{new_road.available = false;}
+
+                    new_road.deg_to_A = std::stod(vect_str[3]);
+                    new_road.deg_to_B = std::stod(vect_str[4]);
+                    new_road.length = std::stod(vect_str[5]);
+                    new_road.max_speed = std::stod(vect_str[7]) * 1000 / 3600;
+                    road_vector.push_back(new_road);
                 }
-
-                Data_road new_road(std::stoi(vect_str[0]), tempo_save_A, tempo_save_B);
-
-                if(std::stoi(vect_str[6]) == 1) new_road.available = true;
-                else{new_road.available = false;}
-
-                new_road.deg_to_A = std::stod(vect_str[3]);
-                new_road.deg_to_B = std::stod(vect_str[4]);
-                new_road.length = std::stod(vect_str[5]);
-                new_road.max_speed = std::stod(vect_str[7]) * 1000 / 3600;
-                road_vector.push_back(new_road);
             }
         }
     }
@@ -217,6 +230,10 @@ double get_max_speed(sw::redis::Redis* redis, std::string robot_mode, std::strin
 {
     if(robot_mode.compare("MANUAL") == 0)
     {
+        if(compare_redis_var(redis, "ROBOT_INFO_MODEL", "MK4_LIGHT"))
+        {
+            return 1.0;
+        }
         if(mode_param.compare("STANDARD")     == 0) return std::stod(get_redis_str(redis, "NAV_MAX_SPEED")) * 0.5;
         if(mode_param.compare("STANDARD_MAX") == 0) return std::stod(get_redis_str(redis, "NAV_MAX_SPEED")) * 0.9;
     }
@@ -225,7 +242,7 @@ double get_max_speed(sw::redis::Redis* redis, std::string robot_mode, std::strin
     {
         if(compare_redis_var(redis, "ROBOT_INFO_MODEL", "MK4_LIGHT"))
         {
-            return 0.2;
+            return 1.2;
         }
         if(compare_redis_var(redis, "ROBOT_INFO_MODEL", "MK4"))
         {
@@ -246,7 +263,7 @@ double get_max_speed(sw::redis::Redis* redis, std::string robot_mode, std::strin
     return 0.0;
 }
 
-int get_road_ID_from_pos(sw::redis::Redis* redis, std::vector<Data_road>& vect_road, Geographic_point* curr_pos)
+int get_road_ID_from_pos(sw::redis::Redis* redis, std::vector<Data_road>& vect_road, Geographic_point* curr_pos, std::vector<Roadmap_node>& vect_roadmap, int option)
 {
     /*
         Description : Cette fonction va retourner le numéro d'ID de la route la plus
@@ -254,47 +271,102 @@ int get_road_ID_from_pos(sw::redis::Redis* redis, std::vector<Data_road>& vect_r
         dependre du mode dans lequel le robot se trouve.
     */
 
-    //==============================================
-    // MODE MANUEL
-    //==============================================
-
-    if(get_redis_str(redis, "ROBOT_MODE").compare("AUTO") != 0)
-    {
-        double min_dist_m = 99999000;
-        double dist_m     = 99999000;
-        int road_ID       = -1;
-
-        for(int i = 0; i < vect_road.size(); i++)
-        {
-            dist_m = get_dist_from_pos_to_toad(vect_road[i].A->point, vect_road[i].B->point, curr_pos);
-
-            if(min_dist_m >= dist_m)
-            {
-                road_ID = vect_road[i].road_ID;
-                min_dist_m = dist_m;
-            }
-        }
-
-        // [?] Nous avons quitter les routes officiel en mode manuel. 
-        if(min_dist_m >= 15.0) 
-        {
-            std::vector<std::string> vect_redis_str;
-            get_redis_multi_str(redis, "NAV_ROAD_CURRENT_ID", vect_redis_str);
-            if(vect_redis_str[1].compare("-1") != 0)
-            {
-                pub_redis_var(redis, "EVENT", get_event_str(2, "MANUAL_NAV", "LEAVE_THE_MAP"));
-            }
-            return -1;
-        }
-
-        return road_ID;
-    }
+    // [?] Le robot n'ai pas en mouvement.
+    std::vector<std::string> vect_redis_str;
+    // get_redis_multi_str(redis, "NAV_ROAD_CURRENT_ID", vect_redis_str);
+    // if(std::stoi(vect_redis_str[1]) > 1000)
+    // {
+    //     get_redis_multi_str(redis, "HARD_MOTOR_COMMAND", vect_redis_str);
+    //     for(int i = 1; i < 7; i++)
+    //     {
+    //         if(abs(std::stod(vect_redis_str[i])) > 0) return std::stoi(vect_redis_str[1]);
+    //     }
+    // }
 
     //==============================================
-    // MODE AUTOMATIQUE
+    // MODE AUTO
     //==============================================
 
     if(get_redis_str(redis, "ROBOT_MODE").compare("AUTO") == 0)
+    {
+        if(option == 1)
+        {
+            get_redis_multi_str(redis, "NAV_ROAD_CURRENT_ID", vect_redis_str);
+            int curr_road = std::stoi(vect_redis_str[1]);
+
+            for(int i = 0; i < vect_roadmap.size(); i++)
+            {
+                if(vect_roadmap[i].road->road_ID == curr_road)
+                {
+                    double next_dist_m = get_angular_distance(curr_pos, vect_roadmap[i].node_target->point);
+                    double curr_dist_m = get_dist_from_pos_to_toad(vect_roadmap[i].node_start->point, vect_roadmap[i].node_target->point, curr_pos);
+
+                    if(next_dist_m < std::stod(get_redis_str(redis, "NAV_AUTO_CROSSING_DIST_M")))
+                    {
+                      
+                        if(i == vect_roadmap.size()-1) return curr_road;
+                        else
+                        {
+                            return vect_roadmap[i+1].road->road_ID; 
+                        }
+                    }
+                    else
+                    {
+                        if(i == vect_roadmap.size()-1) return curr_road;
+                        else
+                        {
+                            next_dist_m = get_dist_from_pos_to_toad(vect_roadmap[i+1].node_start->point, vect_roadmap[i+1].node_target->point, curr_pos);
+                            if(next_dist_m < curr_dist_m)
+                            {
+                                return vect_roadmap[i+1].road->road_ID; 
+                            }
+                        }
+                    }
+                }
+            }
+            return curr_road;
+        }
+        // [!] Select destination and compute projected destination on available road.
+        if(option == 2)
+        {
+            double min_dist_m = 99999000;
+            double dist_m     = 99999000;
+            int road_ID       = -1;
+
+            Geographic_point project_gps_dest = Geographic_point(0.0,0.0);
+
+            for(int i = 0; i < vect_road.size(); i++)
+            {
+                dist_m = get_dist_from_pos_to_toad(vect_road[i].A->point, vect_road[i].B->point, curr_pos);
+
+                if(min_dist_m >= dist_m)
+                {
+                    road_ID = vect_road[i].road_ID;
+                    min_dist_m = dist_m;
+
+                    // Compute destination projected.
+                    Geographic_point project = get_projected_point(vect_road[i].A->point, vect_road[i].B->point, curr_pos);
+                    double distance_to_pd = sqrt(pow(project.longitude,2)+pow(project.latitude,2));
+                    double bearing_to_pd  = rad_to_deg(2 * atan(project.latitude / (project.longitude + sqrt(pow(project.longitude, 2) + pow(project.latitude, 2)))));
+                    project_gps_dest = get_new_position(curr_pos, bearing_to_pd, distance_to_pd);
+                }
+            }
+
+            std::string redis_str = std::to_string(get_curr_timestamp()) + "|";
+            redis_str += std::to_string(project_gps_dest.longitude) + "|";
+            redis_str += std::to_string(project_gps_dest.latitude) + "|";
+            set_redis_var(redis, "NAV_AUTO_PROJECT_DESTINATION", redis_str);
+
+            return road_ID;
+        }
+    }
+
+    //==============================================
+    // MODE MANUAL
+    //==============================================
+
+    if(get_redis_str(redis, "ROBOT_MODE").compare("MANUAL") == 0 || \
+    get_redis_str(redis, "ROBOT_MODE").compare("INIT") == 0)
     {
         double min_dist_m = 99999000;
         double dist_m     = 99999000;
@@ -408,6 +480,53 @@ double get_dist_from_pos_to_toad(Geographic_point* pointA, Geographic_point* poi
     // std::cout << std::setprecision(8);
     // // std::cout << "La distance est de " << dist_m << " (" << new_angle << "°) vers LONG:" << long_p*180/M_PI << " LAT:" << lat_p*180/M_PI << std::endl;
     // return dist_m;
+}
+
+Geographic_point get_projected_point(Geographic_point* pointA, Geographic_point* pointB, Geographic_point* pointC)
+{
+    double d_ca = get_angular_distance(pointC, pointA);
+    double d_cb = get_angular_distance(pointC, pointB);
+
+    double a_ca = get_bearing(pointC, pointA);
+    double a_cb = get_bearing(pointC, pointB);
+
+    double xa = d_ca * cos(deg_to_rad(a_ca));
+    double ya = d_ca * sin(deg_to_rad(a_ca));
+
+    double xb = d_cb * cos(deg_to_rad(a_cb));
+    double yb = d_cb * sin(deg_to_rad(a_cb));
+
+    double A = 0 - xa;
+    double B = 0 - ya;
+    double C = xb - xa;
+    double D = yb - ya;
+
+    double dot = A * C + B * D;
+    double len_sq = C * C + D * D;
+    double param = -1;
+    if(len_sq != 0) param = dot / len_sq;
+
+    double XX, YY;
+
+    if(param < 0) 
+    {
+        XX = xa;
+        YY = ya;
+    }
+    else if(param > 1)
+    {
+        XX = xb;
+        YY = yb;
+    }
+    else
+    {
+        XX = xa + param * C;
+        YY = ya + param * D;
+    }
+
+    Geographic_point project_pt = Geographic_point(XX, YY);
+
+    return project_pt;
 }
 
 double get_angular_distance(Geographic_point* pointA, Geographic_point* pointB)
@@ -637,6 +756,8 @@ void process_final_roadmap(sw::redis::Redis* redis, std::vector<Data_road*>& pat
         l'algorythme de A* et le transformé en feuille de route navigable.
     */
 
+    vect_roadmap.clear();
+
     //==============================================
     // ROTATE VECTOR.
     //==============================================
@@ -739,6 +860,11 @@ void process_final_roadmap(sw::redis::Redis* redis, std::vector<Data_road*>& pat
             vect_roadmap.push_back(rm_node);
         }
     }
+
+    //==============================================
+    // ROTATE VECTOR.
+    //==============================================
+    std::reverse(vect_roadmap.begin(),vect_roadmap.end());
 }
 
 bool detect_connection(Data_road* road1, Data_road* road2, std::vector<Data_node*>& tempo_vect)
@@ -790,4 +916,30 @@ int get_time_to_travel_s(double distance, double speed)
 double get_distance(double xa, double ya, double xb, double yb)
 {
     return sqrt(pow(xa-xb,2)+pow(ya-yb,2));
+}
+
+Geographic_point get_new_position(Geographic_point* start_position, double bearing, double distance)
+{
+    // [!] VRAI FORMULE.
+    // http://www.movable-type.co.uk/scripts/latlong.html?from=48.7819900,-122.2936380&to=48.7761100,-122.3395200
+    // double ang_distance = distance;///6371000;
+    // double start_lat_deg = deg_to_rad(start_position->latitude);
+    // double start_lon_deg = deg_to_rad(start_position->longitude);
+    // double latitude  = asin(sin(start_lat_deg) * cos(ang_distance) + cos(start_lat_deg) * sin(ang_distance) * cos(bearing));
+    // double longitude = start_lon_deg + atan2(sin(bearing)*sin(ang_distance)*cos(start_lat_deg), cos(ang_distance) - sin(start_lat_deg) * sin(latitude));
+    
+    // [!] Approche correct pour la carte mais pas robuste car diff long lat depend de l'endroit sur terre?
+    // https://www.youtube.com/watch?v=IVz4f36xwUs
+
+
+    long double departure = distance*0.00001*0.9 * sin(deg_to_rad(bearing));
+    long double latitude  = distance*0.00001*0.9 * cos(deg_to_rad(bearing));
+
+    // std::cout << "DEP:" << departure << " LAT:" << latitude << std::endl;
+
+    long double lon_f = start_position->longitude + (departure*1.52);
+    long double lat_f = start_position->latitude + latitude;
+    
+    Geographic_point orientation_robot_position = Geographic_point(lon_f, lat_f);
+    return orientation_robot_position;
 }

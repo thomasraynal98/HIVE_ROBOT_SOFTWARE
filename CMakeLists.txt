@@ -18,7 +18,10 @@ FIND_PACKAGE(OpenXLSX   REQUIRED)
 FIND_PACKAGE(realsense2 REQUIRED)
 FIND_PACKAGE(Eigen3 3.3 REQUIRED NO_MODULE)
 FIND_PACKAGE(websocketpp REQUIRED)
+
 FIND_PACKAGE(OpenSSL REQUIRED)
+
+# [!] Comment for HTTPS.
 FIND_PACKAGE(sioclient REQUIRED)
 
 # # PROGRAMME 01 : GESTION DU SYSTEME YAML ET REDIS + DEBUG
@@ -71,9 +74,11 @@ TARGET_LINK_LIBRARIES(03_SERVER
     redis++
     serial
     OpenXLSX::OpenXLSX
+    # # [!] Decomment for HTTPS.
     # ssl
     # crypto 
     # /usr/local/lib/libsioclient_tls.so
+    # [!] Comment for HTTPS.
     sioclient
     ${OpenCV_LIBS})
 

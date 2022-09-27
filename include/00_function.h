@@ -31,3 +31,4 @@ bool time_is_over(int64_t curr_timestamp, int64_t ref_timestamp, int64_t max_dur
 void print_redis(sw::redis::Redis* redis, std::string channel_str);
 std::string get_standard_robot_id_str(sw::redis::Redis* redis);
 bool compare_redis_var(sw::redis::Redis* redis, std::string channel, std::string compare);
+double rad_to_deg(double rad);

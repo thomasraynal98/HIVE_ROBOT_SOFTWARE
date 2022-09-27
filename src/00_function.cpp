@@ -86,6 +86,8 @@ void init_redis_var(sw::redis::Redis* redis)
 
     read_yaml(redis, &fsSettings, "HARD_WHEEL_RADIUS");
     read_yaml(redis, &fsSettings, "HARD_WHEEL_DISTANCE");
+
+    read_yaml(redis, &fsSettings, "NAV_AUTO_PROJECT_DESTINATION");
 }
 
 int64_t get_curr_timestamp()
@@ -202,4 +204,12 @@ bool compare_redis_var(sw::redis::Redis* redis, std::string channel, std::string
 {
     if(get_redis_str(redis, channel).compare(compare) == 0) return true;
     return false;
+}
+
+double rad_to_deg(double rad)
+{
+    double deg = rad * 180 / M_PI;
+    if(deg > 360) deg = deg - 360;
+    if(deg < 0)   deg = deg + 360;
+    return deg;
 }

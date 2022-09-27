@@ -137,6 +137,7 @@ void f_thread_debug()
             print_redis(&redis, "NAV_HMR_DOWNLOAD_ADRESS");
             print_redis(&redis, "NAV_HMR_LOCAL_PATH");
             print_redis(&redis, "NAV_AUTO_DESTINATION");
+            print_redis(&redis, "NAV_AUTO_PROJECT_DESTINATION");
             print_redis(&redis, "NAV_AUTO_MODE");
             print_redis(&redis, "NAV_AUTO_MODE_PARKING");
             print_redis(&redis, "NAV_MANUAL_MODE");

@@ -236,14 +236,17 @@ void f_thread_readwrite_pixhawk()
             set_redis_var(&redis, "NAV_LOCAL_POSITION", debug_str);
 
             // GLOBAL_POSITION_INT
-            debug_str = std::to_string(get_curr_timestamp()) + "|";
-            debug_str += std::to_string(messages.global_position_int.lon) + "|";
-            debug_str += std::to_string(messages.global_position_int.lat) + "|";
-            debug_str += std::to_string(messages.global_position_int.hdg) + "|";
-            // debug_str += std::to_string(messages.global_position_int.vx) + "|";
-            // debug_str += std::to_string(messages.global_position_int.vy) + "|";
-            // debug_str += std::to_string(messages.global_position_int.vz) + "|";
-            set_redis_var(&redis, "NAV_GLOBAL_POSITION", debug_str);
+            if(messages.global_position_int.lat > 0)
+            {
+                debug_str = std::to_string(get_curr_timestamp()) + "|";
+                debug_str += std::to_string((double)(messages.global_position_int.lon)/10000000) + "|";
+                debug_str += std::to_string((double)(messages.global_position_int.lat)/10000000) + "|";
+                debug_str += std::to_string((double)(messages.global_position_int.hdg)/100) + "|";
+                // debug_str += std::to_string(messages.global_position_int.vx) + "|";
+                // debug_str += std::to_string(messages.global_position_int.vy) + "|";
+                // debug_str += std::to_string(messages.global_position_int.vz) + "|";
+                set_redis_var(&redis, "NAV_GLOBAL_POSITION", debug_str);
+            }
 
             // MSG SYSTEM STATUS
             // debug_str += std::to_string(messages.sys_status.load) + "|";

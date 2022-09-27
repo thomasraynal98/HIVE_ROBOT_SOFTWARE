@@ -2,9 +2,12 @@
 #include "00_communication.h"
 #include "00_navigation.h"
 
+//[!!] OPTION FOR HTTP SERVER.
 #include <sio_client.h>
-#define ASIO_STANDALONE 
-#define SIO_TLS
+
+//[!!] OPTION FOR HTTPS SERVER.
+// #define ASIO_STANDALONE 
+// #define SIO_TLS
 
 using namespace sw::redis;
 auto redis = Redis("tcp://127.0.0.1:6379");
@@ -51,7 +54,10 @@ void f_thread_server()
             {
                 h.connect(get_redis_str(&redis, "ROBOT_INFO_SERVER_ADRESS"));
                 usleep(10000);
+                std::cout << get_standard_robot_id_str(&redis) << std::endl;
                 h.socket()->emit("ROBOT_ID", get_standard_robot_id_str(&redis));
+                // std::string robot_name = "Newt";
+                // h.socket()->emit("robot", robot_name);
                 usleep(10000);
             }
             catch(...)
