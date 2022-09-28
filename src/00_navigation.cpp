@@ -230,7 +230,7 @@ double get_max_speed(sw::redis::Redis* redis, std::string robot_mode, std::strin
     {
         if(compare_redis_var(redis, "ROBOT_INFO_MODEL", "MK4_LIGHT"))
         {
-            return 1.0;
+            return 0.5;
         }
         if(mode_param.compare("STANDARD")     == 0) return std::stod(get_redis_str(redis, "NAV_MAX_SPEED")) * 0.5;
         if(mode_param.compare("STANDARD_MAX") == 0) return std::stod(get_redis_str(redis, "NAV_MAX_SPEED")) * 0.9;
