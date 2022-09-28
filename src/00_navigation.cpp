@@ -64,8 +64,6 @@ std::string map_manual_command(sw::redis::Redis* redis, double back_value, doubl
     //TODO: utilisable par le robot.
 
     std::string command_motor_str = std::to_string(get_curr_timestamp()) + "|";
-
-    std::cout << back_value << " " << front_value << " " << angle << " " << max_speed_Ms << std::endl;
     
     front_value = front_value / 100;
     back_value  = back_value / 100;
@@ -910,7 +908,9 @@ bool detect_connection(Data_road* road1, Data_road* road2, std::vector<Data_node
 int get_time_to_travel_s(double distance, double speed)
 {
     // distance en mètre, speed en km/h, return en seconde. 
-    return distance / (speed*1000/3600);
+    // return distance / (speed*1000/3600);
+    // Apparament la vitesse est deja en m/s.
+    return distance / (speed);
 }
 
 double get_distance(double xa, double ya, double xb, double yb)

@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
     std::vector<Data_node> vect_node;
     std::vector<Data_road> vect_road;
 
-    double ms_for_loop = frequency_to_ms(2);
+    double ms_for_loop = frequency_to_ms(10);
     auto next = std::chrono::high_resolution_clock::now();
 
     std::string motor_command_str = "0000000000000|0.0|0.0|0.0|0.0|0.0|0.0|";
@@ -101,11 +101,11 @@ int main(int argc, char *argv[])
                     std::string global_path_str = "";
                     for(int i = vect_roadmap.size()-1; i >= 0; i--)
                     {
-                        // global_path_str += std::to_string(vect_roadmap[i].node_start->node_ID) + " > ";
+                        // global_path_str += std::to_string(vect_roadmap[i].node_start->node_ID) + "|";
                         global_path_str += std::to_string(vect_roadmap[i].road->road_ID) + "|";
-                        // global_path_str += std::to_string(vect_roadmap[i].node_target->node_ID) + " > (";
-                        // global_path_str += std::to_string(vect_roadmap[i].dest_dist_to_road_m) + "m ~";
-                        // global_path_str += std::to_string(vect_roadmap[i].dest_time_s) + "s) > ";
+                        // global_path_str += std::to_string(vect_roadmap[i].node_target->node_ID) + "|";
+                        // global_path_str += std::to_string(vect_roadmap[i].dest_dist_m) + "m|";
+                        // global_path_str += std::to_string(vect_roadmap[i].dest_time_s) + "s|";
                     }
                     // std::cout << global_path_str << std::endl;
                     // std::cout << vect_roadmap.size() << std::endl;
