@@ -240,7 +240,7 @@ double get_max_speed(sw::redis::Redis* redis, std::string robot_mode, std::strin
     {
         if(compare_redis_var(redis, "ROBOT_INFO_MODEL", "MK4_LIGHT"))
         {
-            return 1.2;
+            return 1.5;
         }
         if(compare_redis_var(redis, "ROBOT_INFO_MODEL", "MK4"))
         {
@@ -287,42 +287,82 @@ int get_road_ID_from_pos(sw::redis::Redis* redis, std::vector<Data_road>& vect_r
 
     if(get_redis_str(redis, "ROBOT_MODE").compare("AUTO") == 0)
     {
+        // if(option == 1)
+        // {
+        //     /* heuristique 1. */ 
+        //     get_redis_multi_str(redis, "NAV_ROAD_CURRENT_ID", vect_redis_str);
+        //     int curr_road = std::stoi(vect_redis_str[1]);
+
+        //     for(int i = 0; i < vect_roadmap.size(); i++)
+        //     {
+        //         if(vect_roadmap[i].road->road_ID == curr_road)
+        //         {
+        //             double next_dist_m = get_angular_distance(curr_pos, vect_roadmap[i].node_target->point);
+        //             double curr_dist_m = get_dist_from_pos_to_toad(vect_roadmap[i].node_start->point, vect_roadmap[i].node_target->point, curr_pos);
+
+        //             if(next_dist_m < std::stod(get_redis_str(redis, "NAV_AUTO_CROSSING_DIST_M")))
+        //             {
+                      
+        //                 if(i == vect_roadmap.size()-1) return curr_road;
+        //                 else
+        //                 {
+        //                     return vect_roadmap[i+1].road->road_ID; 
+        //                 }
+        //             }
+        //             else
+        //             {
+        //                 if(i == vect_roadmap.size()-1) return curr_road;
+        //                 else
+        //                 {
+        //                     next_dist_m = get_dist_from_pos_to_toad(vect_roadmap[i+1].node_start->point, vect_roadmap[i+1].node_target->point, curr_pos);
+        //                     if(next_dist_m < curr_dist_m)
+        //                     {
+        //                         return vect_roadmap[i+1].road->road_ID; 
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     return curr_road;
+        // }
         if(option == 1)
         {
-            get_redis_multi_str(redis, "NAV_ROAD_CURRENT_ID", vect_redis_str);
-            int curr_road = std::stoi(vect_redis_str[1]);
+            double min_dist_m = 99999000;
+            double dist_m     = 99999000;
+            int road_ID       = -1;
 
-            for(int i = 0; i < vect_roadmap.size(); i++)
+            /* Heuristique 2. */
+            if(vect_roadmap.size() > 0)
             {
-                if(vect_roadmap[i].road->road_ID == curr_road)
+                for(int i = 0; i < vect_roadmap.size(); i++)
                 {
-                    double next_dist_m = get_angular_distance(curr_pos, vect_roadmap[i].node_target->point);
-                    double curr_dist_m = get_dist_from_pos_to_toad(vect_roadmap[i].node_start->point, vect_roadmap[i].node_target->point, curr_pos);
-
-                    if(next_dist_m < std::stod(get_redis_str(redis, "NAV_AUTO_CROSSING_DIST_M")))
+                    dist_m = get_dist_from_pos_to_toad(vect_roadmap[i].node_start->point, vect_roadmap[i].node_target->point, curr_pos);
+                    if(min_dist_m >= dist_m)
                     {
-                      
-                        if(i == vect_roadmap.size()-1) return curr_road;
-                        else
-                        {
-                            return vect_roadmap[i+1].road->road_ID; 
-                        }
-                    }
-                    else
-                    {
-                        if(i == vect_roadmap.size()-1) return curr_road;
-                        else
-                        {
-                            next_dist_m = get_dist_from_pos_to_toad(vect_roadmap[i+1].node_start->point, vect_roadmap[i+1].node_target->point, curr_pos);
-                            if(next_dist_m < curr_dist_m)
-                            {
-                                return vect_roadmap[i+1].road->road_ID; 
-                            }
-                        }
+                        road_ID = vect_roadmap[i].road->road_ID;
+                        min_dist_m = dist_m;
                     }
                 }
+                return road_ID;
             }
-            return curr_road;
+            else
+            {
+                double min_dist_m = 99999000;
+                double dist_m     = 99999000;
+                int road_ID       = -1;
+
+                for(int i = 0; i < vect_road.size(); i++)
+                {
+                    dist_m = get_dist_from_pos_to_toad(vect_road[i].A->point, vect_road[i].B->point, curr_pos);
+
+                    if(min_dist_m >= dist_m)
+                    {
+                        road_ID = vect_road[i].road_ID;
+                        min_dist_m = dist_m;
+                    }
+                }
+                return road_ID;
+            }
         }
         // [!] Select destination and compute projected destination on available road.
         if(option == 2)
@@ -942,4 +982,127 @@ Geographic_point get_new_position(Geographic_point* start_position, double beari
     
     Geographic_point orientation_robot_position = Geographic_point(lon_f, lat_f);
     return orientation_robot_position;
+}
+
+void update_sensor_prm(sw::redis::Redis* redis, std::vector<Sensor_prm>& vect_sensor_prm)
+{
+    Sensor_prm cam1 = Sensor_prm(std::stod(get_redis_str(redis, "HARD_CAM1_DX")), std::stod(get_redis_str(redis, "HARD_CAM1_DY")), 0 , std::stod(get_redis_str(redis, "HARD_CAM1_ANGLE")));
+    Sensor_prm cam2 = Sensor_prm(std::stod(get_redis_str(redis, "HARD_CAM2_DX")), std::stod(get_redis_str(redis, "HARD_CAM2_DY")), 1 , std::stod(get_redis_str(redis, "HARD_CAM2_ANGLE")));
+    Sensor_prm lid1 = Sensor_prm(std::stod(get_redis_str(redis, "HARD_LID1_DX")), std::stod(get_redis_str(redis, "HARD_LID1_DY")), 10, std::stod(get_redis_str(redis, "HARD_LID1_ANGLE")));
+    Sensor_prm lid2 = Sensor_prm(std::stod(get_redis_str(redis, "HARD_LID2_DX")), std::stod(get_redis_str(redis, "HARD_LID2_DY")), 11, std::stod(get_redis_str(redis, "HARD_LID2_ANGLE")));
+    vect_sensor_prm.push_back(cam1);
+    vect_sensor_prm.push_back(cam2);
+    vect_sensor_prm.push_back(lid1);
+    vect_sensor_prm.push_back(lid2);
+}
+
+void process_brut_obj(std::vector<double> curr_local_pos, std::vector<std::string> brut_obj, Sensor_prm* sensor_prm, double* min_dist, double* max_dist, std::vector<Object_env>& vect_obj, double* min_separation, double *min_observation)
+{
+    /*
+        Description: projeter l'object observer brute et le transformer en object
+        net dans l'environnement local.
+    */
+
+    if(sensor_prm->pos_pol->x > *min_dist && \
+    sensor_prm->pos_pol->x < *max_dist)
+    {
+        double sensor_pos_x   = curr_local_pos[0] + sensor_prm->pos_pol->x * cos(deg_to_rad(curr_local_pos[2]+sensor_prm->pos_pol->y));
+        double sensor_pos_y   = curr_local_pos[1] + sensor_prm->pos_pol->x * sin(deg_to_rad(curr_local_pos[2]+sensor_prm->pos_pol->y));
+
+        double obj_x   = sensor_pos_x + std::stod(brut_obj[3]) * cos(deg_to_rad(curr_local_pos[2]+sensor_prm->hdg+std::stod(brut_obj[2])));
+        double obj_y   = sensor_pos_y + std::stod(brut_obj[3]) * sin(deg_to_rad(curr_local_pos[2]+sensor_prm->hdg+std::stod(brut_obj[2])));
+
+        //==============================================
+        // CHECK WITH ALL DATA
+        //==============================================
+        double separation_m;
+        bool similar_detection = true;
+        for(int i = 0; i < vect_obj.size(); i++)
+        {
+            separation_m = sqrt(pow(vect_obj[i].pos->x-obj_x,2)+pow(vect_obj[i].pos->y-obj_y,2));
+            if(separation_m < *min_separation)
+            {
+                vect_obj[i].counter++;
+                if(vect_obj[i].counter >= *min_observation)
+                {
+                    vect_obj[i].available = true;
+                    vect_obj[i].timestamp = get_curr_timestamp();
+                }
+                similar_detection = false;
+                break;
+            }
+        }
+
+        //==============================================
+        // Si pas de similarité, alors on ajoute le point au vecteur.
+        //==============================================
+        if(similar_detection)
+        {
+            if(brut_obj[1].compare("o") == 0)
+            {
+                vect_obj.push_back(Object_env(obj_x, obj_y, 0.0, 0.0, sensor_prm->sensor_ID, get_curr_timestamp()));
+            }
+        }
+    }
+}
+
+double get_distance(double xa, double ya, double xb, double yb)
+{
+    return sqrt(pow(xa-xb,2)+pow(ya-yb,2));
+}
+
+void clear_obj_vect(std::vector<double> curr_local_pos, std::vector<Object_env>& vect_obj, int clear_time_ms, double clear_dist_m)
+{
+    // for(int i = 0; vect_obj.size(); i++)
+    // {
+    //     dist_to_robot = get_distance(curr_local_pos[0], curr_local_pos[1], vect_obj[i].pos->x, vect_obj[i].pos->y);
+    //     if(dist_to_robot < *clear_dist_m)
+    //     {
+    //         // SUPP
+    //     }
+    // }
+
+    double dist_to_robot;
+
+    auto it = vect_obj.begin();
+	while (it != vect_obj.end())
+	{
+		// CLEARING DIST.
+        dist_to_robot = get_distance(curr_local_pos[0], curr_local_pos[1], it->pos->x, it->pos->y);
+		if(dist_to_robot > clear_dist_m)
+		{
+			// `erase()` invalidates the iterator, use returned iterator
+			it = vect_obj.erase(it);
+		}
+		// Notice that the iterator is incremented only on the else part (why?)
+		else {
+			++it;
+		}
+
+        // CLEARING TIME.
+        if(!it->available)
+        {
+            // FOR NOT AVAILABLE (FAKE OBJ)
+            if(time_is_over(get_curr_timestamp(), it->timestamp, 500))
+            {
+                it = vect_obj.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+        else
+        {
+            // FOR AVAILABLE OBJ
+            if(time_is_over(get_curr_timestamp(), it->timestamp, clear_time_ms))
+            {
+                it = vect_obj.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+	}
 }

@@ -236,7 +236,7 @@ void f_thread_readwrite_pixhawk()
             set_redis_var(&redis, "NAV_LOCAL_POSITION", debug_str);
 
             // GLOBAL_POSITION_INT
-            if(messages.global_position_int.lat > 0)
+            if(messages.global_position_int.lat > 0 && messages.global_position_int.lon > 0)
             {
                 debug_str = std::to_string(get_curr_timestamp()) + "|";
                 debug_str += std::to_string((double)(messages.global_position_int.lon)/10000000) + "|";

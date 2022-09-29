@@ -151,6 +151,67 @@ struct Roadmap_node{
         {}
 };
 
+struct Vect_2D{
+    double x, y;
+    Vect_2D(double a, double b)
+        : x(a)
+        , y(b)
+        {}
+};
+
+struct Sensor_prm{
+    Vect_2D* pos_cart;
+    Vect_2D* pos_pol;
+    int sensor_ID;
+    double hdg;
+    Sensor_prm(double a, double b, int e, double f)
+        : sensor_ID(e)
+        , hdg(f)
+        {
+            pos_cart = new Vect_2D(a, b);
+            double dist  = sqrt(pow(a,2)+pow(b,2));
+            double angle = 2 * atan(b/(a+dist));
+            pos_pol = new Vect_2D(dist, angle);
+        }
+};
+
+struct Object_env{
+    Vect_2D* pos;
+    int sensor_id;
+    double hdg;
+    double speed;
+    int counter;
+    bool available;
+    int64_t timestamp;
+    int64_t last_observation;
+
+    Object_env(double a, double b, double c, double d, int e, int64_t f)
+        : hdg(c)
+        , speed(d)
+        , sensor_id(e)
+        , counter(0)
+        , available(false)
+        , timestamp(f)
+        {
+            pos = new Vect_2D(a, b);
+        }
+
+    Object_env()
+        {}
+
+    Object_env operator=(Object_env* a)
+    {
+        this->pos->x    = a->pos->x;
+        this->pos->y    = a->pos->y;
+        this->sensor_id = a->sensor_id;
+        this->hdg       = a->hdg;
+        this->speed     = a->speed;
+        this->counter   = a->counter;
+        this->available = a->available;
+        this->timestamp = a->timestamp;
+    }
+};
+
 int auto_mode_available(sw::redis::Redis* redis);
 int manual_mode_available(sw::redis::Redis* redis);
 std::string map_manual_command(sw::redis::Redis* redis, double back_value, double front_value, double angle, double max_speed_Ms);
@@ -172,3 +233,7 @@ bool detect_connection(Data_road* road1, Data_road* road2, std::vector<Data_node
 int get_time_to_travel_s(double distance, double speed);
 double get_distance(double xa, double ya, double xb, double yb);
 Geographic_point get_new_position(Geographic_point* start_position, double bearing, double distance);
+void update_sensor_prm(sw::redis::Redis* redis, std::vector<Sensor_prm>& vect_sensor_prm);
+void process_brut_obj(std::vector<double> curr_local_pos, std::vector<std::string> brut_obj, Sensor_prm* sensor_prm, double* min_dist, double* max_dist, std::vector<Object_env>& vect_obj, double* min_separation, int *min_observation);
+double get_distance(double xa, double ya, double xb, double yb);
+void clear_obj_vect(std::vector<double> curr_local_pos, std::vector<Object_env>& vect_obj, int clear_time_ms, double clear_dist_m);

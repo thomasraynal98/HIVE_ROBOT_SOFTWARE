@@ -101,8 +101,9 @@ void bind_events(sio::socket::ptr current_socket)
 {
     current_socket->on("ORDER_GET_HMR", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
     {
-        set_redis_var(&redis, "NAV_HMR_DOWNLOAD_ADRESS", data->get_map()["HMR_LINK"]->get_string());
-        set_redis_var(&redis, "NAV_HMR_MAP_UPDATE",      "TRUE");
+        // Recuperer le fichier txt en base64 sur la variable 'HMR'
+        // set_redis_var(&redis, "NAV_HMR_DOWNLOAD_ADRESS", data->get_map()["HMR_LINK"]->get_string());
+        // set_redis_var(&redis, "NAV_HMR_MAP_UPDATE",      "TRUE");
     }));
 
     current_socket->on("ORDER_WAITING", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
@@ -113,7 +114,7 @@ void bind_events(sio::socket::ptr current_socket)
         set_redis_var(&redis, "MISSION_MANUAL_STATE",  "PAUSE");
 
         pub_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_PAUSE", "START"));
-        send_mission_update_server(current_socket, "MISSION_PAUSE", "START", 0);
+        // send_mission_update_server(current_socket, "MISSION_PAUSE", "START", 0);
     }));
 
     current_socket->on("ORDER_WAITING_END", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
@@ -124,7 +125,7 @@ void bind_events(sio::socket::ptr current_socket)
         set_redis_var(&redis, "MISSION_MANUAL_STATE",  "IN_PROGESS");
 
         pub_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_PAUSE", "COMPLETED"));
-        send_mission_update_server(current_socket, "MISSION_PAUSE", "COMPLETED", 0);
+        // send_mission_update_server(current_socket, "MISSION_PAUSE", "COMPLETED", 0);
     }));
 
     // (OK) Ordre pour se rendre à un endroit. (Position, option d'approche)
@@ -170,14 +171,14 @@ void bind_events(sio::socket::ptr current_socket)
                 pub_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_AUTO_GOTO", "AUTO_NOT_AVAILABLE " + std::to_string(flag)));
             }
 
-            send_mission_update_server(current_socket, "MISSION_AUTO_GOTO", "INTERRUPTED", flag);
+            // send_mission_update_server(current_socket, "MISSION_AUTO_GOTO", "INTERRUPTED", flag);
         }
     }));
 
     current_socket->on("ORDER_MANUALNAV", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
     {
         int flag = manual_mode_available(&redis);
-        std::cout << "RECEIP" << std::endl;
+
         if(flag == 10)
         {
             if(get_redis_str(&redis, "ROBOT_MODE").compare("AUTO") == 0) 
@@ -252,16 +253,10 @@ void bind_events(sio::socket::ptr current_socket)
 
 
     // // (OK) Ordre lancement stream robot (Option de stream)
-    // current_socket->on("ORDER_STREAM_ON", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
-    // {
-    //     redis.set("option_stream", std::to_string(data->get_map()["OPT_STREAM"]->get_int()));
-    // }));
-
-    // // (OK) Ordre arret stream robot (Option de stream)
-    // current_socket->on("ORDER_STREAM_OFF", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
-    // {
-    //     redis.set("option_stream", "0");
-    // }));
+    current_socket->on("ORDER_STREAM", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+    {
+        redis.set("option_stream", std::to_string(data->get_map()["OPT_STREAM"]->get_int()));
+    }));
 
     current_socket->on("ORDER_CANCEL_MISSION", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
     {
@@ -277,6 +272,6 @@ void bind_events(sio::socket::ptr current_socket)
     }));
 
     // // Ordre de reset du software.
-    // current_socket->on("ORDER_RESET_SOFTWARE", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
-    // {}));
+    current_socket->on("ORDER_RESET_SOFTWARE", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+    {}));
 }

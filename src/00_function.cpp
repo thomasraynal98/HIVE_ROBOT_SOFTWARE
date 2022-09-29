@@ -88,6 +88,31 @@ void init_redis_var(sw::redis::Redis* redis)
     read_yaml(redis, &fsSettings, "HARD_WHEEL_DISTANCE");
 
     read_yaml(redis, &fsSettings, "NAV_AUTO_PROJECT_DESTINATION");
+
+    read_yaml(redis, &fsSettings, "ENV_CAM1_OBSTACLE");
+    read_yaml(redis, &fsSettings, "ENV_CAM2_OBSTACLE");
+    read_yaml(redis, &fsSettings, "ENV_LID1_OBSTACLE");
+    read_yaml(redis, &fsSettings, "ENV_LID2_OBSTACLE");
+
+    read_yaml(redis, &fsSettings, "HARD_CAM1_DX");
+    read_yaml(redis, &fsSettings, "HARD_CAM1_DY");
+    read_yaml(redis, &fsSettings, "HARD_CAM1_ANGLE");
+    read_yaml(redis, &fsSettings, "HARD_CAM2_DX");
+    read_yaml(redis, &fsSettings, "HARD_CAM2_DY");
+    read_yaml(redis, &fsSettings, "HARD_CAM2_ANGLE");
+    read_yaml(redis, &fsSettings, "HARD_LID1_DX");
+    read_yaml(redis, &fsSettings, "HARD_LID1_DY");
+    read_yaml(redis, &fsSettings, "HARD_LID1_ANGLE");
+    read_yaml(redis, &fsSettings, "HARD_LID2_DX");
+    read_yaml(redis, &fsSettings, "HARD_LID2_DY");
+    read_yaml(redis, &fsSettings, "HARD_LID2_ANGLE");
+
+    read_yaml(redis, &fsSettings, "NAV_OBJ_MIN_DIST");
+    read_yaml(redis, &fsSettings, "NAV_OBJ_MAX_DIST");
+    read_yaml(redis, &fsSettings, "NAV_OBJ_MIN_SPACE");
+    read_yaml(redis, &fsSettings, "NAV_OBJ_MIN_OBSERVATION");
+    read_yaml(redis, &fsSettings, "NAV_OBJ_CLEARING_DIST");
+    read_yaml(redis, &fsSettings, "NAV_OBJ_CLEARING_TIME_MS");
 }
 
 int64_t get_curr_timestamp()
@@ -212,4 +237,10 @@ double rad_to_deg(double rad)
     if(deg > 360) deg = deg - 360;
     if(deg < 0)   deg = deg + 360;
     return deg;
+}
+
+bool is_same_time(int64_t timesptamp1, int64_t timesptamp2)
+{
+    if(timesptamp1 == timesptamp2) return true;
+    return false;
 }

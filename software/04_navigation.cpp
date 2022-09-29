@@ -28,6 +28,16 @@ int main(int argc, char *argv[])
     std::vector<Data_road*> vect_brut_road;
     std::vector<Roadmap_node> vect_roadmap;
 
+    int64_t timesptamp_cam1 = 0;
+    int64_t timesptamp_cam2 = 0;
+    int64_t timesptamp_lid1 = 0;
+    int64_t timesptamp_lid2 = 0;
+
+    std::vector<Object_env> vect_obj;
+    std::vector<Sensor_prm> vect_sensor_prm;
+
+    update_sensor_prm(&redis, vect_sensor_prm);
+
     while(true)
     {
         next += std::chrono::milliseconds((int)ms_for_loop);
@@ -127,6 +137,68 @@ int main(int argc, char *argv[])
                 pub_redis_var(&redis, "EVENT", get_event_str(2, "COMPUTE_GLOBAL_PATH", "NO_ROAD_ID"));
             }
             set_redis_var(&redis, "MISSION_UPDATE_GLOBAL_PATH", "FALSE");
+        }
+
+        //==============================================
+        // ENV DATA : Lire les données de proximités.
+        //==============================================
+        if(true)
+        {
+            std::vector<std::string> vect_redis_str;
+            get_redis_multi_str(&redis, "NAV_LOCAL_POSITION", vect_redis_str);
+
+            if(!is_same_time(0, std::stoul(vect_redis_str[0])))
+            {      
+                std::vector<double> curr_local_pos;
+                curr_local_pos.push_back(std::stod(vect_redis_str[0]));
+                curr_local_pos.push_back(std::stod(vect_redis_str[1]));
+                curr_local_pos.push_back(std::stod(vect_redis_str[2]));
+
+                std::vector<std::string> vect_obj_brut;
+
+                double min_dist  = std::stod(&redis, "NAV_OBJ_MIN_DIST");
+                double max_dist  = std::stod(&redis, "NAV_OBJ_MAX_DIST");
+                double min_space = std::stod(&redis, "NAV_OBJ_MIN_SPACE");
+                int min_observation = std::stoi(&redis, "NAV_OBJ_MIN_OBSERVATION");
+                double clear_dist = std::stod(&redis, "NAV_OBJ_CLEARING_DIST");
+                int clear_time = std::stod(&redis, "NAV_OBJ_CLEARING_TIME_MS");
+
+                get_redis_multi_str(&redis, "ENV_CAM1_OBSTACLE", vect_redis_str);
+                if(!is_same_time(timesptamp_cam1, std::stoul(vect_redis_str[0])))
+                {
+                    timesptamp_cam1 = std::stoul(vect_redis_str[0]);
+                    for(int i = 1; i < vect_redis_str.size(); i += 4)
+                    {
+                        vect_obj_brut.clear();
+                        vect_obj_brut.push_back(vect_redis_str[i+0]);
+                        vect_obj_brut.push_back(vect_redis_str[i+1]);
+                        vect_obj_brut.push_back(vect_redis_str[i+2]);
+                        vect_obj_brut.push_back(vect_redis_str[i+3]);
+
+                        process_brut_obj(curr_local_pos, vect_obj_brut, &vect_sensor_prm[0], min_dist, max_dist, vect_obj, min_space, min_observation);
+                    }
+                }
+
+                // get_redis_multi_str(&redis, "ENV_CAM2_OBSTACLE", vect_redis_str);
+                // if(!is_same_time(timesptamp_cam2, std::stoul(vect_redis_str[0])))
+                // {
+                //     timesptamp_cam2 = std::stoul(vect_redis_str[0]);
+                // }
+
+                // get_redis_multi_str(&redis, "ENV_LID1_OBSTACLE", vect_redis_str);
+                // if(!is_same_time(timesptamp_lid1, std::stoul(vect_redis_str[0])))
+                // {
+                //     timesptamp_lid1 = std::stoul(vect_redis_str[0]);
+                // }
+
+                // get_redis_multi_str(&redis, "ENV_LID2_OBSTACLE", vect_redis_str);
+                // if(!is_same_time(timesptamp_lid2, std::stoul(vect_redis_str[0])))
+                // {
+                //     timesptamp_lid2 = std::stoul(vect_redis_str[0]);
+                // }
+
+                clear_obj_vect(curr_local_pos, vect_obj, clear_time, clear_dist);
+            }
         }
 
         //==============================================
@@ -450,6 +522,18 @@ int main(int argc, char *argv[])
                                 
                             }             
                         }
+                    }
+                    if(compare_redis_var(&redis, "NAV_AUTO_MODE", "OBSTACLE_AVOIDANCE_NIV1"))
+                    {
+                        /*
+                            Description: Ce code prend en compte l'entrer de données de capteurs
+                            d'environnement externe afin d'avoir une representation précise de l'environnement
+                            direct du robot.
+                        */
+
+
+
+
                     }
                 }
             }
