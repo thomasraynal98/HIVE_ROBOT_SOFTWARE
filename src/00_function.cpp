@@ -113,6 +113,8 @@ void init_redis_var(sw::redis::Redis* redis)
     read_yaml(redis, &fsSettings, "NAV_OBJ_MIN_OBSERVATION");
     read_yaml(redis, &fsSettings, "NAV_OBJ_CLEARING_DIST");
     read_yaml(redis, &fsSettings, "NAV_OBJ_CLEARING_TIME_MS");
+
+    read_yaml(redis, &fsSettings, "NAV_OBJ_SAFETY_DIST_M");
 }
 
 int64_t get_curr_timestamp()

@@ -74,6 +74,7 @@ NAV_OBJ_MIN_SPACE                : "0.2"
 NAV_OBJ_MIN_OBSERVATION          : "7"
 NAV_OBJ_CLEARING_DIST            : "0.2"
 NAV_OBJ_CLEARING_TIME_MS         : "15000"
+NAV_OBJ_SAFETY_DIST_M            : "0.3"
 
 # ACTION/MISSION
 MISSION_MOTOR_BRAKE              : "TRUE"

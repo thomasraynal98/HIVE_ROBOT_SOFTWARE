@@ -996,7 +996,7 @@ void update_sensor_prm(sw::redis::Redis* redis, std::vector<Sensor_prm>& vect_se
     vect_sensor_prm.push_back(lid2);
 }
 
-void process_brut_obj(std::vector<double> curr_local_pos, std::vector<std::string> brut_obj, Sensor_prm* sensor_prm, double* min_dist, double* max_dist, std::vector<Object_env>& vect_obj, double* min_separation, double *min_observation)
+void process_brut_obj(std::vector<double> curr_local_pos, std::vector<std::string> brut_obj, Sensor_prm* sensor_prm, double* min_dist, double* max_dist, std::vector<Object_env>& vect_obj, double* min_separation, int *min_observation)
 {
     /*
         Description: projeter l'object observer brute et le transformer en object
@@ -1016,7 +1016,7 @@ void process_brut_obj(std::vector<double> curr_local_pos, std::vector<std::strin
         // CHECK WITH ALL DATA
         //==============================================
         double separation_m;
-        bool similar_detection = true;
+        bool diff_detection = true;
         for(int i = 0; i < vect_obj.size(); i++)
         {
             separation_m = sqrt(pow(vect_obj[i].pos->x-obj_x,2)+pow(vect_obj[i].pos->y-obj_y,2));
@@ -1028,7 +1028,7 @@ void process_brut_obj(std::vector<double> curr_local_pos, std::vector<std::strin
                     vect_obj[i].available = true;
                     vect_obj[i].timestamp = get_curr_timestamp();
                 }
-                similar_detection = false;
+                diff_detection = false;
                 break;
             }
         }
@@ -1036,7 +1036,7 @@ void process_brut_obj(std::vector<double> curr_local_pos, std::vector<std::strin
         //==============================================
         // Si pas de similarité, alors on ajoute le point au vecteur.
         //==============================================
-        if(similar_detection)
+        if(diff_detection)
         {
             if(brut_obj[1].compare("o") == 0)
             {
@@ -1046,22 +1046,8 @@ void process_brut_obj(std::vector<double> curr_local_pos, std::vector<std::strin
     }
 }
 
-double get_distance(double xa, double ya, double xb, double yb)
-{
-    return sqrt(pow(xa-xb,2)+pow(ya-yb,2));
-}
-
 void clear_obj_vect(std::vector<double> curr_local_pos, std::vector<Object_env>& vect_obj, int clear_time_ms, double clear_dist_m)
 {
-    // for(int i = 0; vect_obj.size(); i++)
-    // {
-    //     dist_to_robot = get_distance(curr_local_pos[0], curr_local_pos[1], vect_obj[i].pos->x, vect_obj[i].pos->y);
-    //     if(dist_to_robot < *clear_dist_m)
-    //     {
-    //         // SUPP
-    //     }
-    // }
-
     double dist_to_robot;
 
     auto it = vect_obj.begin();
