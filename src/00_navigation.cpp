@@ -1061,33 +1061,32 @@ void clear_obj_vect(std::vector<double> curr_local_pos, std::vector<Object_env>&
 			it = vect_obj.erase(it);
 		}
 		// Notice that the iterator is incremented only on the else part (why?)
-		else {
-			++it;
-		}
-
-        // CLEARING TIME.
-        if(!it->available)
+		else 
         {
-            // FOR NOT AVAILABLE (FAKE OBJ)
-            if(time_is_over(get_curr_timestamp(), it->timestamp, 500))
+            // CLEARING TIME.
+            if(!it->available)
             {
-                it = vect_obj.erase(it);
+                // FOR NOT AVAILABLE (FAKE OBJ)
+                if(time_is_over(get_curr_timestamp(), it->timestamp, 500))
+                {
+                    it = vect_obj.erase(it);
+                }
+                else
+                {
+                    ++it;
+                }
             }
             else
             {
-                ++it;
-            }
-        }
-        else
-        {
-            // FOR AVAILABLE OBJ
-            if(time_is_over(get_curr_timestamp(), it->timestamp, clear_time_ms))
-            {
-                it = vect_obj.erase(it);
-            }
-            else
-            {
-                ++it;
+                // FOR AVAILABLE OBJ
+                if(time_is_over(get_curr_timestamp(), it->timestamp, clear_time_ms))
+                {
+                    it = vect_obj.erase(it);
+                }
+                else
+                {
+                    ++it;
+                }
             }
         }
 	}
