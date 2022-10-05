@@ -183,21 +183,21 @@ int main(int argc, char *argv[])
                     }
                 }
 
-                // get_redis_multi_str(&redis, "ENV_CAM2_OBSTACLE", vect_redis_str);
-                // if(!is_same_time(timesptamp_cam2, std::stoul(vect_redis_str[0])))
-                // {
-                //     timesptamp_cam2 = std::stoul(vect_redis_str[0]);
-                //     for(int i = 1; i < vect_redis_str.size(); i += 4)
-                //     {
-                //         vect_obj_brut.clear();
-                //         vect_obj_brut.push_back(vect_redis_str[i+0]);
-                //         vect_obj_brut.push_back(vect_redis_str[i+1]);
-                //         vect_obj_brut.push_back(vect_redis_str[i+2]);
-                //         vect_obj_brut.push_back(vect_redis_str[i+3]);
+                get_redis_multi_str(&redis, "ENV_CAM2_OBSTACLE", vect_redis_str);
+                if(!is_same_time(timesptamp_cam2, std::stoul(vect_redis_str[0])))
+                {
+                    timesptamp_cam2 = std::stoul(vect_redis_str[0]);
+                    for(int i = 1; i < vect_redis_str.size(); i += 4)
+                    {
+                        vect_obj_brut.clear();
+                        vect_obj_brut.push_back(vect_redis_str[i+0]);
+                        vect_obj_brut.push_back(vect_redis_str[i+1]);
+                        vect_obj_brut.push_back(vect_redis_str[i+2]);
+                        vect_obj_brut.push_back(vect_redis_str[i+3]);
 
-                //         process_brut_obj(curr_local_pos, vect_obj_brut, &vect_sensor_prm[1], &min_dist, &max_dist, vect_obj, &min_space, &min_observation);
-                //     }
-                // }
+                        process_brut_obj(curr_local_pos, vect_obj_brut, &vect_sensor_prm[1], &min_dist, &max_dist, vect_obj, &min_space, &min_observation);
+                    }
+                }
 
                 // get_redis_multi_str(&redis, "ENV_LID1_OBSTACLE", vect_redis_str);
                 // if(!is_same_time(timesptamp_lid1, std::stoul(vect_redis_str[0])))
@@ -1090,60 +1090,62 @@ int main(int argc, char *argv[])
 
                                         for(auto obj : vect_obj)
                                         {
-                                            double dist = sqrt(pow(curr_position.l_x - obj.pos->x,2) + pow(curr_position.l_y - obj.pos->y,2));
-                                            double x = obj.pos->x - curr_position.l_x;
-                                            double y = obj.pos->y - curr_position.l_y;
-                                            double angle = rad_to_deg(2 * atan(y / (x + dist))) + 360;
-                                            if(angle > 360) angle -= 360;
-                                            double angle_diff2;
-
-                                            if(curr_position.l_hdg - angle > 0)
+                                            if(obj.available)
                                             {
-                                                if(curr_position.l_hdg - angle > 180)
+                                                double dist = sqrt(pow(curr_position.l_x - obj.pos->x,2) + pow(curr_position.l_y - obj.pos->y,2));
+                                                double x = obj.pos->x - curr_position.l_x;
+                                                double y = obj.pos->y - curr_position.l_y;
+                                                double angle = rad_to_deg(2 * atan(y / (x + dist))) + 360;
+                                                if(angle > 360) angle -= 360;
+                                                double angle_diff2;
+
+                                                if(curr_position.l_hdg - angle > 0)
                                                 {
-                                                    // Va vers droite
-                                                    angle_diff2 = 360 - (curr_position.l_hdg - angle);
+                                                    if(curr_position.l_hdg - angle > 180)
+                                                    {
+                                                        // Va vers droite
+                                                        angle_diff2 = 360 - (curr_position.l_hdg - angle);
+                                                    }
+                                                    else
+                                                    {
+                                                        // Va vers gauche
+                                                        angle_diff2 = -(curr_position.l_hdg - angle);
+                                                    }
                                                 }
                                                 else
                                                 {
-                                                    // Va vers gauche
-                                                    angle_diff2 = -(curr_position.l_hdg - angle);
+                                                    if(curr_position.l_hdg - angle < -180)
+                                                    {
+                                                        // Va vers gauche
+                                                        angle_diff2 = -(360- (angle - curr_position.l_hdg));
+                                                    }
+                                                    else
+                                                    {   
+                                                        // Va vers droite
+                                                        angle_diff2 = angle - curr_position.l_hdg;
+                                                    }   
                                                 }
-                                            }
-                                            else
-                                            {
-                                                if(curr_position.l_hdg - angle < -180)
+
+
+
+                                                double idx_col = 100 + dist*10*cos(deg_to_rad(angle_diff2));
+                                                double idx_row = 100 + dist*10*sin(deg_to_rad(angle_diff2));
+
+                                                double local_speed = final_max_speed_with_obstacle;
+                                                if((dist < 2.0 && dist >= 1.5) && abs(angle_diff2) < 80) local_speed = final_max_speed_with_obstacle * 0.8;
+                                                if((dist < 1.5 && dist >= 0.6) && abs(angle_diff2) < 80) local_speed = final_max_speed_with_obstacle * 0.5;
+                                                if((dist < 0.6) && abs(angle_diff2) < 80) local_speed = final_max_speed_with_obstacle * 0.25;
+                                                if(local_speed < min_speed) min_speed = local_speed;
+
+                                                if(abs(sqrt(pow(100-idx_col,2)+pow(row_idx-idx_row,2))/10 - curr_radius) < distance_m && abs(angle_diff2) < 90)
                                                 {
-                                                    // Va vers gauche
-                                                    angle_diff2 = -(360- (angle - curr_position.l_hdg));
-                                                }
-                                                else
-                                                {   
-                                                    // Va vers droite
-                                                    angle_diff2 = angle - curr_position.l_hdg;
-                                                }   
-                                            }
-
-
-
-                                            double idx_col = 100 + dist*10*cos(deg_to_rad(angle_diff2));
-                                            double idx_row = 100 + dist*10*sin(deg_to_rad(angle_diff2));
-
-                                            double local_speed = final_max_speed_with_obstacle;
-                                            if((dist < 2.0 && dist >= 1.5) && abs(angle_diff2) < 80) local_speed = final_max_speed_with_obstacle * 0.8;
-                                            if((dist < 1.5 && dist >= 0.6) && abs(angle_diff2) < 80) local_speed = final_max_speed_with_obstacle * 0.5;
-                                            if((dist < 0.6) && abs(angle_diff2) < 80) local_speed = final_max_speed_with_obstacle * 0.25;
-                                            if(local_speed < min_speed) min_speed = local_speed;
-
-                                            if(abs(sqrt(pow(100-idx_col,2)+pow(row_idx-idx_row,2))/10 - curr_radius) < distance_m && abs(angle_diff2) < 90)
-                                            {
-                                                if(dist < final_max_speed_with_obstacle*2.0)
-                                                {
-                                                    trajectory_safe = false;
-                                                    break;
+                                                    if(dist < final_max_speed_with_obstacle*2.0)
+                                                    {
+                                                        trajectory_safe = false;
+                                                        break;
+                                                    }
                                                 }
                                             }
-
                                         }
 
                                         if(trajectory_safe)
@@ -1304,14 +1306,21 @@ int main(int argc, char *argv[])
                 double speed_motor_l = std::stod(vect_redis_str[2]);
                 double speed_motor_r = std::stod(vect_redis_str[5]);
                 long double speed_ms = (speed_motor_r + speed_motor_l) / 2;
-
-                if(dist < speed_ms*2)
+                
+                if(obj.available)
                 {
-                    cv::circle(copy, cv::Point((int)(idx_col),(int)(idx_row)),0, cv::Scalar(0,0,255), cv::FILLED, 1,0);
+                    if(dist < speed_ms*2)
+                    {
+                        cv::circle(copy, cv::Point((int)(idx_col),(int)(idx_row)),0, cv::Scalar(0,0,255), cv::FILLED, 1,0);
+                    }
+                    else
+                    {
+                        cv::circle(copy, cv::Point((int)(idx_col),(int)(idx_row)),0, cv::Scalar(0,200,0), cv::FILLED, 1,0);
+                    }
                 }
                 else
                 {
-                    cv::circle(copy, cv::Point((int)(idx_col),(int)(idx_row)),0, cv::Scalar(0,200,0), cv::FILLED, 1,0);
+                    cv::circle(copy, cv::Point((int)(idx_col),(int)(idx_row)),0, cv::Scalar(100,100,100), cv::FILLED, 1,0);
                 }
             }
             // ADD ROBOT

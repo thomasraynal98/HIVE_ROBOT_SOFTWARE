@@ -1012,6 +1012,9 @@ void process_brut_obj(std::vector<double> curr_local_pos, std::vector<std::strin
         double obj_x   = sensor_pos_x + std::stod(brut_obj[3]) * cos(deg_to_rad(curr_local_pos[2]+sensor_prm->hdg+std::stod(brut_obj[2])));
         double obj_y   = sensor_pos_y + std::stod(brut_obj[3]) * sin(deg_to_rad(curr_local_pos[2]+sensor_prm->hdg+std::stod(brut_obj[2])));
 
+        // if(sensor_prm->hdg == 180)
+        //  std::cout << sensor_prm->pos_pol->x << " " << sensor_prm->pos_pol->y << " " << brut_obj[2] << " " << brut_obj[3] << " " << sensor_pos_x << " " << sensor_pos_y << " " << obj_x << " " << obj_x << std::endl;
+
         //==============================================
         // CHECK WITH ALL DATA
         //==============================================
@@ -1067,7 +1070,7 @@ void clear_obj_vect(std::vector<double> curr_local_pos, std::vector<Object_env>&
             if(!it->available)
             {
                 // FOR NOT AVAILABLE (FAKE OBJ)
-                if(time_is_over(get_curr_timestamp(), it->timestamp, 500))
+                if(time_is_over(get_curr_timestamp(), it->timestamp, 300))
                 {
                     it = vect_obj.erase(it);
                 }
