@@ -203,6 +203,11 @@ bool time_is_over(int64_t curr_timestamp, int64_t ref_timestamp, int64_t max_dur
     return false;
 }
 
+int64_t get_elapsed_time(int64_t timesptamp1, int64_t timesptamp2)
+{
+    return abs(timesptamp1 - timesptamp2);
+}
+
 void print_redis(sw::redis::Redis* redis, std::string channel_str)
 {
     int max_size = 30;

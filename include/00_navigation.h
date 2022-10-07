@@ -215,6 +215,28 @@ struct Object_env{
     }
 };
 
+struct Trajectory{
+    double r;
+    double moy;
+    double pt_M;
+    int niv;
+
+    Trajectory(double _r)
+        : r(_r)
+        , moy(0.0)
+        , pt_M(0.0)
+        , niv(-1)
+        {}
+
+    Trajectory operator=(Trajectory a)
+    {
+        this->r = a.r;
+        this->moy = a.moy;
+        this->pt_M = a.pt_M;
+        this->niv = a.niv;
+    }
+};
+
 int auto_mode_available(sw::redis::Redis* redis);
 int manual_mode_available(sw::redis::Redis* redis);
 std::string map_manual_command(sw::redis::Redis* redis, double back_value, double front_value, double angle, double max_speed_Ms);

@@ -29,6 +29,7 @@ void read_yaml(sw::redis::Redis* redis, cv::FileStorage* file_mng, std::string c
 double frequency_to_ms(int frequency);
 bool time_is_over(int64_t curr_timestamp, int64_t ref_timestamp, int64_t max_duration_ms);
 bool is_same_time(int64_t timesptamp1, int64_t timesptamp2);
+int64_t get_elapsed_time(int64_t timesptamp1, int64_t timesptamp2);
 void print_redis(sw::redis::Redis* redis, std::string channel_str);
 std::string get_standard_robot_id_str(sw::redis::Redis* redis);
 bool compare_redis_var(sw::redis::Redis* redis, std::string channel, std::string compare);
