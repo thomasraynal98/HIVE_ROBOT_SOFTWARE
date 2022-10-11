@@ -213,6 +213,7 @@ struct Mavlink_Messages {
 
 	// System Parameters?
 	mavlink_hil_gps_t thomas_add;
+	mavlink_local_position_ned_system_global_offset_t thomas_add2;
 
 	// Time Stamps
 	Time_Stamps time_stamps;

@@ -115,6 +115,8 @@ void init_redis_var(sw::redis::Redis* redis)
     read_yaml(redis, &fsSettings, "NAV_OBJ_CLEARING_TIME_MS");
 
     read_yaml(redis, &fsSettings, "NAV_OBJ_SAFETY_DIST_M");
+
+    read_yaml(redis, &fsSettings, "NAV_OPT_STREAM");
 }
 
 int64_t get_curr_timestamp()
@@ -200,6 +202,12 @@ bool time_is_over(int64_t curr_timestamp, int64_t ref_timestamp, int64_t max_dur
     // std::string temp;
     // std::cin >> temp;
     if(curr_timestamp - ref_timestamp > max_duration_ms) return true;
+    return false;
+}
+
+bool time_is_over(int64_t curr_timestamp, int64_t end_timestamp)
+{
+    if(curr_timestamp - end_timestamp > 0) return true;
     return false;
 }
 

@@ -3,19 +3,23 @@
 #include "00_navigation.h"
 
 //[!!] OPTION FOR HTTP SERVER.
-#include <sio_client.h>
+// #include <sio_client.h>
 
 //[!!] OPTION FOR HTTPS SERVER.
-// #define ASIO_STANDALONE 
-// #define SIO_TLS
+#define ASIO_STANDALONE 
+#define SIO_TLS
 
 using namespace sw::redis;
 auto redis = Redis("tcp://127.0.0.1:6379");
 
 std::thread thread_event;
 std::thread thread_server;
+std::thread thread_telemetry;
 
 sio::client h;
+
+int64_t timer_end = get_curr_timestamp();
+bool timer_active   = false;
 
 //===================================================================
 // DESCISION : Gestion des événements & server.
@@ -24,7 +28,39 @@ sio::client h;
 void callback_command(std::string channel, std::string msg)
 {
     set_redis_var(&redis, channel, msg);
-    std::cout << "SUB : " << msg << std::endl;
+    std::cout << "EVENT SUB : " << msg << std::endl;
+
+    std::vector<std::string> vect_str;
+    get_multi_str(msg, vect_str);
+
+    if(vect_str[2].compare("MISSION_PAUSE")          == 0 && vect_str[3].compare("START") == 0)
+    {
+        send_event_server(h.socket(), "WAIT"          , "START");
+    }
+    if(vect_str[2].compare("MISSION_PAUSE")          == 0 && vect_str[3].compare("COMPLETED") == 0)
+    {
+        send_event_server(h.socket(), "WAIT"          , "SUCCESS");
+    }
+    if(vect_str[2].compare("MISSION_PAUSE")          == 0 && vect_str[3].compare("TIMER_END") == 0)
+    {
+        send_event_server(h.socket(), "TIMER"         , "END");
+    }
+    if(vect_str[2].compare("MISSION_AUTO_GOTO")      == 0 && vect_str[3].compare("START") == 0)
+    {
+        send_event_server(h.socket(), "GOTO"          , "START");
+    }
+    if(vect_str[2].compare("MISSION_AUTO_GOTO")      == 0 && vect_str[3].compare("SUCCESS") == 0)
+    {
+        send_event_server(h.socket(), "GOTO"          , "SUCCESS");
+    }
+    if(vect_str[2].compare("MISSION_CANCEL_MISSION") == 0 && vect_str[3].compare("SUCCESS") == 0)
+    {
+        send_event_server(h.socket(), "CANCEL_MISSION", "SUCCESS");
+    }
+    if(vect_str[2].compare("ERR")                    == 0)
+    {
+        send_event_server(h.socket(), "ERR", vect_str[4]);
+    }
 }
 
 void f_thread_event()
@@ -54,10 +90,16 @@ void f_thread_server()
             {
                 h.connect(get_redis_str(&redis, "ROBOT_INFO_SERVER_ADRESS"));
                 usleep(10000);
-                std::cout << get_standard_robot_id_str(&redis) << std::endl;
-                h.socket()->emit("ROBOT_ID", get_standard_robot_id_str(&redis));
+                
+                std::vector<Server_var> vect_msg_server;
+                vect_msg_server.push_back(Server_var("s", "NAME" , get_redis_str(&redis, "ROBOT_INFO_PSEUDO")));
+                vect_msg_server.push_back(Server_var("i", "ID"   , get_redis_str(&redis, "ROBOT_INFO_ID"    )));
+                vect_msg_server.push_back(Server_var("s", "MODEL", get_redis_str(&redis, "ROBOT_INFO_MODEL" )));
+                send_msg_server(h.socket(), "ROBOT_ID", vect_msg_server);
+
                 // std::string robot_name = "Newt";
-                // h.socket()->emit("robot", robot_name);
+                // h.socket()->emit("ROBOT_ID", robot_name);
+
                 usleep(10000);
             }
             catch(...)
@@ -78,17 +120,81 @@ void f_thread_server()
     }
 }
 
+void f_thread_telemetry()
+{
+    double ms_for_loop = frequency_to_ms(1);
+    auto next = std::chrono::high_resolution_clock::now();
+
+    while(true)
+    {
+        next += std::chrono::milliseconds((int)ms_for_loop);
+        std::this_thread::sleep_until(next);
+
+        if(h.opened() && get_redis_str(&redis, "SERVER_COM_STATE").compare("CONNECTED") == 0)
+        {
+            std::vector<std::string> vect_str;
+            get_redis_multi_str(&redis, "NAV_GLOBAL_POSITION", vect_str);
+
+            std::vector<Server_var> vect_telemetry_server;
+            vect_telemetry_server.push_back(Server_var("d", "LONGITUDE"          ,                                       vect_str[1]));
+            vect_telemetry_server.push_back(Server_var("d", "LATITUDE"           ,                                       vect_str[2]));
+            vect_telemetry_server.push_back(Server_var("d", "HDG"                ,                                       vect_str[3]));
+            vect_telemetry_server.push_back(Server_var("d", "VOLTAGE"            ,                                             "0.0"));
+            vect_telemetry_server.push_back(Server_var("d", "SPEED"              ,                                             "0.0"));
+            vect_telemetry_server.push_back(Server_var("s", "MODE"               ,               get_redis_str(&redis, "ROBOT_MODE")));
+
+            if(get_redis_str(&redis, "ROBOT_MODE").compare("AUTO") == 0)
+            {
+                vect_telemetry_server.push_back(Server_var("s", "MISSION_TYPE"   ,        get_redis_str(&redis, "MISSION_AUTO_TYPE")));
+                vect_telemetry_server.push_back(Server_var("s", "MISSION_STATE"  ,       get_redis_str(&redis, "MISSION_AUTO_STATE")));
+            }
+            if(get_redis_str(&redis, "ROBOT_MODE").compare("MANUAL") == 0)
+            {
+                vect_telemetry_server.push_back(Server_var("s", "MISSION_TYPE"   ,      get_redis_str(&redis, "MISSION_MANUAL_TYPE")));
+                vect_telemetry_server.push_back(Server_var("s", "MISSION_STATE"  ,     get_redis_str(&redis, "MISSION_MANUAL_STATE")));
+            }
+            if(get_redis_str(&redis, "ROBOT_MODE").compare("INIT") == 0)
+            {
+                vect_telemetry_server.push_back(Server_var("s", "MISSION_TYPE"   ,                                  "INITIALISATION"));
+                vect_telemetry_server.push_back(Server_var("s", "MISSION_STATE"  ,                                  "INITIALISATION"));
+            }
+
+            vect_telemetry_server.push_back(Server_var("d", "TEMPERATURE_1"      ,                                             "0.0"));
+            vect_telemetry_server.push_back(Server_var("s", "MCU_MOTOR_STATE"    , get_redis_str(&redis, "HARD_MCU_MOTOR_COM_STATE")));
+            vect_telemetry_server.push_back(Server_var("s", "MCU_CARGO_STATE"    , get_redis_str(&redis, "HARD_MCU_CARGO_COM_STATE")));
+            vect_telemetry_server.push_back(Server_var("s", "MCU_INTER_STATE"    , get_redis_str(&redis, "HARD_MCU_INTER_COM_STATE")));
+            vect_telemetry_server.push_back(Server_var("s", "PIXHAWK_STATE"      ,   get_redis_str(&redis, "HARD_PIXHAWK_COM_STATE")));
+
+            vect_telemetry_server.push_back(Server_var("s", "GPS_SAT_NUMBER"     ,          get_redis_str(&redis, "HARD_GPS_NUMBER")));
+            vect_telemetry_server.push_back(Server_var("s", "GPS_STATE_FIX"      ,       get_redis_str(&redis, "HARD_GPS_FIX_STATE")));
+
+            send_msg_server(h.socket(), "ROBOT_TELEM", vect_telemetry_server);
+        }
+
+        if(timer_active)
+        {
+            if(time_is_over(get_curr_timestamp(), timer_end))
+            {
+                timer_active = false;
+                pub_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_PAUSE", "TIMER_END"));
+            }
+        }
+    }
+}
+
 //===================================================================
 // MAIN PROGRAM
 //===================================================================
 
 int main(int argc, char *argv[])
 {
-    thread_event  = std::thread(&f_thread_event);
-    thread_server = std::thread(&f_thread_server);
+    thread_event     = std::thread(&f_thread_event);
+    thread_server    = std::thread(&f_thread_server);
+    thread_telemetry = std::thread(&f_thread_telemetry);
 
     thread_event.join();
     thread_server.join();
+    thread_telemetry.join();
 
     return 0;
 }
@@ -99,25 +205,30 @@ int main(int argc, char *argv[])
 
 void bind_events(sio::socket::ptr current_socket)
 {
-    current_socket->on("ORDER_GET_HMR", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+    current_socket->on("ORDER_GET_HMR"       , sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
     {
         // Recuperer le fichier txt en base64 sur la variable 'HMR'
         // set_redis_var(&redis, "NAV_HMR_DOWNLOAD_ADRESS", data->get_map()["HMR_LINK"]->get_string());
         // set_redis_var(&redis, "NAV_HMR_MAP_UPDATE",      "TRUE");
     }));
 
-    current_socket->on("ORDER_WAITING", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+    current_socket->on("ORDER_WAITING"       , sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
     {
+        if(data->get_map()["END_TIMESTAMP"]->get_int() != 0)
+        {
+            timer_end    = data->get_map()["END_TIMESTAMP"]->get_int();
+            timer_active = true;
+        }
+
         set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "TRUE");
 
         set_redis_var(&redis, "MISSION_AUTO_STATE",  "PAUSE");
         set_redis_var(&redis, "MISSION_MANUAL_STATE",  "PAUSE");
 
         pub_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_PAUSE", "START"));
-        // send_mission_update_server(current_socket, "MISSION_PAUSE", "START", 0);
     }));
 
-    current_socket->on("ORDER_WAITING_END", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+    current_socket->on("ORDER_WAITING_END"   , sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
     {
         set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "FALSE");
 
@@ -125,11 +236,10 @@ void bind_events(sio::socket::ptr current_socket)
         set_redis_var(&redis, "MISSION_MANUAL_STATE",  "IN_PROGESS");
 
         pub_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_PAUSE", "COMPLETED"));
-        // send_mission_update_server(current_socket, "MISSION_PAUSE", "COMPLETED", 0);
     }));
 
     // (OK) Ordre pour se rendre à un endroit. (Position, option d'approche)
-    current_socket->on("ORDER_AUTONAV", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+    current_socket->on("ORDER_AUTONAV"       , sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
     {
         int flag = auto_mode_available(&redis);
         
@@ -148,7 +258,6 @@ void bind_events(sio::socket::ptr current_socket)
             set_redis_var(&redis, "MISSION_AUTO_STATE",         "START");
 
             pub_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_AUTO_GOTO", "START"));
-            send_mission_update_server(current_socket, "MISSION_AUTO_GOTO", "START", 0);
         }
         else 
         {
@@ -164,18 +273,16 @@ void bind_events(sio::socket::ptr current_socket)
 
             if(flag == -1)
             {
-                pub_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_AUTO_GOTO", "MISSION_PARAM_AUTO_ENABLE_INVALID " + std::to_string(flag)));
+                pub_redis_var(&redis, "EVENT", get_event_str(1, "ERR", "MISSION_PARAM_AUTO_ENABLE_INVALID " + std::to_string(flag)));
             }
             else
             {
-                pub_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_AUTO_GOTO", "AUTO_NOT_AVAILABLE " + std::to_string(flag)));
+                pub_redis_var(&redis, "EVENT", get_event_str(1, "ERR", "AUTO_NOT_AVAILABLE " + std::to_string(flag)));
             }
-
-            // send_mission_update_server(current_socket, "MISSION_AUTO_GOTO", "INTERRUPTED", flag);
         }
     }));
 
-    current_socket->on("ORDER_MANUALNAV", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+    current_socket->on("ORDER_MANUALNAV"     , sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
     {
         int flag = manual_mode_available(&redis);
 
@@ -184,7 +291,6 @@ void bind_events(sio::socket::ptr current_socket)
             if(get_redis_str(&redis, "ROBOT_MODE").compare("AUTO") == 0) 
             {
                 pub_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_MANUAL_MOVE", "START"));
-                send_mission_update_server(current_socket, "MISSION_MANUAL_MOVE", "START", 0);
             }
 
             std::string event_manual_controler_data_str = std::to_string(get_curr_timestamp()) + "|";
@@ -204,13 +310,12 @@ void bind_events(sio::socket::ptr current_socket)
             set_redis_var(&redis, "ROBOT_MODE",           "MANUAL");
             set_redis_var(&redis, "MISSION_MANUAL_TYPE",  "MANUAL_MOVE");
             set_redis_var(&redis, "MISSION_MANUAL_STATE", "INTERRUPTED");
-            pub_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_MANUAL_MOVE", "MANUAL_NOT_AVAILABLE " + std::to_string(flag)));
-            send_mission_update_server(current_socket, "MISSION_MANUAL_MOVE", "INTERRUPTED", 0);
+            pub_redis_var(&redis, "EVENT", get_event_str(1, "ERR", "MANUAL_NOT_AVAILABLE " + std::to_string(flag)));
         }
     }));
 
     // (OK) Ordre de deveroullage d'une trappe. (Casier ID, avec/sans code)
-    current_socket->on("ORDER_HARDWARE", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+    current_socket->on("ORDER_HARDWARE"      , sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
     {
         std::vector<std::string> vect_cargo_state;
         get_redis_multi_str(&redis, "HARD_CARGO_STATE", vect_cargo_state);
@@ -221,19 +326,18 @@ void bind_events(sio::socket::ptr current_socket)
         std::string box_id_str = data->get_map()["ID_BOX"]->get_string();
 
         int index;
-        if(box_id_str.compare("A") == 0) index = 1;
-        if(box_id_str.compare("B") == 0) index = 2;
-        if(box_id_str.compare("C") == 0) index = 3;
+        if(box_id_str.compare("1") == 0) index = 1;
+        if(box_id_str.compare("2") == 0) index = 2;
+        if(box_id_str.compare("3") == 0) index = 3;
 
         if(vect_cargo_state[index].compare("OPEN") == 0)
         {
-            pub_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_OPEN_BOX" + box_id_str, "ALREADY_COMPLETED"));
-            send_mission_update_server(current_socket, "MISSION_OPEN_BOX" + box_id_str, "ALREADY_COMPLETED", 0);
+            pub_redis_var(&redis, "EVENT", get_event_str(1, "ERR"      , "BOX " + box_id_str + " ALREADY_COMPLETED"));
+            pub_redis_var(&redis, "EVENT", get_event_str(1, "BOX_OPEN" , box_id_str));
         }
         else
         {
             pub_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_OPEN_BOX" + box_id_str, "START"));
-            send_mission_update_server(current_socket, "MISSION_OPEN_BOX" + box_id_str, "START", 0);
         }
 
         std::string new_mission_cargo_str = std::to_string(get_curr_timestamp()) + "|";
@@ -253,9 +357,9 @@ void bind_events(sio::socket::ptr current_socket)
 
 
     // // (OK) Ordre lancement stream robot (Option de stream)
-    current_socket->on("ORDER_STREAM", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+    current_socket->on("ORDER_STREAM"        , sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
     {
-        redis.set("option_stream", std::to_string(data->get_map()["OPT_STREAM"]->get_int()));
+        set_redis_var(&redis, "NAV_OPT_STREAM", std::to_string(data->get_map()["OPT_STREAM"]->get_int()));
     }));
 
     current_socket->on("ORDER_CANCEL_MISSION", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
@@ -268,7 +372,6 @@ void bind_events(sio::socket::ptr current_socket)
         set_redis_var(&redis, "MISSION_MANUAL_STATE", "IN_PROGRESS");
 
         pub_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_CANCEL_MISSION", "SUCCESS"));
-        send_mission_update_server(current_socket, "MISSION_CANCEL_MISSION", "COMPLETED", 0);
     }));
 
     // // Ordre de reset du software.

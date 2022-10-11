@@ -39,4 +39,4 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
 void writing_process(sw::redis::Redis* redis, std::string curr_port_name, std::string curr_port_state, LibSerial::SerialPort* com_manager, std::string mcu_function_str);
 void bind_events(sio::socket::ptr current_socket);
 void send_msg_server(sio::socket::ptr current_socket, std::string emit_title, std::vector<Server_var>& vect_msg);
-void send_mission_update_server(sio::socket::ptr current_socket, std::string mission_title, std::string mission_state, int flag);
+void send_event_server(sio::socket::ptr current_socket, std::string mission_title, std::string mission_state);

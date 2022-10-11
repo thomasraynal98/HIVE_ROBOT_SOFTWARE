@@ -22,7 +22,7 @@ FIND_PACKAGE(websocketpp REQUIRED)
 FIND_PACKAGE(OpenSSL REQUIRED)
 
 # [!] Comment for HTTPS.
-FIND_PACKAGE(sioclient REQUIRED)
+# FIND_PACKAGE(sioclient REQUIRED)
 
 # # PROGRAMME 01 : GESTION DU SYSTEME YAML ET REDIS + DEBUG
 ADD_EXECUTABLE(01_SYSTEM_MANAGER 
@@ -75,11 +75,11 @@ TARGET_LINK_LIBRARIES(03_SERVER
     serial
     OpenXLSX::OpenXLSX
     # # [!] Decomment for HTTPS.
-    # ssl
-    # crypto 
-    # /usr/local/lib/libsioclient_tls.so
+    ssl
+    crypto 
+    /usr/local/lib/libsioclient_tls.so
     # [!] Comment for HTTPS.
-    sioclient
+    # sioclient
     ${OpenCV_LIBS})
 
 # PROGRAMME 04 : ANALYSE DE LA SITUATION EST CHOIX COMMANDE MOTOR ROUES.

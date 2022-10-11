@@ -193,17 +193,21 @@ void send_msg_server(sio::socket::ptr current_socket, std::string emit_title, st
         {
             socket_msg->get_map()[vect_msg[i].channel_str] = sio::double_message::create(std::stod(vect_msg[i].value));
         }
+        if(vect_msg[i].type_str.compare("l") == 0)
+        {
+            socket_msg->get_map()[vect_msg[i].channel_str] = sio::int_message::create(std::stoul(vect_msg[i].value));
+        }
     }
 
     current_socket->emit(emit_title, socket_msg);
 }
 
-void send_mission_update_server(sio::socket::ptr current_socket, std::string mission_title, std::string mission_state, int flag)
+void send_event_server(sio::socket::ptr current_socket, std::string mission_title, std::string mission_state)
 {
     std::vector<Server_var> vect_msg_server;
-    vect_msg_server.push_back(Server_var("s", "MISSION_INFO",       mission_title));
-    vect_msg_server.push_back(Server_var("s", "MISSION_STATE",      mission_state));
-    vect_msg_server.push_back(Server_var("i", "MISSION_START_FLAG", std::to_string(flag)));
+    vect_msg_server.push_back(Server_var("s", "TITLE"    , mission_title));
+    vect_msg_server.push_back(Server_var("s", "INFO"     , mission_state));
+    vect_msg_server.push_back(Server_var("l", "TIMESTAMP", std::to_string(get_curr_timestamp())));
 
-    send_msg_server(current_socket, "ROBOT_MISSION_INFO", vect_msg_server);
+    send_msg_server(current_socket, "EVENT", vect_msg_server);
 }

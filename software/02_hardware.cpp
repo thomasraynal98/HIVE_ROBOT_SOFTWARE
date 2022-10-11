@@ -227,9 +227,9 @@ void f_thread_readwrite_pixhawk()
 
             // LOCAL_POSITION_NED
             debug_str = std::to_string(get_curr_timestamp()) + "|";
-            debug_str += std::to_string(messages.local_position_ned.x) + "|";
-            debug_str += std::to_string(messages.local_position_ned.y) + "|";
-            debug_str += std::to_string(messages.local_position_ned.z) + "|";
+            debug_str += std::to_string(messages.thomas_add2.x) + "|";
+            debug_str += std::to_string(messages.thomas_add2.y) + "|";
+            debug_str += std::to_string(messages.thomas_add2.yaw) + "|";
             // debug_str += std::to_string(messages.local_position_ned.vx) + "|";
             // debug_str += std::to_string(messages.local_position_ned.vy) + "|";
             // debug_str += std::to_string(messages.local_position_ned.vz) + "|";
