@@ -3,11 +3,11 @@
 #include "00_navigation.h"
 
 //[!!] OPTION FOR HTTP SERVER.
-// #include <sio_client.h>
+#include <sio_client.h>
 
 //[!!] OPTION FOR HTTPS SERVER.
-#define ASIO_STANDALONE 
-#define SIO_TLS
+// #define ASIO_STANDALONE 
+// #define SIO_TLS
 
 using namespace sw::redis;
 auto redis = Redis("tcp://127.0.0.1:6379");
@@ -57,9 +57,21 @@ void callback_command(std::string channel, std::string msg)
     {
         send_event_server(h.socket(), "CANCEL_MISSION", "SUCCESS");
     }
+    if(vect_str[2].compare("BOX_OPEN")               == 0)
+    {
+        send_event_server(h.socket(), "BOX_OPEN"      , vect_str[3]);
+    }
+    if(vect_str[2].compare("BOX_CLOSE")              == 0)
+    {
+        send_event_server(h.socket(), "BOX_CLOSE"     , vect_str[3]);
+    }
+    if(vect_str[2].compare("BOX_TIME_OUT")           == 0)
+    {
+        send_event_server(h.socket(), "BOX_TIME_OUT"  , vect_str[3]);
+    }
     if(vect_str[2].compare("ERR")                    == 0)
     {
-        send_event_server(h.socket(), "ERR", vect_str[4]);
+        send_event_server(h.socket(), "ERR", vect_str[3]);
     }
 }
 
@@ -190,11 +202,11 @@ int main(int argc, char *argv[])
 {
     thread_event     = std::thread(&f_thread_event);
     thread_server    = std::thread(&f_thread_server);
-    thread_telemetry = std::thread(&f_thread_telemetry);
+    // thread_telemetry = std::thread(&f_thread_telemetry);
 
     thread_event.join();
     thread_server.join();
-    thread_telemetry.join();
+    // thread_telemetry.join();
 
     return 0;
 }
@@ -347,7 +359,7 @@ void bind_events(sio::socket::ptr current_socket)
             if(i == index) new_mission_cargo_str += "OPEN|";
             else
             {
-                vect_cargo_state[i] + "|";
+                new_mission_cargo_str += vect_cargo_mission[i] + "|";
             }
         }
 

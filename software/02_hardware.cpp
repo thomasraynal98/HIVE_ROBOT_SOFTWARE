@@ -16,6 +16,7 @@ std::thread thread_write_mcu_motor;
 std::thread thread_write_mcu_cargo;
 std::thread thread_write_mcu_inter;
 std::thread thread_readwrite_pixhack;
+std::thread thread_box_checking;
 
 LibSerial::SerialPort* com_mcu_motor = new LibSerial::SerialPort;
 LibSerial::SerialPort* com_mcu_cargo = new LibSerial::SerialPort;
@@ -118,7 +119,7 @@ void f_thread_read_mcu_motor()
 
     while(true)
     {
-        reading_process(&redis, "HARD_MCU_MOTOR_PORT_NAME", "HARD_MCU_MOTOR_COM_STATE", com_mcu_motor);
+        reading_process(&redis, "HARD_MCU_MOTOR_PORT_NAME", "HARD_MCU_MOTOR_COM_STATE", com_mcu_motor, "MOTOR");
     }
 }
 
@@ -126,7 +127,7 @@ void f_thread_read_mcu_cargo()
 {
     while(true)
     {
-        reading_process(&redis, "HARD_MCU_CARGO_PORT_NAME", "HARD_MCU_CARGO_COM_STATE", com_mcu_cargo);
+        reading_process(&redis, "HARD_MCU_CARGO_PORT_NAME", "HARD_MCU_CARGO_COM_STATE", com_mcu_cargo, "CARGO");
     }
 }
 
@@ -134,7 +135,7 @@ void f_thread_read_mcu_inter()
 {
     while(true)
     {
-        reading_process(&redis, "HARD_MCU_INTER_PORT_NAME", "HARD_MCU_INTER_COM_STATE", com_mcu_inter);
+        reading_process(&redis, "HARD_MCU_INTER_PORT_NAME", "HARD_MCU_INTER_COM_STATE", com_mcu_inter, "INTER");
     }
 }
 
@@ -160,7 +161,7 @@ void f_thread_write_mcu_motor()
 
 void f_thread_write_mcu_cargo()
 {
-    double ms_for_loop = frequency_to_ms(5);
+    double ms_for_loop = frequency_to_ms(1);
     auto next = std::chrono::high_resolution_clock::now();
 
     while(true)
@@ -249,9 +250,10 @@ void f_thread_readwrite_pixhawk()
             }
 
             // MSG SYSTEM STATUS
-            // debug_str += std::to_string(messages.sys_status.load) + "|";
+            // debug_str = std::to_string(messages.sys_status.load) + "|";
             // debug_str += std::to_string(messages.sys_status.onboard_control_sensors_enabled) + "|";
             // debug_str += std::to_string(messages.sys_status.drop_rate_comm) + "|";
+            // std::cout << debug_str << std::endl;
 
             // HIGHRES IMU
             // debug_str += std::to_string(messages.highres_imu.xgyro) + "|";
@@ -261,6 +263,7 @@ void f_thread_readwrite_pixhawk()
             // debug_str += std::to_string(messages.highres_imu.yacc) + "|";
             // debug_str += std::to_string(messages.highres_imu.zacc) + "|";
             // debug_str += std::to_string(messages.highres_imu.temperature) + "|";
+            // std::cout << debug_str << std::endl;
 
             // GPS HIL
             set_redis_var(&redis, "HARD_GPS_FIX_STATE", std::to_string(messages.thomas_add.fix_type));
@@ -299,6 +302,51 @@ void f_thread_readwrite_pixhawk()
     }
 }
 
+void f_thread_box_checking()
+{
+    double ms_for_loop = frequency_to_ms(1);
+    auto next = std::chrono::high_resolution_clock::now();
+
+    while(true)
+    {
+        next += std::chrono::milliseconds((int)ms_for_loop);
+        std::this_thread::sleep_until(next);
+
+        std::vector<std::string> vect_redis_str;
+
+        get_redis_multi_str(&redis, "EVENT_OPEN_BOX_A", vect_redis_str);
+        if(vect_redis_str[1].compare("OPEN") == 0)
+        {
+            if(time_is_over(get_curr_timestamp(), std::stoul(vect_redis_str[0]), std::stoul(get_redis_str(&redis, "MISSION_BOX_MAX_OPEN_TIME"))))
+            {
+                pub_redis_var(&redis, "EVENT", get_event_str(1, "BOX_TIME_OUT", "A"));
+                // refait timer dans 15 secondes.
+                set_redis_var(&redis, "EVENT_OPEN_BOX_A", std::to_string(std::stoul(vect_redis_str[0]) + 15000) + " |OPEN|");
+            }
+        }
+
+        get_redis_multi_str(&redis, "EVENT_OPEN_BOX_B", vect_redis_str);
+        if(vect_redis_str[1].compare("OPEN") == 0)
+        {
+            if(time_is_over(get_curr_timestamp(), std::stoul(vect_redis_str[0]), std::stoul(get_redis_str(&redis, "MISSION_BOX_MAX_OPEN_TIME"))))
+            {
+                pub_redis_var(&redis, "EVENT", get_event_str(1, "BOX_TIME_OUT", "B"));
+                set_redis_var(&redis, "EVENT_OPEN_BOX_B", std::to_string(std::stoul(vect_redis_str[0]) + 15000) + " |OPEN|");
+            }
+        }
+
+        get_redis_multi_str(&redis, "EVENT_OPEN_BOX_C", vect_redis_str);
+        if(vect_redis_str[1].compare("OPEN") == 0)
+        {
+            if(time_is_over(get_curr_timestamp(), std::stoul(vect_redis_str[0]), std::stoul(get_redis_str(&redis, "MISSION_BOX_MAX_OPEN_TIME"))))
+            {
+                pub_redis_var(&redis, "EVENT", get_event_str(1, "BOX_TIME_OUT", "C"));
+                set_redis_var(&redis, "EVENT_OPEN_BOX_C", std::to_string(std::stoul(vect_redis_str[0]) + 15000) + " |OPEN|");
+            }
+        }
+    }
+}
+
 //===================================================================
 // MAIN PART
 //===================================================================
@@ -311,8 +359,11 @@ void reset_value()
     set_redis_var(&redis, "HARD_MCU_CARGO_PORT_NAME", "NO_VAL");
     set_redis_var(&redis, "HARD_MCU_INTER_COM_STATE", "DISCONNECTED");
     set_redis_var(&redis, "HARD_MCU_INTER_PORT_NAME", "NO_VAL");
-    set_redis_var(&redis, "HARD_PIXHAWK_COM_STATE", "DISCONNECTED");
-    set_redis_var(&redis, "HARD_PIXHAWK_PORT_NAME", "NO_VAL");
+    set_redis_var(&redis, "HARD_PIXHAWK_COM_STATE"  , "DISCONNECTED");
+    set_redis_var(&redis, "HARD_PIXHAWK_PORT_NAME"  , "NO_VAL");
+
+    set_redis_var(&redis, "MISSION_HARD_CARGO"      , "0000000000000|CLOSE|CLOSE|CLOSE|");
+    set_redis_var(&redis, "HARD_CARGO_STATE"        , "0000000000000|CLOSE|CLOSE|CLOSE|");
 }
 
 int main(int argc, char *argv[])
@@ -327,6 +378,7 @@ int main(int argc, char *argv[])
     thread_write_mcu_cargo   = std::thread(&f_thread_write_mcu_cargo);
     thread_write_mcu_inter   = std::thread(&f_thread_write_mcu_inter);
     thread_readwrite_pixhack = std::thread(&f_thread_readwrite_pixhawk);
+    thread_box_checking      = std::thread(&f_thread_box_checking);
 
     thread_port_detection.join();
     thread_read_mcu_motor.join();
@@ -336,6 +388,7 @@ int main(int argc, char *argv[])
     thread_write_mcu_cargo.join();
     thread_write_mcu_inter.join();
     thread_readwrite_pixhack.join();
+    thread_box_checking.join();
 
     return 0;
 }

@@ -117,6 +117,11 @@ void init_redis_var(sw::redis::Redis* redis)
     read_yaml(redis, &fsSettings, "NAV_OBJ_SAFETY_DIST_M");
 
     read_yaml(redis, &fsSettings, "NAV_OPT_STREAM");
+
+    read_yaml(redis, &fsSettings, "EVENT_OPEN_BOX_A");
+    read_yaml(redis, &fsSettings, "EVENT_OPEN_BOX_B");
+    read_yaml(redis, &fsSettings, "EVENT_OPEN_BOX_C");
+    read_yaml(redis, &fsSettings, "MISSION_BOX_MAX_OPEN_TIME");
 }
 
 int64_t get_curr_timestamp()

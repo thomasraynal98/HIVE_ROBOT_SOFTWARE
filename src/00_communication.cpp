@@ -97,7 +97,7 @@ int port_closing_process(sw::redis::Redis* redis, std::string curr_port_name, st
     return 0;
 }
 
-void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::string curr_port_state, LibSerial::SerialPort* com_manager)
+void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::string curr_port_state, LibSerial::SerialPort* com_manager, std::string mcu_function_str)
 {
     size_t timeout_ms = 1000;
     std::string reponse;
@@ -109,6 +109,86 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
             com_manager->ReadLine(reponse, '\n', timeout_ms);
             // std::cout << "DATA FROM XXX : " << reponse << std::endl;
             // ALL INFORMATION READING BY MCU ESP32.
+
+            if(mcu_function_str.compare("CARGO") == 0)
+            {
+                // Pour stocker et découper la nouvelle lecture.
+                std::vector<std::string> vect_reponse_mcu_cargo;
+                get_multi_str(reponse, vect_reponse_mcu_cargo);
+
+                // Pour setup la nouvelle lecture sur redis.
+                std::string redis_sensor_str = std::to_string(get_curr_timestamp()) + "|";
+
+                // Pour comparer avec l'ancienne lecture.
+                std::vector<std::string> new_sensor_vect;
+
+                if(vect_reponse_mcu_cargo.size() == 4)
+                {
+                    for(int i = 1; i < 4; i++)
+                    {
+                        if(vect_reponse_mcu_cargo[i].compare("1") == 0)
+                        {
+                            redis_sensor_str += "OPEN|";
+                            new_sensor_vect.push_back("OPEN");
+                        }
+                        else
+                        {
+                            redis_sensor_str += "CLOSE|";
+                            new_sensor_vect.push_back("CLOSE");
+                        }
+                    }
+                }
+
+                std::vector<std::string> previous_vect_reponse_mcu_cargo;
+                get_redis_multi_str(redis, "HARD_CARGO_STATE", previous_vect_reponse_mcu_cargo);
+
+                // Comparer la nouvelle à l'ancienne.
+                for(int i = 0; i < new_sensor_vect.size(); i++)
+                {
+                    if(new_sensor_vect[i].compare(previous_vect_reponse_mcu_cargo[i+1]) != 0)
+                    {
+                        if(new_sensor_vect[i].compare("OPEN") == 0)
+                        {
+                            if(i == 0)
+                            {
+                                pub_redis_var(redis, "EVENT", get_event_str(3, "BOX_OPEN", "1"));
+                                set_redis_var(redis, "EVENT_OPEN_BOX_A", std::to_string(get_curr_timestamp()) + "|OPEN|");
+                            }
+                            if(i == 1) 
+                            {
+                                pub_redis_var(redis, "EVENT", get_event_str(3, "BOX_OPEN", "2"));
+                                set_redis_var(redis, "EVENT_OPEN_BOX_B", std::to_string(get_curr_timestamp()) + "|OPEN|");
+                            }
+                            if(i == 2) 
+                            {
+                                pub_redis_var(redis, "EVENT", get_event_str(3, "BOX_OPEN", "3"));
+                                set_redis_var(redis, "EVENT_OPEN_BOX_C", std::to_string(get_curr_timestamp()) + "|OPEN|");
+                            }
+                        }
+                        if(new_sensor_vect[i].compare("CLOSE") == 0)
+                        {
+                            if(i == 0) 
+                            {
+                                pub_redis_var(redis, "EVENT", get_event_str(3, "BOX_CLOSE", "1"));
+                                set_redis_var(redis, "EVENT_OPEN_BOX_A", std::to_string(get_curr_timestamp()) + "|CLOSE|");
+                            }
+                            if(i == 1) 
+                            {
+                                pub_redis_var(redis, "EVENT", get_event_str(3, "BOX_CLOSE", "2"));
+                                set_redis_var(redis, "EVENT_OPEN_BOX_B", std::to_string(get_curr_timestamp()) + "|CLOSE|");
+                            }
+                            if(i == 2) 
+                            {
+                                pub_redis_var(redis, "EVENT", get_event_str(3, "BOX_CLOSE", "3"));
+                                set_redis_var(redis, "EVENT_OPEN_BOX_C", std::to_string(get_curr_timestamp()) + "|CLOSE|");
+                            }
+                        }
+                    }
+                }
+
+                // publier la nouvelle configuration sensor sur redis.
+                set_redis_var(redis, "HARD_CARGO_STATE", redis_sensor_str);
+            }
         }
         catch(...)
         {
@@ -166,8 +246,34 @@ void writing_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                 }
             }
             
-            std::cout << "SEND : " << msg_motor_str << std::endl;
+            // std::cout << "SEND : " << msg_motor_str << std::endl;
             com_manager->Write(msg_motor_str+'\n'); 
+        }
+
+        if(mcu_function_str.compare("CARGO") == 0)
+        {
+            std::string msg_box_str = "M|2|";
+
+            std::vector<std::string> vect_box_command;
+            get_redis_multi_str(redis, "MISSION_HARD_CARGO", vect_box_command);
+
+            if(vect_box_command.size() == 4)
+            {
+                for(int i = 1; i < 4; i++)
+                {
+                    if(vect_box_command[i].compare("OPEN") == 0)
+                    {
+                        msg_box_str += "1|";
+                    }
+                    else
+                    {
+                        msg_box_str += "0|";
+                    }
+                }
+            }
+
+            std::cout << "SEND : " << msg_box_str << std::endl;
+            com_manager->Write(msg_box_str+'\n'); 
         }
     }
     
