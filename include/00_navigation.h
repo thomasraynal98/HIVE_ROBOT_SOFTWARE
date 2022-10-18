@@ -250,7 +250,7 @@ double get_dist_from_pos_to_toad(Geographic_point* pointA, Geographic_point* poi
 void update_path_node(std::vector<Data_node>& vector_node, std::vector<Data_road>& road_vector, std::vector<Path_node>& graph);
 double compute_weight_road(Data_road* road);
 Geographic_point get_projected_point(Geographic_point* pointA, Geographic_point* pointB, Geographic_point* pointC);
-int get_node_ID_from_road(std::vector<Data_road>& vect_road, int road_ID);
+int get_node_ID_from_road(std::vector<Data_road>& vect_road, int road_ID, Geographic_point* point);
 bool compute_navigation_path(int idx_start, int idx_endof, std::vector<Path_node>& graph, std::vector<Data_road>& road_vector, std::vector<Data_road*>& path_road_vector);
 
 void process_final_roadmap(sw::redis::Redis* redis, std::vector<Data_road*>& path_road_vector, std::vector<Data_road>& road_vector, std::vector<Roadmap_node>& vect_roadmap);
@@ -261,3 +261,4 @@ Geographic_point get_new_position(Geographic_point* start_position, double beari
 void update_sensor_prm(sw::redis::Redis* redis, std::vector<Sensor_prm>& vect_sensor_prm);
 void process_brut_obj(std::vector<double> curr_local_pos, std::vector<std::string> brut_obj, Sensor_prm* sensor_prm, double* min_dist, double* max_dist, std::vector<Object_env>& vect_obj, double* min_separation, int *min_observation);
 void clear_obj_vect(std::vector<double> curr_local_pos, std::vector<Object_env>& vect_obj, int clear_time_ms, double clear_dist_m);
+double get_battery_level(double curr_voltage, double battery_voltage);

@@ -4,6 +4,7 @@ using namespace sw::redis;
 auto redis = Redis("tcp://127.0.0.1:6379");
 
 std::thread thread_debug;
+std::thread thread_process_check;
 
 //===================================================================
 // DESCISION : Le thread qui va SAVE les events. Le programme 03 va
@@ -165,18 +166,84 @@ void f_thread_debug()
             print_redis(&redis, "NAV_AUTO_TARGET_EXTENSION");
             print_redis(&redis, "NAV_AUTO_DESTINATION_CROSSING_M");
         }
+
+        if(display_mode.compare("MODE3") == 0)
+        {
+            std::system("clear");
+
+            print_redis(&redis, "SOFT_PROCESS_ID_SYS");
+            print_redis(&redis, "SOFT_PROCESS_ID_HARD");
+            print_redis(&redis, "SOFT_PROCESS_ID_SERV");
+            print_redis(&redis, "SOFT_PROCESS_ID_NAV");
+            print_redis(&redis, "SOFT_PROCESS_ID_PERCEP");
+
+            std::cout << std::endl;
+
+            print_redis(&redis, "SOFT_PROCESS_ID_SYS_STATUS");
+            print_redis(&redis, "SOFT_PROCESS_ID_HARD_STATUS");
+            print_redis(&redis, "SOFT_PROCESS_ID_NAV_STATUS");
+            print_redis(&redis, "SOFT_PROCESS_ID_PERCEP_STATUS");
+            print_redis(&redis, "SOFT_PROCESS_ID_SERV_STATUS");
+
+            std::cout << std::endl;
+        }
+    }
+}
+
+void f_thread_process_check()
+{
+    double ms_for_loop = frequency_to_ms(2);
+    auto next = std::chrono::high_resolution_clock::now();
+
+    while(true)
+    {
+        next += std::chrono::milliseconds((int)ms_for_loop);
+        std::this_thread::sleep_until(next);
+
+        if(file_exist("/proc/" + get_redis_str(&redis, "SOFT_PROCESS_ID_SYS") + "/status"))
+        {
+            set_redis_var(&redis, "SOFT_PROCESS_ID_SYS_STATUS", "CONNECTED");
+        } else { set_redis_var(&redis, "SOFT_PROCESS_ID_SYS_STATUS", "DISCONNECTED");}
+
+        if(file_exist("/proc/" + get_redis_str(&redis, "SOFT_PROCESS_ID_HARD") + "/status"))
+        {
+            set_redis_var(&redis, "SOFT_PROCESS_ID_HARD_STATUS", "CONNECTED");
+        } else { set_redis_var(&redis, "SOFT_PROCESS_ID_HARD_STATUS", "DISCONNECTED");}
+
+        if(file_exist("/proc/" + get_redis_str(&redis, "SOFT_PROCESS_ID_SERV") + "/status"))
+        {
+            set_redis_var(&redis, "SOFT_PROCESS_ID_NAV_STATUS", "CONNECTED");
+        } else { set_redis_var(&redis, "SOFT_PROCESS_ID_NAV_STATUS", "DISCONNECTED");}
+
+        if(file_exist("/proc/" + get_redis_str(&redis, "SOFT_PROCESS_ID_NAV") + "/status"))
+        {
+            set_redis_var(&redis, "SOFT_PROCESS_ID_PERCEP_STATUS", "CONNECTED");
+        } else { set_redis_var(&redis, "SOFT_PROCESS_ID_PERCEP_STATUS", "DISCONNECTED");}
+
+        if(file_exist("/proc/" + get_redis_str(&redis, "SOFT_PROCESS_ID_PERCEP") + "/status"))
+        {
+            set_redis_var(&redis, "SOFT_PROCESS_ID_SERV_STATUS", "CONNECTED");
+        } else { set_redis_var(&redis, "SOFT_PROCESS_ID_SERV_STATUS", "DISCONNECTED");}
     }
 }
 
 int main(int argc, char *argv[])
 {
+    set_redis_var(&redis, "SOFT_PROCESS_ID_SYS", std::to_string(getpid()));
+
     int opt_reset = 0;
     if(argc == 2) opt_reset = std::atoi(argv[1]);
 
     if(opt_reset == 0)
     {
         init_redis_var(&redis);
-        thread_debug = std::thread(&f_thread_debug);
+        
+        set_redis_var(&redis, "SOFT_PROCESS_ID_SYS", std::to_string(getpid()));
+
+        thread_debug         = std::thread(&f_thread_debug);
+        thread_process_check = std::thread(&f_thread_process_check);
+
         thread_debug.join();
+        thread_process_check.join();
     }
 }

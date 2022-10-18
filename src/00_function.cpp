@@ -46,7 +46,7 @@ void init_redis_var(sw::redis::Redis* redis)
     read_yaml(redis, &fsSettings, "NAV_HMR_DOWNLOAD_ADRESS");
     read_yaml(redis, &fsSettings, "NAV_HMR_LOCAL_PATH");
     read_yaml(redis, &fsSettings, "NAV_AUTO_DESTINATION");
-    read_yaml(redis, &fsSettings, "NAV_AUTO_MgetODE_PARKING");
+    read_yaml(redis, &fsSettings, "NAV_AUTO_MODE_PARKING");
 
     read_yaml(redis, &fsSettings, "NAV_AUTO_MODE");
     read_yaml(redis, &fsSettings, "MISSION_MOTOR_BRAKE");
@@ -122,6 +122,26 @@ void init_redis_var(sw::redis::Redis* redis)
     read_yaml(redis, &fsSettings, "EVENT_OPEN_BOX_B");
     read_yaml(redis, &fsSettings, "EVENT_OPEN_BOX_C");
     read_yaml(redis, &fsSettings, "MISSION_BOX_MAX_OPEN_TIME");
+
+    read_yaml(redis, &fsSettings, "MISSION_ESTI_TIME_TO_TARGET");
+    read_yaml(redis, &fsSettings, "MISSION_ESTI_DIST_TO_TARGET");
+
+    read_yaml(redis, &fsSettings, "SOFT_PROCESS_ID_SYS");
+    read_yaml(redis, &fsSettings, "SOFT_PROCESS_ID_HARD");
+    read_yaml(redis, &fsSettings, "SOFT_PROCESS_ID_SERV");
+    read_yaml(redis, &fsSettings, "SOFT_PROCESS_ID_NAV");
+    read_yaml(redis, &fsSettings, "SOFT_PROCESS_ID_PERCEP");
+
+    read_yaml(redis, &fsSettings, "SOFT_PROCESS_ID_SYS_STATUS");
+    read_yaml(redis, &fsSettings, "SOFT_PROCESS_ID_HARD_STATUS");
+    read_yaml(redis, &fsSettings, "SOFT_PROCESS_ID_NAV_STATUS");
+    read_yaml(redis, &fsSettings, "SOFT_PROCESS_ID_PERCEP_STATUS");
+    read_yaml(redis, &fsSettings, "SOFT_PROCESS_ID_SERV_STATUS");
+
+    read_yaml(redis, &fsSettings, "SERVER_MAX_TIME");
+    read_yaml(redis, &fsSettings, "ROBOT_INFO_HOME_POSITION");
+    read_yaml(redis, &fsSettings, "NAV_AUTO_MODE_PARKING_DIST_M");
+
 }
 
 int64_t get_curr_timestamp()
@@ -262,5 +282,12 @@ double rad_to_deg(double rad)
 bool is_same_time(int64_t timesptamp1, int64_t timesptamp2)
 {
     if(timesptamp1 == timesptamp2) return true;
+    return false;
+}
+
+bool file_exist(std::string file_path)
+{
+    struct stat buffer;   
+    if(stat(file_path.c_str(), &buffer) == 0) return true;
     return false;
 }

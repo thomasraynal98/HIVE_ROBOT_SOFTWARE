@@ -74,7 +74,7 @@ TARGET_LINK_LIBRARIES(03_SERVER
     redis++
     serial
     OpenXLSX::OpenXLSX
-    # # [!] Decomment for HTTPS.
+    # [!] Decomment for HTTPS.
     # ssl
     # crypto 
     # /usr/local/lib/libsioclient_tls.so

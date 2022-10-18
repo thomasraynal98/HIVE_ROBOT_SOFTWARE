@@ -386,7 +386,17 @@ int get_road_ID_from_pos(sw::redis::Redis* redis, std::vector<Data_road>& vect_r
                     Geographic_point project = get_projected_point(vect_road[i].A->point, vect_road[i].B->point, curr_pos);
                     double distance_to_pd = sqrt(pow(project.longitude,2)+pow(project.latitude,2));
                     double bearing_to_pd  = rad_to_deg(2 * atan(project.latitude / (project.longitude + sqrt(pow(project.longitude, 2) + pow(project.latitude, 2)))));
-                    project_gps_dest = get_new_position(curr_pos, bearing_to_pd, distance_to_pd);
+
+                    if(distance_to_pd < 0.1)
+                    {
+                        // Security if the curr_pos is already on road.
+                        project_gps_dest.longitude = curr_pos->longitude;
+                        project_gps_dest.latitude = curr_pos->latitude;
+                    }
+                    else
+                    {
+                        project_gps_dest = get_new_position(curr_pos, bearing_to_pd, distance_to_pd);
+                    }
                 }
             }
 
@@ -614,13 +624,16 @@ long double deg_to_rad(const long double degree)
     return (one_deg * degree);
 }
 
-int get_node_ID_from_road(std::vector<Data_road>& vect_road, int road_ID)
+int get_node_ID_from_road(std::vector<Data_road>& vect_road, int road_ID, Geographic_point* point)
 {
     for(auto road : vect_road)
     {
         if(road.road_ID == road_ID)
         {
-            // [!] On retourne forcement l'index du node A.
+            double dA = get_angular_distance(road.A->point, point);
+            double dB = get_angular_distance(road.B->point, point);
+
+            if(dA >= dB) return road.B->node_ID;
             return road.A->node_ID;
         }
     }
@@ -1093,4 +1106,50 @@ void clear_obj_vect(std::vector<double> curr_local_pos, std::vector<Object_env>&
             }
         }
 	}
+}
+
+double get_battery_level(double curr_voltage, double battery_voltage)
+{
+    if(battery_voltage == 24.0)
+    {
+        if(curr_voltage > 25.46) return 100.0;
+
+        std::vector<double> border_vect;
+        border_vect.push_back(25.46);
+        border_vect.push_back(25.24);
+        border_vect.push_back(25.00);
+        border_vect.push_back(24.74);
+        border_vect.push_back(24.48);
+        border_vect.push_back(24.20);
+        border_vect.push_back(23.92);
+        border_vect.push_back(23.62);
+        border_vect.push_back(23.32);
+        border_vect.push_back(23.02);
+
+        for(int i = 0; i < border_vect.size(); i++)
+        {
+            if(i == 0)
+            {
+                if(curr_voltage > border_vect[i]) return 100.0;
+            }
+            if(i != 0 && i != border_vect.size()-1)
+            {
+                if(curr_voltage <= border_vect[i-1] && curr_voltage > border_vect[i])
+                {
+                    return 10*(10-i) + (curr_voltage - border_vect[i]) * 10.0 / (border_vect[i-1] - border_vect[i]);  
+                }
+            }
+            if(i == border_vect.size()-1)
+            {
+                if(curr_voltage <= border_vect[i-1] && curr_voltage > border_vect[i])
+                {
+                    return 10*(10-i) + (curr_voltage - border_vect[i]) * 10.0 / (border_vect[i-1] - border_vect[i]);  
+                }
+                else
+                {
+                    return 0.0;
+                }
+            }
+        }
+    }
 }

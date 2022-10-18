@@ -6,7 +6,12 @@ auto redis = Redis("tcp://127.0.0.1:6379");
 cv::Mat debug_directmap(200, 200, CV_8UC3, cv::Scalar(255, 255, 255));
 
 int main(int argc, char *argv[])
-{
+{   
+    set_redis_var(&redis, "SOFT_PROCESS_ID_NAV", std::to_string(getpid()));
+        
+    // SECURITY RESET
+    set_redis_var(&redis, "ROBOT_MODE", "MANUAL");
+
     cv::namedWindow( "DEBUG_DIRECT", 4);
 
     set_redis_var(&redis, "NAV_HMR_MAP_UPDATE", "TRUE");
@@ -164,21 +169,105 @@ int main(int argc, char *argv[])
                 pub_redis_var(&redis, "EVENT", get_event_str(2, "COMPUTE_GLOBAL_PATH", "START"));
                 update_path_node(vect_node, vect_road, graph);
 
-                int node_start_ID = get_node_ID_from_road(vect_road, std::stoi(vect_str[1]));
+                int node_start_ID = get_node_ID_from_road(vect_road, std::stoi(vect_str[1]), curr_position.point);
 
                 std::vector<std::string> vect_str_2;
                 get_redis_multi_str(&redis, "NAV_AUTO_DESTINATION", vect_str_2);
                 Geographic_point destination_pos = Geographic_point(std::stod(vect_str_2[1]), std::stod(vect_str_2[2]));
+
+                vect_roadmap.clear();
                 int destination_road_ID = get_road_ID_from_pos(&redis, vect_road, &destination_pos, vect_roadmap, 2);
 
                 std::string redis_str = std::to_string(get_curr_timestamp()) + "|" + std::to_string(destination_road_ID) + "|";
                 set_redis_var(&redis, "NAV_AUTO_DESTINATION_ROAD_ID", redis_str);
 
-                int node_endof_ID = get_node_ID_from_road(vect_road, destination_road_ID);
+                int node_endof_ID = get_node_ID_from_road(vect_road, destination_road_ID, &destination_pos);
 
-                if(compute_navigation_path(node_start_ID, node_endof_ID, graph, vect_road, vect_brut_road))
+                // MANAGE SPECIAL CASE.
+                if((node_start_ID) == node_endof_ID || (std::stoi(vect_str[1]) == destination_road_ID))
                 {
-                    process_final_roadmap(&redis, vect_brut_road, vect_road, vect_roadmap);
+                    vect_brut_road.clear();
+
+                    // SAME NODE PROBLEM
+                    if(node_start_ID == node_endof_ID && (std::stoi(vect_str[1]) != destination_road_ID))
+                    {
+                        for(int i = 0; i < vect_road.size(); i++)
+                        {
+                            if(vect_road[i].road_ID == (std::stoi(vect_str[1])))
+                            {
+                                vect_brut_road.push_back(&vect_road[i]);
+                                break;
+                            }
+                        }
+                        for(int i = 0; i < vect_road.size(); i++)
+                        {
+                            if(vect_road[i].road_ID == destination_road_ID)
+                            {
+                                vect_brut_road.push_back(&vect_road[i]);
+                                break;
+                            }
+                        }
+
+                        Roadmap_node rm_node  = Roadmap_node();
+                        rm_node.road          = vect_brut_road[0];
+
+                        std::vector<Data_node*> tempo_vect; 
+                        detect_connection(vect_brut_road[0], vect_brut_road[1], tempo_vect);
+
+                        rm_node.node_start    = tempo_vect[1];
+                        rm_node.node_target   = tempo_vect[0];
+                        vect_roadmap.push_back(rm_node);
+
+                        Roadmap_node rm_node2  = Roadmap_node();
+                        rm_node2.road          = vect_brut_road[1];
+                        rm_node2.node_start    = rm_node.node_target;
+                        if(rm_node2.node_start->node_ID != vect_brut_road[1]->A->node_ID)
+                        {
+                            rm_node2.node_target = vect_brut_road[1]->A;
+                        }
+                        else
+                        {
+                            rm_node2.node_target = vect_brut_road[1]->B;
+                        }
+                        vect_roadmap.push_back(rm_node2);
+
+                        // TODO TIME AND DIST.
+                    }
+
+                    // SAME ROAD PROBLEM.
+                    if((std::stoi(vect_str[1]) == destination_road_ID))
+                    {
+                        for(int i = 0; i < vect_road.size(); i++)
+                        {
+                            if(vect_road[i].road_ID == destination_road_ID)
+                            {
+                                vect_brut_road.push_back(&vect_road[i]);
+                                Roadmap_node rm_node  = Roadmap_node();
+                                rm_node.road          = &vect_road[i];
+
+                                // select the direction.
+                                double distRA = get_angular_distance(curr_position.point, vect_road[i].A->point);
+                                double distDA = get_angular_distance(&destination_pos   , vect_road[i].A->point);
+                                
+                                if(distRA < distDA)
+                                {
+                                    rm_node.node_start  = vect_road[i].A;
+                                    rm_node.node_target = vect_road[i].B;
+                                }
+                                else
+                                {
+                                    rm_node.node_start  = vect_road[i].B;
+                                    rm_node.node_target = vect_road[i].A;
+                                }
+
+                                // TODO TIME AND DIST.
+
+                                vect_roadmap.push_back(rm_node);
+                                break;
+                            }
+                        }
+                    }
+
 
                     std::string global_path_str = "";
                     for(int i = vect_roadmap.size()-1; i >= 0; i--)
@@ -189,7 +278,7 @@ int main(int argc, char *argv[])
                         // global_path_str += std::to_string(vect_roadmap[i].dest_dist_m) + "m|";
                         // global_path_str += std::to_string(vect_roadmap[i].dest_time_s) + "s|";
                     }
-                    // std::cout << global_path_str << std::endl;
+                    std::cout << global_path_str << std::endl;
                     // std::cout << vect_roadmap.size() << std::endl;
                     set_redis_var(&redis, "SIM_GLOBAL_PATH", global_path_str);
 
@@ -200,12 +289,41 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    set_redis_var(&redis, "SIM_GLOBAL_PATH", "");
-                    pub_redis_var(&redis, "EVENT", get_event_str(2, "ERR", "COMPUTE_GLOBAL_PATH NO_PATH_POSSIBLE"));
+                    if(compute_navigation_path(node_start_ID, node_endof_ID, graph, vect_road, vect_brut_road))
+                    {
+                        process_final_roadmap(&redis, vect_brut_road, vect_road, vect_roadmap);
+
+                        std::string global_path_str = "";
+                        for(int i = vect_roadmap.size()-1; i >= 0; i--)
+                        {
+                            // global_path_str += std::to_string(vect_roadmap[i].node_start->node_ID) + "|";
+                            global_path_str += std::to_string(vect_roadmap[i].road->road_ID) + "|";
+                            // global_path_str += std::to_string(vect_roadmap[i].node_target->node_ID) + "|";
+                            // global_path_str += std::to_string(vect_roadmap[i].dest_dist_m) + "m|";
+                            // global_path_str += std::to_string(vect_roadmap[i].dest_time_s) + "s|";
+                        }
+                        // std::cout << global_path_str << std::endl;
+                        // std::cout << vect_roadmap.size() << std::endl;
+                        set_redis_var(&redis, "SIM_GLOBAL_PATH", global_path_str);
+
+                        pub_redis_var(&redis, "EVENT", get_event_str(2, "COMPUTE_GLOBAL_PATH", "SUCCESS"));
+                        set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "FALSE");
+                        set_redis_var(&redis, "MISSION_AUTO_TYPE",   "GOTO");
+                        set_redis_var(&redis, "MISSION_AUTO_STATE",  "IN_PROGRESS");
+                    }
+                    else
+                    {
+                        set_redis_var(&redis, "MISSION_ESTI_TIME_TO_TARGET", "0");
+                        set_redis_var(&redis, "MISSION_ESTI_DIST_TO_TARGET", "0");
+                        set_redis_var(&redis, "SIM_GLOBAL_PATH", "");
+                        pub_redis_var(&redis, "EVENT", get_event_str(2, "ERR", "COMPUTE_GLOBAL_PATH NO_PATH_POSSIBLE"));
+                    }
                 }
             }
             else
             {
+                set_redis_var(&redis, "MISSION_ESTI_TIME_TO_TARGET", "0");
+                set_redis_var(&redis, "MISSION_ESTI_DIST_TO_TARGET", "0");
                 pub_redis_var(&redis, "EVENT", get_event_str(2, "ERR", "COMPUTE_GLOBAL_PATH NO_ROAD_ID"));
             }
             set_redis_var(&redis, "MISSION_UPDATE_GLOBAL_PATH", "FALSE");
@@ -306,59 +424,10 @@ int main(int argc, char *argv[])
             }
         }
 
-        bool simulation = true;
-        std::string sim_obj_str;
-        // std::cout << "SIZE DIRECT MAP : " << vect_obj.size() << std::endl;
-        if(simulation)
-        {
-            for(auto obj : vect_obj)
-            {
-                // std::cout << "DIRECT MAP POINT : " << obj.pos->x << " " << obj.pos->y << " " << obj.available << std::endl;
-                sim_obj_str += std::to_string(obj.pos->x) + "|" + std::to_string(obj.pos->y) + "|";
-
-                // double dist = sqrt(pow(curr_position.l_x - obj.pos->x,2) + pow(curr_position.l_y - obj.pos->y,2));
-                // double x = obj.pos->x - curr_position.l_x;
-                // double y = obj.pos->y - curr_position.l_y;
-                // double angle = rad_to_deg(2 * atan(y / (x + dist))) + 360;
-                // if(angle > 360) angle -= 360;
-                // double angle_diff2;
-
-                // if(curr_position.l_hdg - angle > 0)
-                // {
-                //     if(curr_position.l_hdg - angle > 180)
-                //     {
-                //         // Va vers droite
-                //         angle_diff2 = 360 - (curr_position.l_hdg - angle);
-                //     }
-                //     else
-                //     {
-                //         // Va vers gauche
-                //         angle_diff2 = -(curr_position.l_hdg - angle);
-                //     }
-                // }
-                // else
-                // {
-                //     if(curr_position.l_hdg - angle < -180)
-                //     {
-                //         // Va vers gauche
-                //         angle_diff2 = -(360- (angle - curr_position.l_hdg));
-                //     }
-                //     else
-                //     {   
-                //         // Va vers droite
-                //         angle_diff2 = angle - curr_position.l_hdg;
-                //     }   
-                // }
-                // std::cout << angle << " " << angle_diff2 << std::endl;
-            }
-            set_redis_var(&redis, "SIM_DIRECT_MAP", sim_obj_str);
-        }
-
         //==============================================
         // NAVIGATION :
         //==============================================
 
-        bool debug_cote = false;
         if(get_redis_str(&redis, "MISSION_MOTOR_BRAKE").compare("FALSE") == 0)
         {
             //==========================================
@@ -398,12 +467,92 @@ int main(int argc, char *argv[])
             //==========================================
             // Autonomous mode nav.
             //==========================================
-            if(compare_redis_var(&redis, "ROBOT_MODE", "AUTO"))
+            if(compare_redis_var(&redis, "ROBOT_MODE", "AUTO") && compare_redis_var(&redis, "MISSION_UPDATE_GLOBAL_PATH", "FALSE"))
             {
                 if(compare_redis_var(&redis, "MISSION_AUTO_TYPE", "GOTO") && \
                 compare_redis_var(&redis, "MISSION_AUTO_STATE", "IN_PROGRESS") && \
                 (auto_mode_available(&redis) == 10 || auto_mode_available(&redis) == 20))
                 {
+                    //==================================
+                    // Compute time/dist to destination.
+                    //==================================
+                    if(true)
+                    {
+                        bool start = false;
+                        std::vector<std::string> vect_str;
+                        get_redis_multi_str(&redis, "NAV_ROAD_CURRENT_ID", vect_str);
+                        int curr_road_id = std::stoi(vect_str[1]);
+
+                        get_redis_multi_str(&redis, "NAV_AUTO_PROJECT_DESTINATION", vect_str);
+                        Geographic_point dest = Geographic_point(std::stod(vect_str[1]), std::stod(vect_str[2]));
+
+                        get_redis_multi_str(&redis, "NAV_AUTO_DESTINATION_ROAD_ID", vect_str);
+                        int dest_road_id = std::stoi(vect_str[1]);
+
+                        double dist_total_m = 0;
+                        double time_total_s = 0;
+                        double m            = 0;
+
+                        if(curr_road_id == dest_road_id)
+                        {
+                            for(int i = 0; i < vect_roadmap.size(); i++)
+                            {
+                                if(vect_roadmap[i].road->road_ID == curr_road_id)
+                                {
+                                    m = get_angular_distance(curr_position.point, &dest);
+                                    dist_total_m = m;
+                                    time_total_s = get_time_to_travel_s(m, vect_roadmap[i].road->max_speed);
+                                }
+                            }
+
+                        }
+                        else
+                        {
+                            for(int i = 0; i < vect_roadmap.size(); i++)
+                            {
+                                if(start)
+                                {
+                                    if(i == vect_roadmap.size()-1)
+                                    {
+                                        m             = get_angular_distance(vect_roadmap[i].node_start->point , &dest);
+                                        dist_total_m += m;
+                                        time_total_s += get_time_to_travel_s(m, vect_roadmap[i].road->max_speed);
+                                    }
+                                    else
+                                    {
+                                        m             = get_angular_distance(vect_roadmap[i].node_target->point, vect_roadmap[i].node_start->point);
+                                        dist_total_m += m;
+                                        time_total_s += get_time_to_travel_s(m, vect_roadmap[i].road->max_speed);
+                                    }
+                                }
+                                if(vect_roadmap[i].road->road_ID == curr_road_id)
+                                {
+                                    start         = true;
+                                    m             = get_angular_distance(vect_roadmap[i].node_target->point, curr_position.point);
+                                    dist_total_m += m;
+                                    time_total_s += get_time_to_travel_s(m, vect_roadmap[i].road->max_speed);
+                                }
+                            }
+                        }
+
+                        set_redis_var(&redis, "MISSION_ESTI_TIME_TO_TARGET", std::to_string((int)(time_total_s)));
+                        set_redis_var(&redis, "MISSION_ESTI_DIST_TO_TARGET", std::to_string((int)(dist_total_m)));
+
+                        // MANAGER les modes automatique PARKING.
+                        if((int)(dist_total_m) <= std::stoi(get_redis_str(&redis, "NAV_AUTO_MODE_PARKING_DIST_M")) && 
+                        get_redis_str(&redis, "NAV_AUTO_MODE_PARKING").compare("OPERATOR") == 0)
+                        {
+                            pub_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_AUTO_GOTO", "NEED_OPERATOR"));
+                            set_redis_var(&redis, "MISSION_MOTOR_BRAKE"   , "TRUE");
+                            set_redis_var(&redis, "MISSION_AUTO_STATE"    , "PAUSE");
+                            set_redis_var(&redis, "MISSION_MANUAL_STATE"  , "PAUSE");
+                            pub_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_PAUSE", "START"));
+                        }
+                    }
+
+                    //==================================
+                    // Different mode.
+                    //==================================
                     if(compare_redis_var(&redis, "NAV_AUTO_MODE", "SIMPLE"))
                     {
                         std::vector<std::string> vect_str;
@@ -743,7 +892,8 @@ int main(int argc, char *argv[])
                                     if(i != vect_roadmap.size()-1)
                                     {
                                         next_target_node = vect_roadmap[i+1].node_target->point;
-                                    } else {next_target_node = curr_start_node; } // TODO: REMOVE
+                                    } else 
+                                    { next_target_node = curr_target_node; } // TODO: REMOVE
                                     break;
                                 }
                             }
@@ -846,6 +996,9 @@ int main(int argc, char *argv[])
                             {
                                 double bearing_start_target = get_bearing(curr_target_node, next_target_node);
                                 double road_extension = std::stod(get_redis_str(&redis, "NAV_AUTO_TARGET_EXTENSION")) - dist_proj_to_target;
+
+                                if(road_extension < 0) road_extension = 0;
+
                                 xt = xb + road_extension * cos(deg_to_rad(bearing_start_target));
                                 yt = yb + road_extension * sin(deg_to_rad(bearing_start_target));
                             }
@@ -916,12 +1069,10 @@ int main(int argc, char *argv[])
                             Geographic_point center_circle = Geographic_point(0.0,0.0);
                             if(diff_angle < 0)
                             {
-                                debug_cote = false;
                                 center_circle = get_new_position(curr_position.point, curr_position.g_hdg - 90, radius_circle);
                             }
                             else
                             {
-                                debug_cote = true;
                                 center_circle = get_new_position(curr_position.point, curr_position.g_hdg + 90, radius_circle);
                             }
                             set_redis_var(&redis, "SIM_AUTO_PT_ICC", std::to_string(center_circle.longitude) + "|" + std::to_string(center_circle.latitude) + "|");
@@ -1163,7 +1314,7 @@ int main(int argc, char *argv[])
 
                                     if(traj.r == Final_traj.r) 
                                     {
-                                        std::cout << "[X] ";
+                                        // std::cout << "[X] ";
                                         no_obs_traj = true;
                                         
                                         if(traj.r >= 0) memo_side = 1;
@@ -1171,9 +1322,9 @@ int main(int argc, char *argv[])
                                     }
                                     else
                                     {
-                                        std::cout << "[ ] ";
+                                        // std::cout << "[ ] ";
                                     }
-                                    std::cout << traj.r << " " << traj.niv << " " << traj.pt_M << " " << traj.moy << std::endl;
+                                    // std::cout << traj.r << " " << traj.niv << " " << traj.pt_M << " " << traj.moy << std::endl;
 
                                     // VERIFIER SI IL N'Y A AUCUNE TRAJECTOIRE DISPO.
                                 }
@@ -1193,7 +1344,7 @@ int main(int argc, char *argv[])
                                     }
                                 }
 
-                                std::cout << std::endl << std::endl;
+                                // std::cout << std::endl << std::endl;
 
                                 // ETAPE 5 : TRANSFORM TRAJECTORY TO MOTOR COMMAND
                                 if(first_trajectory_safe || (Final_traj.r != 0.0))
@@ -1264,11 +1415,11 @@ int main(int argc, char *argv[])
                                 // ETAPE 8 : SECURITY
                                 if(first_trajectory_safe)
                                 {
-                                    std::cout << "FIRST TRAJECTORY" << std::endl;
+                                    // std::cout << "FIRST TRAJECTORY" << std::endl;
                                 }
                                 if(!no_obs_traj && !first_trajectory_safe || (same_dist_bool && same_dist_detection < 1.0 && vect_traj[0].niv != -1))
                                 {
-                                    std::cout << "[O] SECURITY" << std::endl;
+                                    // std::cout << "[O] SECURITY" << std::endl;
 
                                     if(same_dist_bool && same_dist_detection < 1.0 && !recul_forcer)
                                     {

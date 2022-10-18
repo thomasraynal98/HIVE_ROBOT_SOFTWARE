@@ -48,7 +48,7 @@ void function_thread_port_detection()
         {
             prefix_port_temp = prefix_port + std::to_string(i);
    
-            if(port_is_detected(prefix_port_temp))
+            if(file_exist(prefix_port_temp))
             {
                 if(!port_already_taken(&redis, prefix_port_temp))
                 {
@@ -99,7 +99,7 @@ void function_thread_port_detection()
             }
 
             prefix_port_temp = prefix_port2 + std::to_string(i);
-            if(port_is_detected(prefix_port_temp) && 
+            if(file_exist(prefix_port_temp) && 
             get_redis_str(&redis, "HARD_PIXHAWK_COM_STATE").compare("DISCONNECTED") == 0) 
             {
                 set_redis_var(&redis, "HARD_PIXHAWK_COM_STATE", "PORT_DETECTED");
@@ -206,7 +206,7 @@ void f_thread_readwrite_pixhawk()
         std::this_thread::sleep_until(next);
 
         // CLOSING PROCEDURE
-        if(!port_is_detected(get_redis_str(&redis, "HARD_PIXHAWK_PORT_NAME")) && \
+        if(!file_exist(get_redis_str(&redis, "HARD_PIXHAWK_PORT_NAME")) && \
         get_redis_str(&redis, "HARD_PIXHAWK_PORT_NAME").compare("NO_VAL") != 0 && \
         get_redis_str(&redis, "HARD_PIXHAWK_COM_STATE").compare("CONNECTED") == 0)
         {
@@ -218,7 +218,7 @@ void f_thread_readwrite_pixhawk()
 
         // READING PROCEDURE
         if(get_redis_str(&redis, "HARD_PIXHAWK_COM_STATE").compare("CONNECTED") == 0 && \
-        port_is_detected(get_redis_str(&redis, "HARD_PIXHAWK_PORT_NAME")) && \
+        file_exist(get_redis_str(&redis, "HARD_PIXHAWK_PORT_NAME")) && \
         pixhawk_com_manager->is_running())
         {
             // READ ICI
@@ -274,7 +274,7 @@ void f_thread_readwrite_pixhawk()
 
         // OPENING PROCEDURE
         if(get_redis_str(&redis, "HARD_PIXHAWK_COM_STATE").compare("PORT_DETECTED") == 0 && \
-        port_is_detected(get_redis_str(&redis, "HARD_PIXHAWK_PORT_NAME")))
+        file_exist(get_redis_str(&redis, "HARD_PIXHAWK_PORT_NAME")))
         {
             std::string m = get_redis_str(&redis, "HARD_PIXHAWK_PORT_NAME");
 
@@ -368,6 +368,8 @@ void reset_value()
 
 int main(int argc, char *argv[])
 {
+    set_redis_var(&redis, "SOFT_PROCESS_ID_HARD", std::to_string(getpid()));
+
     reset_value();
 
     thread_port_detection    = std::thread(&function_thread_port_detection);

@@ -17,17 +17,10 @@ bool port_already_taken(sw::redis::Redis* redis, std::string curr_port_name)
     return false;
 }
 
-bool port_is_detected(std::string curr_port_name)
-{
-    struct stat buffer;   
-    if(stat(curr_port_name.c_str(), &buffer) == 0) return true;
-    return false;
-}
-
 bool port_is_ready_to_use(sw::redis::Redis* redis, std::string curr_port_name, std::string curr_port_state, LibSerial::SerialPort* com_manager)
 {
     if(get_redis_str(redis, curr_port_state).compare("CONNECTED") == 0 && \
-    port_is_detected(get_redis_str(redis, curr_port_name)) && \
+    file_exist(get_redis_str(redis, curr_port_name)) && \
     com_manager->IsOpen())
     {
         return true;
@@ -50,7 +43,7 @@ int port_opening_process(sw::redis::Redis* redis, std::string curr_port_name, st
     if(get_redis_str(redis, curr_port_state).compare("CONNECTED") == 0) return 2;
 
     if(get_redis_str(redis, curr_port_state).compare("PORT_DETECTED") == 0 && \
-    port_is_detected(get_redis_str(redis, curr_port_name)))
+    file_exist(get_redis_str(redis, curr_port_name)))
     {
         if(!com_manager->IsOpen())
         {
@@ -86,7 +79,7 @@ int port_closing_process(sw::redis::Redis* redis, std::string curr_port_name, st
      */
 
     if(get_redis_str(redis, curr_port_state).compare("CONNECTED") == 0 && \
-    !port_is_detected(get_redis_str(redis, curr_port_name)))
+    !file_exist(get_redis_str(redis, curr_port_name)))
     {
         if(com_manager->IsOpen()) com_manager->Close();
         set_redis_var(redis, curr_port_state, "DISCONNECTED");
