@@ -89,10 +89,12 @@ void init_redis_var(sw::redis::Redis* redis)
 
     read_yaml(redis, &fsSettings, "NAV_AUTO_PROJECT_DESTINATION");
 
-    read_yaml(redis, &fsSettings, "ENV_CAM1_OBSTACLE");
-    read_yaml(redis, &fsSettings, "ENV_CAM2_OBSTACLE");
-    read_yaml(redis, &fsSettings, "ENV_LID1_OBSTACLE");
-    read_yaml(redis, &fsSettings, "ENV_LID2_OBSTACLE");
+    read_yaml(redis, &fsSettings, "ENV_CAM1_OBJECTS");
+    read_yaml(redis, &fsSettings, "ENV_CAM2_OBJECTS");
+    read_yaml(redis, &fsSettings, "ENV_CAM1_HUMANS");
+    read_yaml(redis, &fsSettings, "ENV_CAM2_HUMANS");
+    read_yaml(redis, &fsSettings, "ENV_LID1_OBJECTS");
+    read_yaml(redis, &fsSettings, "ENV_LID2_OBJECTS");
 
     read_yaml(redis, &fsSettings, "HARD_CAM1_DX");
     read_yaml(redis, &fsSettings, "HARD_CAM1_DY");

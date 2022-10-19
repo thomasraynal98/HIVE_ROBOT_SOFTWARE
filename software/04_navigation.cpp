@@ -354,7 +354,7 @@ int main(int argc, char *argv[])
                 double clear_dist   = std::stod(get_redis_str(&redis, "NAV_OBJ_CLEARING_DIST"));
                 int clear_time      = std::stod(get_redis_str(&redis, "NAV_OBJ_CLEARING_TIME_MS"));
 
-                get_redis_multi_str(&redis, "ENV_CAM1_OBSTACLE", vect_redis_str);
+                get_redis_multi_str(&redis, "ENV_CAM1_OBJECTS", vect_redis_str);
                 if(!is_same_time(timesptamp_cam1, std::stoul(vect_redis_str[0])))
                 {
                     timesptamp_cam1 = std::stoul(vect_redis_str[0]);
@@ -370,7 +370,7 @@ int main(int argc, char *argv[])
                     }
                 }
 
-                get_redis_multi_str(&redis, "ENV_CAM2_OBSTACLE", vect_redis_str);
+                get_redis_multi_str(&redis, "ENV_CAM2_OBJECTS", vect_redis_str);
                 if(!is_same_time(timesptamp_cam2, std::stoul(vect_redis_str[0])))
                 {
                     timesptamp_cam2 = std::stoul(vect_redis_str[0]);

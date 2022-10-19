@@ -114,15 +114,15 @@ void f_thread_server()
                 usleep(10000);
                 
                 // UNCOMMENT FOR HTTPS
-                // std::vector<Server_var> vect_msg_server;
-                // vect_msg_server.push_back(Server_var("s", "NAME" , get_redis_str(&redis, "ROBOT_INFO_PSEUDO")));
-                // vect_msg_server.push_back(Server_var("i", "ID"   , get_redis_str(&redis, "ROBOT_INFO_ID"    )));
-                // vect_msg_server.push_back(Server_var("s", "MODEL", get_redis_str(&redis, "ROBOT_INFO_MODEL" )));
-                // send_msg_server(h.socket(), "ROBOT_ID", vect_msg_server);
+                std::vector<Server_var> vect_msg_server;
+                vect_msg_server.push_back(Server_var("s", "NAME" , get_redis_str(&redis, "ROBOT_INFO_PSEUDO")));
+                vect_msg_server.push_back(Server_var("i", "ID"   , get_redis_str(&redis, "ROBOT_INFO_ID"    )));
+                vect_msg_server.push_back(Server_var("s", "MODEL", get_redis_str(&redis, "ROBOT_INFO_MODEL" )));
+                send_msg_server(h.socket(), "ROBOT_ID", vect_msg_server);
 
                 // UNCOMMENT FOR HTTP
-                std::string robot_name = "Newt";
-                h.socket()->emit("ROBOT_ID", robot_name);
+                // std::string robot_name = "Newt";
+                // h.socket()->emit("ROBOT_ID", robot_name);
 
                 usleep(10000);
             }
@@ -500,6 +500,8 @@ void bind_events(sio::socket::ptr current_socket)
     current_socket->on("ORDER_STREAM"        , sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
     {
         set_redis_var(&redis, "NAV_OPT_STREAM", std::to_string(data->get_map()["OPT_STREAM"]->get_int()));
+
+        pub_redis_var(&redis, "EVENT", get_event_str(1, "STREAM_CHANGE_MODE", std::to_string(data->get_map()["OPT_STREAM"]->get_int())));
     }));
 
     current_socket->on("ORDER_CANCEL_MISSION", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
