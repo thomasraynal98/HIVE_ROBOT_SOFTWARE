@@ -15,6 +15,7 @@ auto redis = Redis("tcp://127.0.0.1:6379");
 std::thread thread_event;
 std::thread thread_server;
 std::thread thread_telemetry;
+std::thread thread_stream_video;
 
 sio::client h;
 
@@ -237,6 +238,86 @@ void f_thread_telemetry()
     }
 }
 
+void f_thread_stream_video()
+{
+    auto next = std::chrono::high_resolution_clock::now();
+    int _flag_stream = 0;
+
+    int64_t tsp_last_cam1 = 0;
+    int64_t tsp_last_cam2 = 0;
+
+    while(true)
+    {
+        next += std::chrono::milliseconds((int)frequency_to_ms(std::stoi(get_redis_str(&redis, "SERVER_MAX_STREAM_VIDEO_HZ"))));
+        std::this_thread::sleep_until(next);
+
+        _flag_stream = std::stoi(get_redis_str(&redis, "NAV_OPT_STREAM"));
+
+        if(_flag_stream == 1)
+        {
+            std::vector<Server_var> vect_stream_server;
+            
+            if(!is_same_time(tsp_last_cam1, std::stoul(get_redis_str(&redis, "ENCODED_CAM1_TIMESTAMP"))))
+            {
+                tsp_last_cam1 = std::stoul(get_redis_str(&redis, "ENCODED_CAM1_TIMESTAMP"));
+                vect_stream_server.push_back(Server_var("s", "CHANNEL_1"      ,      get_redis_str(&redis, "ENCODED_CAM1")));
+            }
+            else
+            {
+                vect_stream_server.push_back(Server_var("s", "CHANNEL_1"      ,      "0"));
+            }
+
+            vect_stream_server.push_back(Server_var("s", "CHANNEL_2"      ,      "0"));
+            send_msg_server(h.socket(), "ROBOT_STREAM", vect_stream_server);
+        }
+
+        if(_flag_stream == 2)
+        {
+            std::vector<Server_var> vect_stream_server;
+            
+            if(!is_same_time(tsp_last_cam1, std::stoul(get_redis_str(&redis, "ENCODED_CAM2_TIMESTAMP"))))
+            {
+                tsp_last_cam1 = std::stoul(get_redis_str(&redis, "ENCODED_CAM2_TIMESTAMP"));
+                vect_stream_server.push_back(Server_var("s", "CHANNEL_2"      ,      get_redis_str(&redis, "ENCODED_CAM2")));
+            }
+            else
+            {
+                vect_stream_server.push_back(Server_var("s", "CHANNEL_2"      ,      "0"));
+            }
+
+            vect_stream_server.push_back(Server_var("s", "CHANNEL_1"      ,      "0"));
+            send_msg_server(h.socket(), "ROBOT_STREAM", vect_stream_server);
+        }
+
+        if(_flag_stream == 3)
+        {
+            std::vector<Server_var> vect_stream_server;
+
+            if(!is_same_time(tsp_last_cam1, std::stoul(get_redis_str(&redis, "ENCODED_CAM1_TIMESTAMP"))))
+            {
+                tsp_last_cam1 = std::stoul(get_redis_str(&redis, "ENCODED_CAM1_TIMESTAMP"));
+                vect_stream_server.push_back(Server_var("s", "CHANNEL_1"      ,      get_redis_str(&redis, "ENCODED_CAM1")));
+            }
+            else
+            {
+                vect_stream_server.push_back(Server_var("s", "CHANNEL_1"      ,      "0"));
+            }
+
+            if(!is_same_time(tsp_last_cam2, std::stoul(get_redis_str(&redis, "ENCODED_CAM2_TIMESTAMP"))))
+            {
+                tsp_last_cam2 = std::stoul(get_redis_str(&redis, "ENCODED_CAM2_TIMESTAMP"));
+                vect_stream_server.push_back(Server_var("s", "CHANNEL_2"      ,      get_redis_str(&redis, "ENCODED_CAM2")));
+            }
+            else
+            {
+                vect_stream_server.push_back(Server_var("s", "CHANNEL_2"      ,      "0"));
+            }
+
+            send_msg_server(h.socket(), "ROBOT_STREAM", vect_stream_server);
+        }
+    }
+}
+
 //===================================================================
 // MAIN PROGRAM
 //===================================================================
@@ -244,14 +325,16 @@ void f_thread_telemetry()
 int main(int argc, char *argv[])
 {
     set_redis_var(&redis, "SOFT_PROCESS_ID_SERV", std::to_string(getpid()));
-
-    thread_event     = std::thread(&f_thread_event);
-    thread_server    = std::thread(&f_thread_server);
-    thread_telemetry = std::thread(&f_thread_telemetry);
+   
+    thread_event        = std::thread(&f_thread_event);
+    thread_server       = std::thread(&f_thread_server);
+    thread_telemetry    = std::thread(&f_thread_telemetry);
+    thread_stream_video = std::thread(&f_thread_stream_video);
 
     thread_event.join();
     thread_server.join();
     thread_telemetry.join();
+    thread_stream_video.join();
 
     return 0;
 }

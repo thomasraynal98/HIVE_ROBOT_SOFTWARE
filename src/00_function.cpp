@@ -142,6 +142,23 @@ void init_redis_var(sw::redis::Redis* redis)
     read_yaml(redis, &fsSettings, "ROBOT_INFO_HOME_POSITION");
     read_yaml(redis, &fsSettings, "NAV_AUTO_MODE_PARKING_DIST_M");
 
+    read_yaml(redis, &fsSettings, "HARD_CAM1_ID");
+    read_yaml(redis, &fsSettings, "HARD_CAM2_ID");
+
+    read_yaml(redis, &fsSettings, "ENCODED_CAM1");
+    read_yaml(redis, &fsSettings, "ENCODED_CAM1_TIMESTAMP");
+    read_yaml(redis, &fsSettings, "ENCODED_CAM2");
+    read_yaml(redis, &fsSettings, "ENCODED_CAM2_TIMESTAMP");
+    read_yaml(redis, &fsSettings, "ENCODED_CAM3");
+    read_yaml(redis, &fsSettings, "ENCODED_CAM3_TIMESTAMP");
+    read_yaml(redis, &fsSettings, "ENCODED_CAM4");
+    read_yaml(redis, &fsSettings, "ENCODED_CAM4_TIMESTAMP");
+    read_yaml(redis, &fsSettings, "ENCODED_CAM5");
+    read_yaml(redis, &fsSettings, "ENCODED_CAM5_TIMESTAMP");
+    read_yaml(redis, &fsSettings, "ENCODED_CAM6");
+    read_yaml(redis, &fsSettings, "ENCODED_CAM6_TIMESTAMP");
+
+    read_yaml(redis, &fsSettings, "SERVER_MAX_STREAM_VIDEO_HZ");
 }
 
 int64_t get_curr_timestamp()

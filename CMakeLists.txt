@@ -14,9 +14,6 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pthread -L/usr/local/lib -L/
 
 # found package.
 FIND_PACKAGE(OpenCV 4.2 REQUIRED)
-FIND_PACKAGE(OpenXLSX   REQUIRED)
-FIND_PACKAGE(realsense2 REQUIRED)
-FIND_PACKAGE(Eigen3 3.3 REQUIRED NO_MODULE)
 FIND_PACKAGE(websocketpp REQUIRED)
 
 FIND_PACKAGE(OpenSSL REQUIRED)
@@ -55,7 +52,6 @@ TARGET_LINK_LIBRARIES(02_HARDWARE
     redis++
     serial
     sioclient
-    OpenXLSX::OpenXLSX
     ${OpenCV_LIBS})
 
 # PROGRAMME 03 : GESTION DES COMMUNICATIONS AVEC LE SERVER.
@@ -73,7 +69,6 @@ TARGET_LINK_LIBRARIES(03_SERVER
     hiredis
     redis++
     serial
-    OpenXLSX::OpenXLSX
     # [!] Decomment for HTTPS.
     # ssl
     # crypto 
@@ -98,7 +93,6 @@ TARGET_LINK_LIBRARIES(04_NAVIGATION
     redis++
     sioclient
     serial
-    OpenXLSX::OpenXLSX
     ${OpenCV_LIBS})
 
 # # PROGRAMME 66 : WTF.

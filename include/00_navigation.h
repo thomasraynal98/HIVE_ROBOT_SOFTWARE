@@ -1,7 +1,6 @@
 #include <sw/redis++/redis++.h>
 #include "00_function.h"
 
-#include <OpenXLSX.hpp>
 #include <iomanip>
 #include <sstream>
 #include <iostream>
