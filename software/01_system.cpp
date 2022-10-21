@@ -182,8 +182,8 @@ void f_thread_debug()
             print_redis(&redis, "SOFT_PROCESS_ID_SYS_STATUS");
             print_redis(&redis, "SOFT_PROCESS_ID_HARD_STATUS");
             print_redis(&redis, "SOFT_PROCESS_ID_NAV_STATUS");
-            print_redis(&redis, "SOFT_PROCESS_ID_PERCEP_STATUS");
             print_redis(&redis, "SOFT_PROCESS_ID_SERV_STATUS");
+            print_redis(&redis, "SOFT_PROCESS_ID_PERCEP_STATUS");
 
             std::cout << std::endl;
         }
