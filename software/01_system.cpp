@@ -212,18 +212,18 @@ void f_thread_process_check()
 
         if(file_exist("/proc/" + get_redis_str(&redis, "SOFT_PROCESS_ID_SERV") + "/status"))
         {
-            set_redis_var(&redis, "SOFT_PROCESS_ID_NAV_STATUS", "CONNECTED");
-        } else { set_redis_var(&redis, "SOFT_PROCESS_ID_NAV_STATUS", "DISCONNECTED");}
+            set_redis_var(&redis, "SOFT_PROCESS_ID_SERV_STATUS", "CONNECTED");
+        } else { set_redis_var(&redis, "SOFT_PROCESS_ID_SERV_STATUS", "DISCONNECTED");}
 
         if(file_exist("/proc/" + get_redis_str(&redis, "SOFT_PROCESS_ID_NAV") + "/status"))
         {
-            set_redis_var(&redis, "SOFT_PROCESS_ID_PERCEP_STATUS", "CONNECTED");
-        } else { set_redis_var(&redis, "SOFT_PROCESS_ID_PERCEP_STATUS", "DISCONNECTED");}
+            set_redis_var(&redis, "SOFT_PROCESS_ID_NAV_STATUS", "CONNECTED");
+        } else { set_redis_var(&redis, "SOFT_PROCESS_ID_NAV_STATUS", "DISCONNECTED");}
 
         if(file_exist("/proc/" + get_redis_str(&redis, "SOFT_PROCESS_ID_PERCEP") + "/status"))
         {
-            set_redis_var(&redis, "SOFT_PROCESS_ID_SERV_STATUS", "CONNECTED");
-        } else { set_redis_var(&redis, "SOFT_PROCESS_ID_SERV_STATUS", "DISCONNECTED");}
+            set_redis_var(&redis, "SOFT_PROCESS_ID_PERCEP_STATUS", "CONNECTED");
+        } else { set_redis_var(&redis, "SOFT_PROCESS_ID_PERCEP_STATUS", "DISCONNECTED");}
     }
 }
 
