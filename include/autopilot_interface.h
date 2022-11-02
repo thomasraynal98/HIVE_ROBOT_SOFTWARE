@@ -155,6 +155,8 @@ struct Time_Stamps
 	uint64_t position_target_global_int;
 	uint64_t highres_imu;
 	uint64_t attitude;
+	uint64_t local_heading;
+	uint64_t gps_info;
 
 	void
 	reset_timestamps()
@@ -169,6 +171,7 @@ struct Time_Stamps
 		position_target_global_int = 0;
 		highres_imu = 0;
 		attitude = 0;
+		local_heading = 0;
 	}
 
 };
@@ -212,8 +215,9 @@ struct Mavlink_Messages {
 	mavlink_attitude_t attitude;
 
 	// System Parameters?
-	mavlink_hil_gps_t thomas_add;
-	mavlink_local_position_ned_system_global_offset_t thomas_add2;
+	mavlink_hil_gps_t gps_info;
+	mavlink_odometry_t thomas_add3;
+	mavlink_vfr_hud_t local_heading;
 
 	// Time Stamps
 	Time_Stamps time_stamps;

@@ -353,6 +353,24 @@ read_messages()
 					break;
 				}
 
+				// AJOUTER ICI
+				case MAVLINK_MSG_ID_VFR_HUD:
+				{
+					//printf("MAVLINK_MSG_ID_ATTITUDE\n");
+					mavlink_msg_vfr_hud_decode(&message, &(current_messages.local_heading));
+					current_messages.time_stamps.local_heading = get_time_usec();
+					this_timestamps.local_heading = current_messages.time_stamps.local_heading;
+					break;
+				}
+				case MAVLINK_MSG_ID_HIL_GPS:
+				{
+					//printf("MAVLINK_MSG_ID_ATTITUDE\n");
+					mavlink_msg_hil_gps_decode(&message, &(current_messages.gps_info));
+					current_messages.time_stamps.gps_info = get_time_usec();
+					this_timestamps.gps_info = current_messages.time_stamps.gps_info;
+					break;
+				}
+
 				default:
 				{
 					// printf("Warning, did not handle message id %i\n",message.msgid);
@@ -375,6 +393,7 @@ read_messages()
 //				this_timestamps.position_target_global_int &&
 //				this_timestamps.highres_imu                &&
 //				this_timestamps.attitude                   &&
+				this_timestamps.local_heading              &&
 				this_timestamps.sys_status
 				;
 

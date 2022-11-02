@@ -115,9 +115,10 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                 // Pour comparer avec l'ancienne lecture.
                 std::vector<std::string> new_sensor_vect;
 
-                if(vect_reponse_mcu_cargo.size() == 4)
+                if(vect_reponse_mcu_cargo.size() == 6) // '\n'
                 {
-                    for(int i = 1; i < 4; i++)
+                    std::cout << "DATA FROM XXX : " << reponse << std::endl;
+                    for(int i = 2; i < 5; i++)
                     {
                         if(vect_reponse_mcu_cargo[i].compare("1") == 0)
                         {
@@ -175,12 +176,30 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                                 pub_redis_var(redis, "EVENT", get_event_str(3, "BOX_CLOSE", "3"));
                                 set_redis_var(redis, "EVENT_OPEN_BOX_C", std::to_string(get_curr_timestamp()) + "|CLOSE|");
                             }
+
+                            // Si on detect une fermeture on met à jour l'ordre de mission. MISSION_HARD_CARGO
+                            std::vector<std::string> vect_mission_mcu_cargo;
+                            get_redis_multi_str(redis, "MISSION_HARD_CARGO", vect_mission_mcu_cargo);
+
+                            std::string str_mission_modify = vect_mission_mcu_cargo[0] + "|";
+                            for(int ii = 1; ii < 4; ii++)
+                            {
+                                if(ii == i+1) str_mission_modify += "CLOSE|";
+                                else
+                                {
+                                    str_mission_modify += vect_mission_mcu_cargo[ii] + "|";
+                                }
+                            }
+                            set_redis_var(redis, "MISSION_HARD_CARGO", str_mission_modify);
                         }
                     }
                 }
 
                 // publier la nouvelle configuration sensor sur redis.
-                set_redis_var(redis, "HARD_CARGO_STATE", redis_sensor_str);
+                if(vect_reponse_mcu_cargo.size() == 6) // '\n'
+                {
+                    set_redis_var(redis, "HARD_CARGO_STATE", redis_sensor_str);
+                }
             }
         }
         catch(...)

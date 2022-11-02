@@ -16,10 +16,10 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pthread -L/usr/local/lib -L/
 FIND_PACKAGE(OpenCV 4.2 REQUIRED)
 FIND_PACKAGE(websocketpp REQUIRED)
 
-FIND_PACKAGE(OpenSSL REQUIRED)
 
+# FIND_PACKAGE(OpenSSL REQUIRED)
 # [!] Comment for HTTPS.
-# FIND_PACKAGE(sioclient REQUIRED)
+FIND_PACKAGE(sioclient REQUIRED)
 
 # # PROGRAMME 01 : GESTION DU SYSTEME YAML ET REDIS + DEBUG
 ADD_EXECUTABLE(01_SYSTEM_MANAGER 
@@ -70,11 +70,11 @@ TARGET_LINK_LIBRARIES(03_SERVER
     redis++
     serial
     # [!] Decomment for HTTPS.
-    ssl
-    crypto 
-    /usr/local/lib/libsioclient_tls.so
+    # ssl
+    # crypto 
+    # /usr/local/lib/libsioclient_tls.so
     # [!] Comment for HTTPS.
-    # sioclient
+    sioclient
     ${OpenCV_LIBS})
 
 # PROGRAMME 04 : ANALYSE DE LA SITUATION EST CHOIX COMMANDE MOTOR ROUES.
