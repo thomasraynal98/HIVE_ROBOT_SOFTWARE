@@ -161,6 +161,7 @@ void init_redis_var(sw::redis::Redis* redis)
     read_yaml(redis, &fsSettings, "ENCODED_CAM6_TIMESTAMP");
 
     read_yaml(redis, &fsSettings, "SERVER_MAX_STREAM_VIDEO_HZ");
+    read_yaml(redis, &fsSettings, "HARD_ENCODER_TIC_TO_M");
 }
 
 int64_t get_curr_timestamp()
