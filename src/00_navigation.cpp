@@ -179,7 +179,6 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
         if(x == 0) x = 1;
 
         double angle_js = atan(std::stod(vect_controller_data[10])/x);
-        std::cout << angle_js << " " << vect_controller_data[10] << std::endl;
 
         if(std::stod(vect_controller_data[10]) <= 0 && angle_js > 0)
         {

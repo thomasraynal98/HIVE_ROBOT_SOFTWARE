@@ -449,7 +449,7 @@ int main(int argc, char *argv[])
                         if(flag_manual_mode.compare("STANDARD") == 0 || \
                         flag_manual_mode.compare("STANDARD_MAX") == 0 )
                         {
-                            if(!time_is_over(get_curr_timestamp(), std::stoul(vect_cmd_ctr[0]), 1500))
+                            if(!time_is_over(get_curr_timestamp(), std::stoul(vect_cmd_ctr[0]), 1000))
                             {
                                 curr_max_speed    = get_max_speed(&redis, "MANUAL", flag_manual_mode, vect_road);
                                 motor_command_str = map_manual_command(&redis, std::stod(vect_cmd_ctr[1]), std::stod(vect_cmd_ctr[2]), std::stod(vect_cmd_ctr[3]), curr_max_speed);
@@ -474,7 +474,6 @@ int main(int argc, char *argv[])
                             std::string flag_manual_mode  = get_redis_str(&redis, "NAV_MANUAL_MODE");
                             curr_max_speed    = get_max_speed(&redis, "MANUAL", flag_manual_mode, vect_road);
                             motor_command_str = map_local_manual_command(&redis, curr_max_speed, vect_cmd_ctr);
-                            std::cout << motor_command_str << std::endl << std::endl;
                         }
                         else
                         {
