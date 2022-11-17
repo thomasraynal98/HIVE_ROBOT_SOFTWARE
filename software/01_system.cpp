@@ -187,6 +187,15 @@ void f_thread_debug()
 
             std::cout << std::endl;
         }
+        if(display_mode.compare("MODEJS") == 0)
+        {
+            std::system("clear");
+
+            print_redis(&redis, "HARD_LOCAL_JS_COM_STATE");
+            print_redis(&redis, "NAV_LOCAL_JS_MODE");
+            print_redis(&redis, "EVENT_LOCAL_JS_DATA");
+            print_redis(&redis, "MISSION_MOTOR_BRAKE");
+        }
     }
 }
 

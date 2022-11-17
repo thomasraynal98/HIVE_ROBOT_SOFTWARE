@@ -359,3 +359,32 @@ void send_event_server(sio::socket::ptr current_socket, std::string mission_titl
 
     send_msg_server(current_socket, "EVENT", vect_msg_server);
 }
+
+int read_event(int fd, struct js_event *event)
+{
+    ssize_t bytes;
+
+    bytes = read(fd, event, sizeof(*event));
+
+    if (bytes == sizeof(*event))
+        return 0;
+
+    /* Error, could not read full event. */
+    return -1;
+}
+
+size_t get_axis_state(struct js_event *event, struct axis_state axes[3])
+{
+    size_t axis = event->number / 2;
+
+    if (axis < 9)
+    {
+        if (event->number % 2 == 0)
+            axes[axis].x = event->value;
+        else
+            axes[axis].y = event->value;
+    }
+
+    return axis;
+}
+

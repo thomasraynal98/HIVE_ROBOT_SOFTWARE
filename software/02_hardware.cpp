@@ -17,6 +17,7 @@ std::thread thread_write_mcu_cargo;
 std::thread thread_write_mcu_inter;
 std::thread thread_readwrite_pixhack;
 std::thread thread_box_checking;
+std::thread thread_local_joystick;
 
 LibSerial::SerialPort* com_mcu_motor = new LibSerial::SerialPort;
 LibSerial::SerialPort* com_mcu_cargo = new LibSerial::SerialPort;
@@ -328,6 +329,105 @@ void f_thread_box_checking()
 }
 
 //===================================================================
+// LOCAL BLUETOOTH JOYSTICK THREAD
+//===================================================================
+
+void f_thread_local_joystick()
+{
+    double ms_for_loop = frequency_to_ms(4);
+    auto next = std::chrono::high_resolution_clock::now();
+
+    while(true)
+    {
+        next += std::chrono::milliseconds((int)ms_for_loop);
+        std::this_thread::sleep_until(next);
+
+        if(file_exist("/dev/input/js0"))
+        {
+            /**
+             * NOTE: Utiliser les notes de la sorte ces quand même assez cool.
+             */
+            set_redis_var(&redis, "HARD_LOCAL_JS_COM_STATE", "PORT_DETECTED");
+
+            const char *device;
+            int js;
+            struct js_event event;
+            struct axis_state axes[3] = {0};
+            size_t axis;
+
+            device = "/dev/input/js0";
+            js = open(device, O_RDONLY);
+
+            if(js != -1)
+            {
+                set_redis_var(&redis, "HARD_LOCAL_JS_COM_STATE", "CONNECTED");
+                Js_state xbox_controller;
+
+                while (read_event(js, &event) == 0)
+                {
+                    set_redis_var(&redis, "HARD_LOCAL_JS_COM_STATE", "CONNECTED");
+                    switch (event.type)
+                    {
+                        case JS_EVENT_BUTTON:
+                            xbox_controller.button_state[event.number] = event.value ? true : false;
+                            break;
+                        case JS_EVENT_AXIS:
+                            axis = get_axis_state(&event, axes);
+                            if(axis < 3)
+                            {
+                                xbox_controller.axis_state_vect[axis].x = axes[axis].x;
+                                xbox_controller.axis_state_vect[axis].y = axes[axis].y;
+                                set_redis_var(&redis, "ROBOT_MODE",           "MANUAL");
+                                set_redis_var(&redis, "MISSION_MANUAL_TYPE",  "MANUAL_MOVE");
+                                set_redis_var(&redis, "MISSION_MANUAL_STATE", "IN_PROGRESS");
+                                set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "FALSE");
+                            }
+                            break;
+                        default:
+                            /* Ignore init events. */
+                            break;
+                    }
+
+                    // xbox_controller.show(); 
+
+                    // URGENCE STOP  
+                    if(xbox_controller.button_state[1])
+                    {
+                        set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "TRUE");
+                    }       
+
+                    // PILOTAGE JOYSTICK LOCAL START / STOP
+                    if(xbox_controller.button_state[6])
+                    {
+                        set_redis_var(&redis, "NAV_LOCAL_JS_MODE", "ACTIVATE");
+                    } 
+                    if(xbox_controller.button_state[7])
+                    {
+                        set_redis_var(&redis, "NAV_LOCAL_JS_MODE", "DEACTIVATE");
+                    } 
+
+                    // Send information to redis.
+                    std::string redis_str = std::to_string(get_curr_timestamp()) + "|" + xbox_controller.get_str();
+                    set_redis_var(&redis, "EVENT_LOCAL_JS_DATA", redis_str);
+                    
+                    fflush(stdout);
+                }
+
+                close(js);
+                set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "TRUE");
+                set_redis_var(&redis, "NAV_LOCAL_JS_MODE", "DEACTIVATE");
+                set_redis_var(&redis, "HARD_LOCAL_JS_COM_STATE", "DISCONNECTED");
+            }
+        }
+        else
+        {
+            set_redis_var(&redis, "NAV_LOCAL_JS_MODE", "DEACTIVATE");
+            set_redis_var(&redis, "HARD_LOCAL_JS_COM_STATE", "DISCONNECTED");
+        }
+    }
+}
+
+//===================================================================
 // MAIN PART
 //===================================================================
 
@@ -361,6 +461,7 @@ int main(int argc, char *argv[])
     thread_write_mcu_inter   = std::thread(&f_thread_write_mcu_inter);
     thread_readwrite_pixhack = std::thread(&f_thread_readwrite_pixhawk);
     thread_box_checking      = std::thread(&f_thread_box_checking);
+    thread_local_joystick    = std::thread(&f_thread_local_joystick);
 
     thread_port_detection.join();
     thread_read_mcu_motor.join();
@@ -371,6 +472,7 @@ int main(int argc, char *argv[])
     thread_write_mcu_inter.join();
     thread_readwrite_pixhack.join();
     thread_box_checking.join();
+    thread_local_joystick.join();
 
     return 0;
 }

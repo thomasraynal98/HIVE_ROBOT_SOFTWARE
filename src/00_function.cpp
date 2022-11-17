@@ -162,6 +162,10 @@ void init_redis_var(sw::redis::Redis* redis)
 
     read_yaml(redis, &fsSettings, "SERVER_MAX_STREAM_VIDEO_HZ");
     read_yaml(redis, &fsSettings, "HARD_ENCODER_TIC_TO_M");
+
+    read_yaml(redis, &fsSettings, "HARD_LOCAL_JS_COM_STATE");
+    read_yaml(redis, &fsSettings, "NAV_LOCAL_JS_MODE");
+    read_yaml(redis, &fsSettings, "EVENT_LOCAL_JS_DATA");
 }
 
 int64_t get_curr_timestamp()

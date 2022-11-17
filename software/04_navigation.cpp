@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
         set_redis_var(&redis, "NAV_ROAD_CURRENT_ID", roadID_str);
 
         //==============================================
-        // GLOBAL PATH : Qu'importe le mode actuelle.
+        // GLOBAL PATH : Compute un global path.
         //==============================================
 
         if(get_redis_str(&redis, "MISSION_UPDATE_GLOBAL_PATH").compare("TRUE") == 0)
@@ -425,7 +425,7 @@ int main(int argc, char *argv[])
         }
 
         //==============================================
-        // NAVIGATION :
+        // NAVIGATION : Prendre les descisions.
         //==============================================
 
         if(get_redis_str(&redis, "MISSION_MOTOR_BRAKE").compare("FALSE") == 0)
@@ -474,7 +474,7 @@ int main(int argc, char *argv[])
                 (auto_mode_available(&redis) == 10 || auto_mode_available(&redis) == 20))
                 {
                     //==================================
-                    // Compute time/dist to destination.
+                    // Compute time/dist to destination and manage PARKING mode.
                     //==================================
                     if(true)
                     {

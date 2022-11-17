@@ -16,7 +16,6 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pthread -L/usr/local/lib -L/
 FIND_PACKAGE(OpenCV 4.2 REQUIRED)
 FIND_PACKAGE(websocketpp REQUIRED)
 
-
 # FIND_PACKAGE(OpenSSL REQUIRED)
 # [!] Comment for HTTPS.
 FIND_PACKAGE(sioclient REQUIRED)
