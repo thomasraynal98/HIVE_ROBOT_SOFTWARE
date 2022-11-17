@@ -71,7 +71,7 @@ NAV_AUTO_MODE                    : "OBSTACLE_AVOIDANCE_NIV1"
 NAV_AUTO_MODE_PARKING            : "NO_VAL"
 NAV_AUTO_MODE_PARKING_DIST_M     : "30"
 NAV_MANUAL_MODE                  : "STANDARD"
-NAV_MAX_SPEED                    : "0.5"
+NAV_MAX_SPEED                    : "1.5"                                                          # m/s
 NAV_GLOBAL_POSITION              : "0000000000000|0.0|0.0|0.0|"                                   # "0000000000000|LONGITUDE|LATITUDE|ORIENTATION|"
 NAV_LOCAL_POSITION               : "0000000000000|0.0|0.0|0.0|"                                   # "0000000000000|X|Y|ORIENTATION|"
 NAV_ROAD_CURRENT_ID              : "0000000000000|-1|"

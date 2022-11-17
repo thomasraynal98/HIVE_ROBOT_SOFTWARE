@@ -239,6 +239,7 @@ struct Trajectory{
 int auto_mode_available(sw::redis::Redis* redis);
 int manual_mode_available(sw::redis::Redis* redis);
 std::string map_manual_command(sw::redis::Redis* redis, double back_value, double front_value, double angle, double max_speed_Ms);
+std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_Ms, std::vector<std::string>& vect_controller_data);
 void Read_TXT_file(std::string path, std::vector<Data_node>& vector_node, std::vector<Data_road>& road_vector);
 double get_max_speed(sw::redis::Redis* redis, std::string robot_mode, std::string mode_param, std::vector<Data_road>& road_vector);
 int get_road_ID_from_pos(sw::redis::Redis* redis, std::vector<Data_road>& vect_road, Geographic_point* curr_pos, std::vector<Roadmap_node>& vect_roadmap, int option);

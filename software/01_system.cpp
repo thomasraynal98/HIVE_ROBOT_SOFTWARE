@@ -195,6 +195,11 @@ void f_thread_debug()
             print_redis(&redis, "NAV_LOCAL_JS_MODE");
             print_redis(&redis, "EVENT_LOCAL_JS_DATA");
             print_redis(&redis, "MISSION_MOTOR_BRAKE");
+            print_redis(&redis, "NAV_MANUAL_MODE");
+
+            std::cout << std::endl;
+
+            print_redis(&redis, "HARD_MOTOR_COMMAND");
         }
     }
 }

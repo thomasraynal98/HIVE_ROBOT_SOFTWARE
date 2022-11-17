@@ -439,27 +439,48 @@ int main(int argc, char *argv[])
                 get_redis_str(&redis, "MISSION_MANUAL_STATE").compare("IN_PROGRESS") == 0 && \
                 manual_mode_available(&redis) == 10)
                 {
-                    get_redis_multi_str(&redis, "EVENT_MANUAL_CONTROLER_DATA", vect_cmd_ctr);
-
-                    std::string flag_manual_mode = get_redis_str(&redis, "NAV_MANUAL_MODE");
-
-                    if(flag_manual_mode.compare("STANDARD") == 0 || \
-                    flag_manual_mode.compare("STANDARD_MAX") == 0 )
+                    if(!compare_redis_var(&redis, "NAV_LOCAL_JS_MODE", "ACTIVATE"))
                     {
-                        if(!time_is_over(get_curr_timestamp(), std::stoul(vect_cmd_ctr[0]), 1500))
+                        // MANUAL FROM SERVER.
+                        get_redis_multi_str(&redis, "EVENT_MANUAL_CONTROLER_DATA", vect_cmd_ctr);
+
+                        std::string flag_manual_mode = get_redis_str(&redis, "NAV_MANUAL_MODE");
+
+                        if(flag_manual_mode.compare("STANDARD") == 0 || \
+                        flag_manual_mode.compare("STANDARD_MAX") == 0 )
                         {
+                            if(!time_is_over(get_curr_timestamp(), std::stoul(vect_cmd_ctr[0]), 1500))
+                            {
+                                curr_max_speed    = get_max_speed(&redis, "MANUAL", flag_manual_mode, vect_road);
+                                motor_command_str = map_manual_command(&redis, std::stod(vect_cmd_ctr[1]), std::stod(vect_cmd_ctr[2]), std::stod(vect_cmd_ctr[3]), curr_max_speed);
+                            }
+                            else
+                            {
+                                set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "TRUE");
+                                pub_redis_var(&redis, "EVENT", get_event_str(2, "MISSION_MANUAL_MOVE", "STANDARD_MODE_OVER_TIME"));
+                            }
+                        }
+                        else if(false)
+                        {
+                            //!\\ OTHER MODE.
+                        }
+                    }
+                    else
+                    {
+                        // MANUAL FROM LOCAL JS.
+                        get_redis_multi_str(&redis, "EVENT_LOCAL_JS_DATA", vect_cmd_ctr);
+                        if(!time_is_over(get_curr_timestamp(), std::stoul(vect_cmd_ctr[0]), 1000))
+                        {
+                            std::string flag_manual_mode  = get_redis_str(&redis, "NAV_MANUAL_MODE");
                             curr_max_speed    = get_max_speed(&redis, "MANUAL", flag_manual_mode, vect_road);
-                            motor_command_str = map_manual_command(&redis, std::stod(vect_cmd_ctr[1]), std::stod(vect_cmd_ctr[2]), std::stod(vect_cmd_ctr[3]), curr_max_speed);
+                            motor_command_str = map_local_manual_command(&redis, curr_max_speed, vect_cmd_ctr);
+                            std::cout << motor_command_str << std::endl << std::endl;
                         }
                         else
                         {
                             set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "TRUE");
                             pub_redis_var(&redis, "EVENT", get_event_str(2, "MISSION_MANUAL_MOVE", "STANDARD_MODE_OVER_TIME"));
                         }
-                    }
-                    else if(false)
-                    {
-                        //!\\ OTHER MODE.
                     }
                 }
             }

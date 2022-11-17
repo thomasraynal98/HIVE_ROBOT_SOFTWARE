@@ -165,6 +165,115 @@ std::string map_manual_command(sw::redis::Redis* redis, double back_value, doubl
     }
 }
 
+std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_Ms, std::vector<std::string>& vect_controller_data)
+{
+    double vect_js = get_distance(0.0, 0.0, std::stod(vect_controller_data[9]), std::stod(vect_controller_data[10]));
+    std::string command_motor_str = std::to_string(get_curr_timestamp()) + "|";
+
+    double weigh_front = std::stod(vect_controller_data[14]);
+    double weigh_back  = std::stod(vect_controller_data[11]);
+
+    if(vect_js >= 4000 && (weigh_front > -30000 | weigh_back > -30000 ))
+    {
+        double x        = std::stod(vect_controller_data[9]);
+        if(x == 0) x = 1;
+
+        double angle_js = atan(std::stod(vect_controller_data[10])/x);
+        std::cout << angle_js << " " << vect_controller_data[10] << std::endl;
+
+        if(std::stod(vect_controller_data[10]) <= 0 && angle_js > 0)
+        {
+            angle_js = angle_js - M_PI;
+        }
+        if(std::stod(vect_controller_data[10]) >= 0 && angle_js < 0)
+        {
+            angle_js = angle_js + M_PI;
+        }
+
+        std::cout << angle_js << " " << vect_controller_data[10] << std::endl;
+
+        if(weigh_front > -30000)
+        {
+            // frontward case.
+            double curr_speed = ((weigh_front+32767) * max_speed_Ms) / (32767*2);
+
+            if(angle_js <= -M_PI_2)
+            {
+                // front left
+                for(int i = 0; i < 6; i++)
+                {
+                    if(i >= 3) command_motor_str += std::to_string(curr_speed) + "|";
+                    if(i < 3)  command_motor_str += std::to_string(curr_speed - curr_speed*((M_PI_2-(angle_js+M_PI))/M_PI_2))  + "|";
+                }
+                return command_motor_str;
+            }
+            else if(angle_js > -M_PI_2 && angle_js <= 0)
+            {
+                // front right
+                for(int i = 0; i < 6; i++)
+                {
+                    if(i < 3)  command_motor_str += std::to_string(curr_speed) + "|";
+                    if(i >= 3) command_motor_str += std::to_string(curr_speed - curr_speed*((M_PI_2+angle_js)/M_PI_2))  + "|";
+                }
+                return command_motor_str;
+            }
+            else if(angle_js > 0 && angle_js <= M_PI_2)
+            {
+                // rotate right
+                return command_motor_str + "0.5|0.2|0.5|-0.5|-0.2|-0.5|";
+            }
+            else if(angle_js > M_PI_2 && angle_js <= M_PI)
+            {
+                // rotate left
+                return command_motor_str + "-0.5|-0.2|-0.5|0.5|0.2|0.5|";
+            }
+        }
+        else
+        {
+            // backward case.
+            double curr_speed = ((weigh_back+32767) * max_speed_Ms) / (32767*2);
+            curr_speed *= -1;
+
+            if(angle_js >= 0)
+            {
+                if(angle_js < M_PI_2)
+                {
+                    // back right
+                    for(int i = 0; i < 6; i++)
+                    {
+                        if(i < 3)   command_motor_str += std::to_string(curr_speed) + "|";
+                        if(i >= 3)  command_motor_str += std::to_string(curr_speed - (curr_speed*((M_PI_2-angle_js)/M_PI_2))) + "|";
+                    }
+                    return command_motor_str;
+                }
+                else
+                {
+                    // back left
+                    for(int i = 0; i < 6; i++)
+                    {
+                        if(i >= 3) command_motor_str += std::to_string(curr_speed) + "|";
+                        if(i < 3)  command_motor_str += std::to_string(curr_speed - (curr_speed*((angle_js-M_PI_2)/M_PI_2))) + "|";
+                    }
+                    return command_motor_str;
+                }
+            }
+            else
+            {
+                for(int i = 0; i < 6; i++)
+                {
+                    command_motor_str += std::to_string(curr_speed) + "|";
+                }
+                return command_motor_str;
+            }
+        }
+    }
+    else
+    {
+        command_motor_str += "0|0|0|0|0|0|";
+    }
+    return command_motor_str;
+}
+
 void Read_TXT_file(std::string path, std::vector<Data_node>& vector_node, std::vector<Data_road>& road_vector)
 { 
     vector_node.clear();
@@ -228,12 +337,22 @@ double get_max_speed(sw::redis::Redis* redis, std::string robot_mode, std::strin
 {
     if(robot_mode.compare("MANUAL") == 0)
     {
-        if(compare_redis_var(redis, "ROBOT_INFO_MODEL", "MK4_LIGHT"))
+        if(!compare_redis_var(redis, "NAV_LOCAL_JS_MODE", "ACTIVATE"))
         {
-            return 0.5;
+            // MANUAL SERVER
+            if(compare_redis_var(redis, "ROBOT_INFO_MODEL", "MK4_LIGHT"))
+            {
+                return 0.5;
+            }
+            if(mode_param.compare("STANDARD")     == 0) return std::stod(get_redis_str(redis, "NAV_MAX_SPEED")) * 0.5;
+            if(mode_param.compare("STANDARD_MAX") == 0) return std::stod(get_redis_str(redis, "NAV_MAX_SPEED")) * 0.9;
         }
-        if(mode_param.compare("STANDARD")     == 0) return std::stod(get_redis_str(redis, "NAV_MAX_SPEED")) * 0.5;
-        if(mode_param.compare("STANDARD_MAX") == 0) return std::stod(get_redis_str(redis, "NAV_MAX_SPEED")) * 0.9;
+        else
+        {
+            // MANUAL LOCAL
+            if(mode_param.compare("STANDARD")     == 0) return 1.39; //  5km-h
+            if(mode_param.compare("STANDARD_MAX") == 0) return 3.06; // 11km-h
+        }
     }
 
     if(robot_mode.compare("AUTO") == 0)

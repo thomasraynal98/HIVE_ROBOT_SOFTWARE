@@ -406,6 +406,23 @@ void f_thread_local_joystick()
                         set_redis_var(&redis, "NAV_LOCAL_JS_MODE", "DEACTIVATE");
                     } 
 
+                    // CHANGE MODE
+                    if(xbox_controller.button_state[4])
+                    {
+                        set_redis_var(&redis, "NAV_MANUAL_MODE", "STANDARD_MAX");
+                    } 
+                    if(xbox_controller.button_state[5])
+                    {
+                        set_redis_var(&redis, "NAV_MANUAL_MODE", "STANDARD");
+                    } 
+
+                    // OPEN ALL BOX
+                    if(xbox_controller.button_state[3])
+                    {
+                        std::string new_mission_cargo_str = std::to_string(get_curr_timestamp()) + "|OPEN|OPEN|OPEN|";
+                        set_redis_var(&redis, "MISSION_HARD_CARGO", new_mission_cargo_str);
+                    }
+
                     // Send information to redis.
                     std::string redis_str = std::to_string(get_curr_timestamp()) + "|" + xbox_controller.get_str();
                     set_redis_var(&redis, "EVENT_LOCAL_JS_DATA", redis_str);
