@@ -7,11 +7,6 @@ std::thread thread_debug;
 std::thread thread_process_check;
 
 //===================================================================
-// DESCISION : Le thread qui va SAVE les events. Le programme 03 va
-// se charger du reste.
-//===================================================================
-
-//===================================================================
 // DEBUG : Affichage des informations pour un opérateur console.
 //===================================================================
 
@@ -167,6 +162,59 @@ void f_thread_debug()
             print_redis(&redis, "NAV_AUTO_DESTINATION_CROSSING_M");
         }
 
+        if(display_mode.compare("MODE21") == 0)
+        {
+            std::system("clear");
+
+            print_redis(&redis, "ROBOT_MODE");
+            print_redis(&redis, "SERVER_COM_STATE");
+            print_redis(&redis, "EVENT");
+            print_redis(&redis, "EVENT_MANUAL_CONTROLER_DATA");
+            std::cout << std::endl;
+
+            print_redis(&redis, "HARD_MCU_MOTOR_PORT_NAME");
+            print_redis(&redis, "HARD_MCU_CARGO_PORT_NAME");
+            print_redis(&redis, "HARD_MCU_INTER_PORT_NAME");
+            print_redis(&redis, "HARD_PIXHAWK_PORT_NAME");
+            print_redis(&redis, "HARD_MCU_MOTOR_COM_STATE");
+            print_redis(&redis, "HARD_MCU_CARGO_COM_STATE");
+            print_redis(&redis, "HARD_MCU_INTER_COM_STATE");
+            print_redis(&redis, "HARD_PIXHAWK_COM_STATE");
+            print_redis(&redis, "HARD_MOTOR_COMMAND");
+            print_redis(&redis, "HARD_CARGO_STATE");
+            std::cout << std::endl;
+
+            print_redis(&redis, "NAV_HMR_MAP_UPDATE");
+            print_redis(&redis, "NAV_HMR_DOWNLOAD_ADRESS");
+            print_redis(&redis, "NAV_HMR_LOCAL_PATH");
+            print_redis(&redis, "NAV_AUTO_DESTINATION");
+            print_redis(&redis, "NAV_AUTO_PROJECT_DESTINATION");
+            print_redis(&redis, "NAV_AUTO_MODE");
+            print_redis(&redis, "NAV_AUTO_MODE_PARKING");
+            print_redis(&redis, "NAV_MANUAL_MODE");
+            print_redis(&redis, "NAV_MAX_SPEED");
+            std::cout << std::endl;
+
+            print_redis(&redis, "MISSION_MOTOR_BRAKE");
+            print_redis(&redis, "MISSION_UPDATE_GLOBAL_PATH");
+            print_redis(&redis, "MISSION_AUTO_TYPE");
+            print_redis(&redis, "MISSION_AUTO_STATE");
+            print_redis(&redis, "MISSION_MANUAL_TYPE");
+            print_redis(&redis, "MISSION_MANUAL_STATE");
+            print_redis(&redis, "MISSION_HARD_CARGO");
+
+            std::cout << std::endl;
+            print_redis(&redis, "HARD_GPS_NUMBER");
+            print_redis(&redis, "HARD_GPS_FIX_STATE");
+            print_redis(&redis, "MISSION_ESTI_TIME_TO_TARGET");
+            print_redis(&redis, "MISSION_ESTI_DIST_TO_TARGET");
+            print_redis(&redis, "NAV_GLOBAL_POSITION");
+            print_redis(&redis, "NAV_LOCAL_POSITION");
+            print_redis(&redis, "NAV_ROAD_CURRENT_ID");
+            print_redis(&redis, "NAV_AUTO_DESTINATION_ROAD_ID");
+        }
+
+
         if(display_mode.compare("MODE3") == 0)
         {
             std::system("clear");
@@ -261,5 +309,3 @@ int main(int argc, char *argv[])
         thread_process_check.join();
     }
 }
-
-// TEST GIT MERGE

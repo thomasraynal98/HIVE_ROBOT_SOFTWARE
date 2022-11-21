@@ -26,12 +26,15 @@ LibSerial::SerialPort* com_mcu_inter = new LibSerial::SerialPort;
 LibSerial::SerialPort* com_mcu_temp = new LibSerial::SerialPort;
 
 //===================================================================
-// PORT DETECTION THREAD
+// DETECTION MCU PORT
+// Permet de récuperer les ports utilisés et de définir le hardware
+// qui est associé.
 //===================================================================
 
 void function_thread_port_detection()
 {
-    /*
+    /**
+     * NOTE:
      * Les MCU emettent dés leur allumages des status concernant l'ensemble des capteurs
      * et actionneurs qu'ils managent. Ce thread va écouter en permanence les ports 
      * ouvert, et va attribué les ports au 3 MCU intégré dans le robot.
@@ -113,6 +116,7 @@ void function_thread_port_detection()
 
 //===================================================================
 // READ MCU THREAD
+// Permet de lire les informations en provenance des différent MCU.
 //===================================================================
 
 void f_thread_read_mcu_motor()
@@ -143,7 +147,7 @@ void f_thread_read_mcu_inter()
 //===================================================================
 // WRITE MCU THREAD
 // La particularité des threads d'écriture c'est qu'ils sont chargé 
-// de gerer l'ouverture la fermeture des ports en cas d'evenemnts.
+// de gerer l'ouverture la fermeture des ports en cas d'evenements.
 //===================================================================
 
 void f_thread_write_mcu_motor()
@@ -190,6 +194,7 @@ void f_thread_write_mcu_inter()
 
 //===================================================================
 // PIXHAWK COMMUNICATION THREAD
+// Récupere les informations envoyer par la pixhawk.
 //===================================================================
 
 void f_thread_readwrite_pixhawk()
@@ -215,7 +220,7 @@ void f_thread_readwrite_pixhawk()
             if(pixhawk_com_manager->is_running()) pixhawk_com_manager->stop();
             set_redis_var(&redis, "HARD_PIXHAWK_COM_STATE", "DISCONNECTED");
             set_redis_var(&redis, "HARD_PIXHAWK_PORT_NAME", "NO_VAL");
-            pub_redis_var(&redis, "EVENT", get_event_str(0, "CLOSE_COM_PIXHAWK", "SUCCESS"));
+            pub_redis_var(&redis, "EVENT", get_event_str(2, "CLOSE_COM_PIXHAWK", "SUCCESS"));
         }
 
         // READING PROCEDURE
@@ -269,19 +274,26 @@ void f_thread_readwrite_pixhawk()
             if(pixhawk_com_manager->is_running())
             {
                 set_redis_var(&redis, "HARD_PIXHAWK_COM_STATE", "CONNECTED");
-                pub_redis_var(&redis, "EVENT", get_event_str(0, "OPEN_COM_PIXHAWK", "SUCCESS"));
+                pub_redis_var(&redis, "EVENT", get_event_str(2, "OPEN_COM_PIXHAWK", "SUCCESS"));
             }
             else
             {
                 set_redis_var(&redis, "HARD_PIXHAWK_COM_STATE", "DISCONNECTED");
                 set_redis_var(&redis, "HARD_PIXHAWK_PORT_NAME", "NO_VAL");
-                pub_redis_var(&redis, "EVENT", get_event_str(0, "OPEN_COM_PIXHAWK", "FAIL"));
+                pub_redis_var(&redis, "EVENT", get_event_str(2, "OPEN_COM_PIXHAWK", "FAIL"));
             }
         }
 
         if(get_redis_str(&redis, "HARD_PIXHAWK_PORT_NAME").compare("NO_VAL") == 0) usleep(500000);
     }
 }
+
+//===================================================================
+// BOX MANAGEMENT
+// Ce thread permet d'envoyer une notification si le box est ouvert
+// depuis trop longtemps. Dans ce cas le thread enverra au server
+// une notification toute les 15 secondes.
+//===================================================================
 
 void f_thread_box_checking()
 {
@@ -300,7 +312,7 @@ void f_thread_box_checking()
         {
             if(time_is_over(get_curr_timestamp(), std::stoul(vect_redis_str[0]), std::stoul(get_redis_str(&redis, "MISSION_BOX_MAX_OPEN_TIME"))))
             {
-                pub_redis_var(&redis, "EVENT", get_event_str(1, "BOX_TIME_OUT", "A"));
+                pub_redis_var(&redis, "EVENT", get_event_str(2, "BOX_TIME_OUT", "A"));
                 // refait timer dans 15 secondes.
                 set_redis_var(&redis, "EVENT_OPEN_BOX_A", std::to_string(std::stoul(vect_redis_str[0]) + 15000) + " |OPEN|");
             }
@@ -311,7 +323,7 @@ void f_thread_box_checking()
         {
             if(time_is_over(get_curr_timestamp(), std::stoul(vect_redis_str[0]), std::stoul(get_redis_str(&redis, "MISSION_BOX_MAX_OPEN_TIME"))))
             {
-                pub_redis_var(&redis, "EVENT", get_event_str(1, "BOX_TIME_OUT", "B"));
+                pub_redis_var(&redis, "EVENT", get_event_str(2, "BOX_TIME_OUT", "B"));
                 set_redis_var(&redis, "EVENT_OPEN_BOX_B", std::to_string(std::stoul(vect_redis_str[0]) + 15000) + " |OPEN|");
             }
         }
@@ -321,7 +333,7 @@ void f_thread_box_checking()
         {
             if(time_is_over(get_curr_timestamp(), std::stoul(vect_redis_str[0]), std::stoul(get_redis_str(&redis, "MISSION_BOX_MAX_OPEN_TIME"))))
             {
-                pub_redis_var(&redis, "EVENT", get_event_str(1, "BOX_TIME_OUT", "C"));
+                pub_redis_var(&redis, "EVENT", get_event_str(2, "BOX_TIME_OUT", "C"));
                 set_redis_var(&redis, "EVENT_OPEN_BOX_C", std::to_string(std::stoul(vect_redis_str[0]) + 15000) + " |OPEN|");
             }
         }
@@ -330,6 +342,8 @@ void f_thread_box_checking()
 
 //===================================================================
 // LOCAL BLUETOOTH JOYSTICK THREAD
+// Ce thread permet au detenteur de la manette reine spécifique 
+// au robot de le controller directement grace au bluetooth.
 //===================================================================
 
 void f_thread_local_joystick()

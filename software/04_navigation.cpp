@@ -8,13 +8,11 @@ cv::Mat debug_directmap(200, 200, CV_8UC3, cv::Scalar(255, 255, 255));
 int main(int argc, char *argv[])
 {   
     set_redis_var(&redis, "SOFT_PROCESS_ID_NAV", std::to_string(getpid()));
-        
     // SECURITY RESET
     set_redis_var(&redis, "ROBOT_MODE", "MANUAL");
-
-    cv::namedWindow( "DEBUG_DIRECT", 4);
-
     set_redis_var(&redis, "NAV_HMR_MAP_UPDATE", "TRUE");
+        
+    cv::namedWindow( "DEBUG_DIRECT", 4);
 
     std::vector<Data_node> vect_node;
     std::vector<Data_road> vect_road;
@@ -51,8 +49,12 @@ int main(int argc, char *argv[])
     double deb_y = 0;
     double curr_side = 0;
 
-    // TEST.
-
+    /**
+     * NOTE: vect_traj
+     * 
+     * Ce vecteur permet de stocker l'ensemble des trajectoires automatiques
+     * que le robot peux choisir de prendre.
+     */ 
     std::vector<Trajectory> vect_traj;
     // vect_traj.push_back(Trajectory(-0.8));
     // vect_traj.push_back(Trajectory(-1.0));
@@ -116,13 +118,19 @@ int main(int argc, char *argv[])
     bool recul_forcer = false;
     int64_t start_recul = get_curr_timestamp();
 
+    //==================================================
+    // MAIN LOOP :
+    // Cette boucle contient l'unique thread du programme
+    // numéro 4 qui gère la navigation automatique.
+    //==================================================
     while(true)
     {
         next += std::chrono::milliseconds((int)ms_for_loop);
         std::this_thread::sleep_until(next);
 
         //==============================================
-        // HMR : Check si la map est bonne et télécharge.
+        // HMR : 
+        // Manage la mise à jour de la Hive Map Representation
         //==============================================
 
         if(get_redis_str(&redis, "NAV_HMR_MAP_UPDATE").compare("TRUE") == 0)
@@ -138,17 +146,18 @@ int main(int argc, char *argv[])
                 vect_road.clear();
                 Read_TXT_file(get_redis_str(&redis, "NAV_HMR_LOCAL_PATH"), vect_node, vect_road);
                 set_redis_var(&redis, "NAV_HMR_MAP_UPDATE", "FALSE");
-                pub_redis_var(&redis, "EVENT", get_event_str(2, "LOAD_HMR", "SUCCESS"));
+                pub_redis_var(&redis, "EVENT", get_event_str(4, "LOAD_HMR", "SUCCESS"));
             }
             catch(...)
             {
                 set_redis_var(&redis, "NAV_HMR_MAP_UPDATE", "TRUE");
-                pub_redis_var(&redis, "EVENT", get_event_str(2, "LOAD_HMR", "FAIL"));
+                pub_redis_var(&redis, "EVENT", get_event_str(4, "LOAD_HMR", "FAIL"));
             }
         }
 
         //==============================================
-        // LOCALISATION : Mettre à jour en lisant var.
+        // LOCALISATION : 
+        // Mettre à jour la position en lisant redis var.
         //==============================================
 
         curr_position.update_pos(&redis);
@@ -157,7 +166,8 @@ int main(int argc, char *argv[])
         set_redis_var(&redis, "NAV_ROAD_CURRENT_ID", roadID_str);
 
         //==============================================
-        // GLOBAL PATH : Compute un global path.
+        // GLOBAL PATH : 
+        // Compute un global path si demander par le sys.
         //==============================================
 
         if(get_redis_str(&redis, "MISSION_UPDATE_GLOBAL_PATH").compare("TRUE") == 0)
@@ -166,9 +176,12 @@ int main(int argc, char *argv[])
             get_redis_multi_str(&redis, "NAV_ROAD_CURRENT_ID", vect_str);
             if(std::stoi(vect_str[1]) != -1)
             {
-                pub_redis_var(&redis, "EVENT", get_event_str(2, "COMPUTE_GLOBAL_PATH", "START"));
+                pub_redis_var(&redis, "EVENT", get_event_str(4, "COMPUTE_GLOBAL_PATH", "START"));
+
+                // [?] permet de MAJ les changements de la HMR.
                 update_path_node(vect_node, vect_road, graph);
 
+                // [?] selectionne le node le plus proche du robot sur la route actuel.
                 int node_start_ID = get_node_ID_from_road(vect_road, std::stoi(vect_str[1]), curr_position.point);
 
                 std::vector<std::string> vect_str_2;
@@ -183,7 +196,14 @@ int main(int argc, char *argv[])
 
                 int node_endof_ID = get_node_ID_from_road(vect_road, destination_road_ID, &destination_pos);
 
-                // MANAGE SPECIAL CASE.
+                /**
+                 * NOTE: 
+                 * Le prochain if permet de gerer les cas ou les nodes d'arriver et de départ sont les mêmes (A)
+                 * mais pas la même route ou le cas ou les nodes sont sont situé sur la même route (B).
+                 * 
+                 * TODO:
+                 * Gerer le cas (C) ou la route est la même et le node de départ et d'arrivé aussi.
+                 */
                 if((node_start_ID) == node_endof_ID || (std::stoi(vect_str[1]) == destination_road_ID))
                 {
                     vect_brut_road.clear();
@@ -268,7 +288,7 @@ int main(int argc, char *argv[])
                         }
                     }
 
-
+                    // [?] Permet de visualiser sur la simulation le global path.
                     std::string global_path_str = "";
                     for(int i = vect_roadmap.size()-1; i >= 0; i--)
                     {
@@ -282,7 +302,7 @@ int main(int argc, char *argv[])
                     // std::cout << vect_roadmap.size() << std::endl;
                     set_redis_var(&redis, "SIM_GLOBAL_PATH", global_path_str);
 
-                    pub_redis_var(&redis, "EVENT", get_event_str(2, "COMPUTE_GLOBAL_PATH", "SUCCESS"));
+                    pub_redis_var(&redis, "EVENT", get_event_str(4, "COMPUTE_GLOBAL_PATH", "SUCCESS"));
                     set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "FALSE");
                     set_redis_var(&redis, "MISSION_AUTO_TYPE",   "GOTO");
                     set_redis_var(&redis, "MISSION_AUTO_STATE",  "IN_PROGRESS");
@@ -293,6 +313,7 @@ int main(int argc, char *argv[])
                     {
                         process_final_roadmap(&redis, vect_brut_road, vect_road, vect_roadmap);
 
+                        // [?] Permet de visualiser sur la simulation le global path.
                         std::string global_path_str = "";
                         for(int i = vect_roadmap.size()-1; i >= 0; i--)
                         {
@@ -306,7 +327,7 @@ int main(int argc, char *argv[])
                         // std::cout << vect_roadmap.size() << std::endl;
                         set_redis_var(&redis, "SIM_GLOBAL_PATH", global_path_str);
 
-                        pub_redis_var(&redis, "EVENT", get_event_str(2, "COMPUTE_GLOBAL_PATH", "SUCCESS"));
+                        pub_redis_var(&redis, "EVENT", get_event_str(4, "COMPUTE_GLOBAL_PATH", "SUCCESS"));
                         set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "FALSE");
                         set_redis_var(&redis, "MISSION_AUTO_TYPE",   "GOTO");
                         set_redis_var(&redis, "MISSION_AUTO_STATE",  "IN_PROGRESS");
@@ -316,7 +337,7 @@ int main(int argc, char *argv[])
                         set_redis_var(&redis, "MISSION_ESTI_TIME_TO_TARGET", "0");
                         set_redis_var(&redis, "MISSION_ESTI_DIST_TO_TARGET", "0");
                         set_redis_var(&redis, "SIM_GLOBAL_PATH", "");
-                        pub_redis_var(&redis, "EVENT", get_event_str(2, "ERR", "COMPUTE_GLOBAL_PATH NO_PATH_POSSIBLE"));
+                        pub_redis_var(&redis, "EVENT", get_event_str(4, "ERR", "COMPUTE_GLOBAL_PATH NO_PATH_POSSIBLE"));
                     }
                 }
             }
@@ -324,13 +345,15 @@ int main(int argc, char *argv[])
             {
                 set_redis_var(&redis, "MISSION_ESTI_TIME_TO_TARGET", "0");
                 set_redis_var(&redis, "MISSION_ESTI_DIST_TO_TARGET", "0");
-                pub_redis_var(&redis, "EVENT", get_event_str(2, "ERR", "COMPUTE_GLOBAL_PATH NO_ROAD_ID"));
+                pub_redis_var(&redis, "EVENT", get_event_str(4, "ERR", "COMPUTE_GLOBAL_PATH NO_ROAD_ID"));
             }
             set_redis_var(&redis, "MISSION_UPDATE_GLOBAL_PATH", "FALSE");
         }
 
         //==============================================
-        // ENV DATA : Lire les données de proximités.
+        // ENV DATA :
+        // Cette partie va lire l'ensemble des channels
+        // ou les différents capteurs publish leur data.
         //==============================================
 
         if(true)
@@ -418,6 +441,7 @@ int main(int argc, char *argv[])
                 //     }
                 // }
                 
+                // [?] Le code suivant permet de nettoyer les datas qui se supperpose ou qui sont vieil.
                 // std::cout << "INPUT S > " << vect_obj.size() << std::endl;
                 clear_obj_vect(curr_local_pos, vect_obj, clear_time, clear_dist);
                 // std::cout << "INPUT E > " << vect_obj.size() << std::endl;
@@ -425,13 +449,15 @@ int main(int argc, char *argv[])
         }
 
         //==============================================
-        // NAVIGATION : Prendre les descisions.
+        // NAVIGATION : 
+        // Cette partie permet de prendre la descision
+        // de la prochaine commande moteur.
         //==============================================
 
         if(get_redis_str(&redis, "MISSION_MOTOR_BRAKE").compare("FALSE") == 0)
         {
             //==========================================
-            // Manuel mode nav.
+            // MANUAL NAVIGATION PARTIE :
             //==========================================
             if(get_redis_str(&redis, "ROBOT_MODE").compare("MANUAL") == 0)
             {
@@ -457,7 +483,7 @@ int main(int argc, char *argv[])
                             else
                             {
                                 set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "TRUE");
-                                pub_redis_var(&redis, "EVENT", get_event_str(2, "MISSION_MANUAL_MOVE", "STANDARD_MODE_OVER_TIME"));
+                                pub_redis_var(&redis, "EVENT", get_event_str(4, "MISSION_MANUAL_MOVE", "STANDARD_MODE_OVER_TIME"));
                             }
                         }
                         else if(false)
@@ -478,14 +504,14 @@ int main(int argc, char *argv[])
                         else
                         {
                             set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "TRUE");
-                            pub_redis_var(&redis, "EVENT", get_event_str(2, "MISSION_MANUAL_MOVE", "STANDARD_MODE_OVER_TIME"));
+                            pub_redis_var(&redis, "EVENT", get_event_str(4, "MISSION_MANUAL_MOVE", "STANDARD_MODE_OVER_TIME"));
                         }
                     }
                 }
             }
 
             //==========================================
-            // Autonomous mode nav.
+            // AUTOMATIQUE NAVIGATION PARTIE :
             //==========================================
             if(compare_redis_var(&redis, "ROBOT_MODE", "AUTO") && compare_redis_var(&redis, "MISSION_UPDATE_GLOBAL_PATH", "FALSE"))
             {
@@ -493,11 +519,19 @@ int main(int argc, char *argv[])
                 compare_redis_var(&redis, "MISSION_AUTO_STATE", "IN_PROGRESS") && \
                 (auto_mode_available(&redis) == 10 || auto_mode_available(&redis) == 20))
                 {
-                    //==================================
-                    // Compute time/dist to destination and manage PARKING mode.
-                    //==================================
+                    /**
+                     * NOTE:
+                     * 
+                     * Cette partie va permettre de faire 2 choses :
+                     * 
+                     * 1. Elle va calculer la distance et le temps jusqu'a destination.
+                     * 2. Elle permet de faire fonctionner le mode parking qui consiste
+                     * à appeler un opérateur pour venir garer le robot.
+                     * 
+                     */
                     if(true)
                     {
+                        // [1] PART.
                         bool start = false;
                         std::vector<std::string> vect_str;
                         get_redis_multi_str(&redis, "NAV_ROAD_CURRENT_ID", vect_str);
@@ -558,20 +592,22 @@ int main(int argc, char *argv[])
                         set_redis_var(&redis, "MISSION_ESTI_TIME_TO_TARGET", std::to_string((int)(time_total_s)));
                         set_redis_var(&redis, "MISSION_ESTI_DIST_TO_TARGET", std::to_string((int)(dist_total_m)));
 
-                        // MANAGER les modes automatique PARKING.
+                        // [2] PART.
                         if((int)(dist_total_m) <= std::stoi(get_redis_str(&redis, "NAV_AUTO_MODE_PARKING_DIST_M")) && 
                         get_redis_str(&redis, "NAV_AUTO_MODE_PARKING").compare("OPERATOR") == 0)
                         {
-                            pub_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_AUTO_GOTO", "NEED_OPERATOR"));
+                            pub_redis_var(&redis, "EVENT", get_event_str(4, "MISSION_AUTO_GOTO", "NEED_OPERATOR"));
                             set_redis_var(&redis, "MISSION_MOTOR_BRAKE"   , "TRUE");
                             set_redis_var(&redis, "MISSION_AUTO_STATE"    , "PAUSE");
                             set_redis_var(&redis, "MISSION_MANUAL_STATE"  , "PAUSE");
-                            pub_redis_var(&redis, "EVENT", get_event_str(1, "MISSION_PAUSE", "START"));
+                            pub_redis_var(&redis, "EVENT", get_event_str(4, "MISSION_PAUSE", "START"));
                         }
                     }
 
                     //==================================
-                    // Different mode.
+                    // SELECT SPECIFIC AUTOMATIQUE MODE :
+                    // 1. Mode classique "SIMPLE"
+                    // 2. Mode obstacle classique "OBSTACLE_AVOIDANCE_NIV1"
                     //==================================
                     if(compare_redis_var(&redis, "NAV_AUTO_MODE", "SIMPLE"))
                     {
@@ -590,7 +626,7 @@ int main(int argc, char *argv[])
 
                             set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "TRUE");
                             set_redis_var(&redis, "MISSION_AUTO_STATE",  "COMPLETED");
-                            pub_redis_var(&redis, "EVENT", get_event_str(2, "MISSION_AUTO_GOTO", "SUCCESS"));
+                            pub_redis_var(&redis, "EVENT", get_event_str(4, "MISSION_AUTO_GOTO", "SUCCESS"));
                         }
                         else
                         {
@@ -885,6 +921,7 @@ int main(int argc, char *argv[])
                         get_redis_multi_str(&redis, "NAV_AUTO_PROJECT_DESTINATION", vect_str);
                         Geographic_point dest = Geographic_point(std::stod(vect_str[1]), std::stod(vect_str[2]));
 
+                        // [?] Check si on est arriver à destination.
                         if(curr_road_id == dest_road_id && \
                         get_angular_distance(curr_position.point, &dest) <= std::stod(get_redis_str(&redis, "NAV_AUTO_DESTINATION_CROSSING_M")))
                         {
@@ -892,7 +929,7 @@ int main(int argc, char *argv[])
 
                             set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "TRUE");
                             set_redis_var(&redis, "MISSION_AUTO_STATE",  "COMPLETED");
-                            pub_redis_var(&redis, "EVENT", get_event_str(2, "MISSION_AUTO_GOTO", "SUCCESS"));
+                            pub_redis_var(&redis, "EVENT", get_event_str(4, "MISSION_AUTO_GOTO", "SUCCESS"));
                         }
                         else
                         {
@@ -1501,6 +1538,11 @@ int main(int argc, char *argv[])
             }
         }
 
+        //==============================================
+        // DEBUG NAVIGATION : 
+        // Utilisation de OPENCV pouvant mener à des bugs.
+        //==============================================
+
         if(true)
         {
             cv::Mat copy = debug_directmap.clone();
@@ -1617,13 +1659,21 @@ int main(int argc, char *argv[])
             char d =(char)cv::waitKey(25);
         }
 
+        //==============================================
+        // MOTOR BRAKE SECURITY : 
+        // Permet de stoper le robot net en cas de demande
+        // du programme.
+        //==============================================
+
         if(get_redis_str(&redis, "MISSION_MOTOR_BRAKE").compare("TRUE") == 0)
         {
             motor_command_str = std::to_string(get_curr_timestamp()) + "|0.0|0.0|0.0|0.0|0.0|0.0|";
         }
 
         //==============================================
-        // PUBLISH RESULT : Envoyer à redis la reponse.
+        // PUBLISH RESULT : 
+        // Envoyer a redis la commande final qui sera lu
+        // par le programme 02.
         //==============================================
         
         set_redis_var(&redis, "HARD_MOTOR_COMMAND", motor_command_str);
