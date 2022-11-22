@@ -247,9 +247,6 @@ double frequency_to_ms(int frequency)
 
 bool time_is_over(int64_t curr_timestamp, int64_t ref_timestamp, int64_t max_duration_ms)
 {
-    // std::cout << curr_timestamp << " " << ref_timestamp << " " << curr_timestamp-ref_timestamp << std::endl;
-    // std::string temp;
-    // std::cin >> temp;
     if(curr_timestamp - ref_timestamp > max_duration_ms) return true;
     return false;
 }

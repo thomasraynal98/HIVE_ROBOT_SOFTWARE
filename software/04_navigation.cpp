@@ -49,6 +49,10 @@ int main(int argc, char *argv[])
     double deb_y = 0;
     double curr_side = 0;
 
+    // [?] Cette variable setup ou non le OPENCV de debug.
+    bool show_debug = true;
+    if(argc == 2) show_debug = false;
+
     /**
      * NOTE: vect_traj
      * 
@@ -1543,7 +1547,7 @@ int main(int argc, char *argv[])
         // Utilisation de OPENCV pouvant mener à des bugs.
         //==============================================
 
-        if(true)
+        if(show_debug)
         {
             cv::Mat copy = debug_directmap.clone();
 
