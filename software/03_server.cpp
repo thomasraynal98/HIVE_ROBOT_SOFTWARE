@@ -68,9 +68,17 @@ void callback_command(std::string channel, std::string msg)
     {
         send_event_server(h.socket(), "GOTO"          , "SUCCESS");
     }
-    if(vect_str[2].compare("MISSION_AUTO_GOTO")      == 0 && vect_str[3].compare("NEED_OPERATOR") == 0)
+    if(vect_str[2].compare("MISSION_AUTO_GOTO")      == 0 && vect_str[3].compare("NEED_OPERATOR_SUPERVISION") == 0)
     {
-        send_event_server(h.socket(), "GOTO"          , "OPERATOR_REQUIRED");
+        send_event_server(h.socket(), "GOTO"          , "OPERATOR_SUPERVISION_REQUIRED");
+    }
+    if(vect_str[2].compare("MISSION_AUTO_GOTO")      == 0 && vect_str[3].compare("NEED_OPERATOR_DRIVE") == 0)
+    {
+        send_event_server(h.socket(), "GOTO"          , "OPERATOR_DRIVE_REQUIRED");
+    }
+    if(vect_str[2].compare("MISSION_AUTO_GOTO")      == 0 && vect_str[3].compare("NEED_OPERATOR_PARKING") == 0)
+    {
+        send_event_server(h.socket(), "GOTO"          , "OPERATOR_PARKING_REQUIRED");
     }
     if(vect_str[2].compare("MISSION_CANCEL_MISSION") == 0 && vect_str[3].compare("SUCCESS") == 0)
     {

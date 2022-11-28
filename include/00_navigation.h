@@ -5,6 +5,8 @@
 #include <sstream>
 #include <iostream>
 #include <vector>
+#include <tuple>
+
 
 struct Geographic_point
 {
@@ -38,6 +40,7 @@ struct Data_road
     double length;
     bool available;
     double max_speed;
+    int opt_auto;
 
     Data_road(int a, Data_node* b, Data_node* c)
         : road_ID(a)
@@ -45,6 +48,7 @@ struct Data_road
         , B(c)
         , deg_to_A(0.1)
         , deg_to_B(0.1)
+        , opt_auto(0)
         {init_data_road();}
 
     long double toRadians(const long double degree)
@@ -262,3 +266,4 @@ void update_sensor_prm(sw::redis::Redis* redis, std::vector<Sensor_prm>& vect_se
 void process_brut_obj(std::vector<double> curr_local_pos, std::vector<std::string> brut_obj, Sensor_prm* sensor_prm, double* min_dist, double* max_dist, std::vector<Object_env>& vect_obj, double* min_separation, int *min_observation);
 void clear_obj_vect(std::vector<double> curr_local_pos, std::vector<Object_env>& vect_obj, int clear_time_ms, double clear_dist_m);
 double get_battery_level(double curr_voltage, double battery_voltage);
+int get_filtred_road_ID(sw::redis::Redis* redis, std::vector<std::tuple<int64_t,int>>& vect_last_curr_road_ID, int max_time_threshold);

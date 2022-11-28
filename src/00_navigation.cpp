@@ -219,12 +219,12 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
             else if(angle_js > 0 && angle_js <= M_PI_2)
             {
                 // rotate right
-                return command_motor_str + "0.5|0.2|0.5|-0.5|-0.2|-0.5|";
+                return command_motor_str + "0.2|0.05|0.2|-0.2|-0.05|-0.2|";
             }
             else if(angle_js > M_PI_2 && angle_js <= M_PI)
             {
                 // rotate left
-                return command_motor_str + "-0.5|-0.2|-0.5|0.5|0.2|0.5|";
+                return command_motor_str + "-0.2|-0.05|-0.2|0.2|0.05|0.2|";
             }
         }
         else
@@ -325,6 +325,7 @@ void Read_TXT_file(std::string path, std::vector<Data_node>& vector_node, std::v
                     new_road.deg_to_B = std::stod(vect_str[4]);
                     new_road.length = std::stod(vect_str[5]);
                     new_road.max_speed = std::stod(vect_str[7]) * 1000 / 3600;
+                    new_road.opt_auto = std::stoi(vect_str[8]);
                     road_vector.push_back(new_road);
                 }
             }
@@ -349,6 +350,7 @@ double get_max_speed(sw::redis::Redis* redis, std::string robot_mode, std::strin
         else
         {
             // MANUAL LOCAL
+            return 0.3;
             if(mode_param.compare("STANDARD")     == 0) return 1.39; //  5km-h
             if(mode_param.compare("STANDARD_MAX") == 0) return 3.06; // 11km-h
         }
@@ -1270,4 +1272,71 @@ double get_battery_level(double curr_voltage, double battery_voltage)
             }
         }
     }
+}
+
+int get_filtred_road_ID(sw::redis::Redis* redis, std::vector<std::tuple<int64_t,int>>& vect_last_curr_road_ID, int max_time_threshold)
+{
+    /**
+     * NOTE:
+     * 
+     * Cette function va permettre de lisser la route actuelle en éliminant les valeurs
+     * abérantes qui peuvent être du à une erreur du GPS.
+     * 
+     */
+
+    // [1] Erase les valeurs qui datent.
+    auto it = vect_last_curr_road_ID.begin();
+    while (it != vect_last_curr_road_ID.end())
+    {
+        if(get_elapsed_time(get_curr_timestamp(), std::get<0>(*it)) > max_time_threshold)
+        {
+            it = vect_last_curr_road_ID.erase(it); 
+        }
+        else
+        {
+            it++;
+        }
+    }
+
+    // [2] Faire la somme d'apparition de chaque route.
+    std::vector<int> vect_sum;
+    std::vector<int> vect_id;
+
+    for(int i = 0; i < vect_last_curr_road_ID.size(); i++)
+    {
+        int curr_ID = std::get<1>(vect_last_curr_road_ID[i]);
+
+        // verifier si il est déja présent dans la liste.
+        bool new_detection = true;
+        for(int y = 0; y < vect_id.size(); y++)
+        {
+            if(vect_id[y] == curr_ID)
+            {
+                new_detection = false;
+                vect_sum[y] += 1;
+                break;
+            }
+        }
+
+        // Si il n'ai pas présent on le créer.
+        if(new_detection)
+        {
+            vect_id.push_back(curr_ID);
+            vect_sum.push_back(1);
+        }
+    }
+
+    // [3] Selectionner celui avec le plus de récurence.
+    int max = 0;
+    int final_ID = -1;
+    for(int i = 0; i < vect_sum.size(); i++)
+    {
+        if(vect_sum[i] > max)
+        {
+            final_ID = vect_id[i];
+            max = vect_sum[i];
+        }
+    } 
+
+    return final_ID;
 }

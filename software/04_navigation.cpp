@@ -122,6 +122,19 @@ int main(int argc, char *argv[])
     bool recul_forcer = false;
     int64_t start_recul = get_curr_timestamp();
 
+    // variable pour eviter que l'alerte OPERATOR_SUPERVISION_REQUIRED soit spam.
+    bool alert_msg_send = false;
+    int alert_road = 9999;
+
+    // variable pour stocker la position du robot sur les 15 dernières secondes.
+    std::vector<std::tuple<int64_t,Geographic_point>> vect_geo_save;
+    int64_t last_geo_save_ts = get_curr_timestamp();
+    double min_dist_threshold_m = 8.0;
+
+    // variable qui permet de stocker l'ID de la current road sur les x dernières secondes.
+    int road_moy_time = 4000;
+    std::vector<std::tuple<int64_t, int>> vect_last_curr_road_id;
+
     //==================================================
     // MAIN LOOP :
     // Cette boucle contient l'unique thread du programme
@@ -162,12 +175,25 @@ int main(int argc, char *argv[])
         //==============================================
         // LOCALISATION : 
         // Mettre à jour la position en lisant redis var.
+        // Faire la moyenne de la route actuelle.
         //==============================================
 
-        curr_position.update_pos(&redis);
-        std::string roadID_str = std::to_string(get_curr_timestamp()) + "|";
-        roadID_str += std::to_string(get_road_ID_from_pos(&redis, vect_road, curr_position.point, vect_roadmap, 1)) + "|";
-        set_redis_var(&redis, "NAV_ROAD_CURRENT_ID", roadID_str);
+        if(true)
+        {
+            curr_position.update_pos(&redis);
+
+            int curr_road_ID = get_road_ID_from_pos(&redis, vect_road, curr_position.point, vect_roadmap, 1);
+            std::tuple<int64_t,int> curr_road_ID_save(get_curr_timestamp(), curr_road_ID);
+            vect_last_curr_road_id.push_back(curr_road_ID_save);
+
+            // [!] New strategie.
+            curr_road_ID = get_filtred_road_ID(&redis, vect_last_curr_road_id, road_moy_time);
+            
+            std::string roadID_str = std::to_string(get_curr_timestamp()) + "|";
+            roadID_str += std::to_string(curr_road_ID) + "|";
+            set_redis_var(&redis, "NAV_ROAD_CURRENT_ID", roadID_str);
+
+        }
 
         //==============================================
         // GLOBAL PATH : 
@@ -180,6 +206,10 @@ int main(int argc, char *argv[])
             get_redis_multi_str(&redis, "NAV_ROAD_CURRENT_ID", vect_str);
             if(std::stoi(vect_str[1]) != -1)
             {
+                // [?] update var pour le mode semi-manual.
+                alert_road = 9999;
+                alert_msg_send = false;
+
                 pub_redis_var(&redis, "EVENT", get_event_str(4, "COMPUTE_GLOBAL_PATH", "START"));
 
                 // [?] permet de MAJ les changements de la HMR.
@@ -526,11 +556,19 @@ int main(int argc, char *argv[])
                     /**
                      * NOTE:
                      * 
-                     * Cette partie va permettre de faire 2 choses :
+                     * Cette partie va permettre de faire 3 choses :
                      * 
                      * 1. Elle va calculer la distance et le temps jusqu'a destination.
                      * 2. Elle permet de faire fonctionner le mode parking qui consiste
                      * à appeler un opérateur pour venir garer le robot.
+                     * 3. Permet d'ajouter le mode de conduite semi-manuel qui consiste
+                     * à appeler un opérateur sur certaine route qui demande une supervision
+                     * ou un pilotage complet.
+                     * 4. Permet de sauvegarder les positions sur les 15 dernières secondes
+                     * afin de vérifier si le robot n'ai pas bloqué.
+                     * 
+                     * NOTE:
+                     * Le mode 3 peux permettre de se passer du mode 1.
                      * 
                      */
                     if(true)
@@ -600,11 +638,81 @@ int main(int argc, char *argv[])
                         if((int)(dist_total_m) <= std::stoi(get_redis_str(&redis, "NAV_AUTO_MODE_PARKING_DIST_M")) && 
                         get_redis_str(&redis, "NAV_AUTO_MODE_PARKING").compare("OPERATOR") == 0)
                         {
-                            pub_redis_var(&redis, "EVENT", get_event_str(4, "MISSION_AUTO_GOTO", "NEED_OPERATOR"));
+                            // demande de pilotage manuel pour un parking.
+                            pub_redis_var(&redis, "EVENT", get_event_str(4, "MISSION_AUTO_GOTO", "NEED_OPERATOR_PARKING"));
                             set_redis_var(&redis, "MISSION_MOTOR_BRAKE"   , "TRUE");
                             set_redis_var(&redis, "MISSION_AUTO_STATE"    , "PAUSE");
                             set_redis_var(&redis, "MISSION_MANUAL_STATE"  , "PAUSE");
                             pub_redis_var(&redis, "EVENT", get_event_str(4, "MISSION_PAUSE", "START"));
+                        }
+
+                        // [3] PART.
+                        for(int i = 0; i < vect_roadmap.size(); i++)
+                        {
+                            if(vect_roadmap[i].road->road_ID == curr_road_id)
+                            {
+                                if(vect_roadmap[i].road->opt_auto == 1 && !alert_msg_send && alert_road != curr_road_id)
+                                {
+                                    alert_road = curr_road_id;
+                                    alert_msg_send = true;
+
+                                    // demande de supervision.
+                                    pub_redis_var(&redis, "EVENT", get_event_str(4, "MISSION_AUTO_GOTO", "NEED_OPERATOR_SUPERVISION"));
+                                }
+                                if(vect_roadmap[i].road->opt_auto == 2)
+                                {
+                                    // demande de pilotage manuel.
+                                    set_redis_var(&redis, "MISSION_MOTOR_BRAKE"   , "TRUE");
+                                    set_redis_var(&redis, "MISSION_AUTO_STATE"    , "PAUSE");
+                                    set_redis_var(&redis, "MISSION_MANUAL_STATE"  , "PAUSE");
+                                    pub_redis_var(&redis, "EVENT", get_event_str(4, "MISSION_AUTO_GOTO", "NEED_OPERATOR_DRIVE"));
+                                }
+                                else
+                                {
+                                    alert_msg_send = false;
+                                }
+                                break;
+                            }
+                        }
+
+                        // [4] PART.
+                        if(time_is_over(get_curr_timestamp(), last_geo_save_ts, 1000))
+                        {
+                            std::tuple<int64_t,Geographic_point> new_geo_save(get_curr_timestamp(), *curr_position.point);
+                            vect_geo_save.push_back(new_geo_save);
+
+                            auto it = vect_geo_save.begin();
+                            while (it != vect_geo_save.end())
+                            {
+                                if(get_elapsed_time(get_curr_timestamp(), std::get<0>(*it)) > 16000)
+                                {
+                                    it = vect_geo_save.erase(it); 
+                                }
+                                else
+                                {
+                                    it++;
+                                }
+                            }
+
+                            // On vérifie si la position du robot il y a 15 secondes environ dépasse un certain threshold.
+                            for(int i = 0; i < vect_geo_save.size(); i++)
+                            {
+                                if(get_elapsed_time(get_curr_timestamp(), std::get<0>(vect_geo_save[i])) > 14000)
+                                {
+                                    if(get_angular_distance(curr_position.point, &std::get<1>(vect_geo_save[i])) <= min_dist_threshold_m)
+                                    {
+                                        // Il y a un probleme, notre deplacement n'ai pas assez grand, on previent l'opérateur
+                                        // et on immobilise le robot.
+
+                                        pub_redis_var(&redis, "EVENT", get_event_str(4, "ERR", "ROBOT_BLOCKED"));
+                                        set_redis_var(&redis, "MISSION_MOTOR_BRAKE"   , "TRUE");
+                                        set_redis_var(&redis, "MISSION_AUTO_STATE"    , "PAUSE");
+                                        set_redis_var(&redis, "MISSION_MANUAL_STATE"  , "PAUSE");
+                                    }
+                                }
+                            }
+
+                            last_geo_save_ts = get_curr_timestamp();
                         }
                     }
 
@@ -1538,6 +1646,10 @@ int main(int argc, char *argv[])
                             }       
                         }
                     }
+                }
+                else
+                {
+                    vect_geo_save.clear();
                 }
             }
         }

@@ -268,7 +268,7 @@ void writing_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
             {
                 if(get_redis_str(redis, "ROBOT_INFO_MODEL").compare("MK4") == 0)
                 {
-                    for(int i = 1; i < 7; i++) msg_motor_str += vect_motor_command[1] + "|";
+                    for(int i = 1; i < 7; i++) msg_motor_str += vect_motor_command[i] + "|";
                 }
                 if(get_redis_str(redis, "ROBOT_INFO_MODEL").compare("MK4_LIGHT") == 0)
                 {
@@ -288,7 +288,7 @@ void writing_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                 }
             }
             
-            // std::cout << "SEND : " << msg_motor_str << std::endl;
+            std::cout << "SEND : " << msg_motor_str << std::endl;
             com_manager->Write(msg_motor_str+'\n'); 
         }
 
