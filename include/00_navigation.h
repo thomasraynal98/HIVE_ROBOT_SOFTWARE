@@ -267,3 +267,4 @@ void process_brut_obj(std::vector<double> curr_local_pos, std::vector<std::strin
 void clear_obj_vect(std::vector<double> curr_local_pos, std::vector<Object_env>& vect_obj, int clear_time_ms, double clear_dist_m);
 double get_battery_level(double curr_voltage, double battery_voltage);
 int get_filtred_road_ID(sw::redis::Redis* redis, std::vector<std::tuple<int64_t,int>>& vect_last_curr_road_ID, int max_time_threshold);
+int emergency_collision_detector(std::vector<double> curr_local_pos, std::vector<Object_env>& vect_obj);

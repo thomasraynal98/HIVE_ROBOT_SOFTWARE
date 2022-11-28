@@ -219,7 +219,7 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
 
                         // Lire la position actuelle.
                         std::vector<std::string> vect_redis_str;
-                        get_redis_multi_str(redis, "NAV_GLOBAL_POSITION", vect_redis_str);
+                        get_redis_multi_str(redis, "NAV_LOCAL_POSITION", vect_redis_str);
                         
                         // Calculer la nouvelle position.
                         std::string new_local_position = std::to_string(get_curr_timestamp()) + "|";
@@ -227,7 +227,7 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                         new_local_position += std::to_string(std::stod(vect_redis_str[2]) + dt_moy_m * sin(std::stod(vect_redis_str[3]))) + "|";
                         new_local_position += vect_redis_str[3] + "|";
             
-                        set_redis_var(redis, "NAV_GLOBAL_POSITION", new_local_position);
+                        set_redis_var(redis, "NAV_LOCAL_POSITION", new_local_position);
                     }
                 }
             }

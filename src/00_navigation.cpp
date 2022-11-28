@@ -1136,9 +1136,9 @@ void process_brut_obj(std::vector<double> curr_local_pos, std::vector<std::strin
         net dans l'environnement local.
     */
 
-    if(sensor_prm->pos_pol->x > *min_dist && \
-    sensor_prm->pos_pol->x < *max_dist)
-    {
+    // if(sensor_prm->pos_pol->x > *min_dist && \
+    // sensor_prm->pos_pol->x < *max_dist)
+    // {
         double sensor_pos_x   = curr_local_pos[0] + sensor_prm->pos_pol->x * cos(deg_to_rad(curr_local_pos[2]+sensor_prm->pos_pol->y));
         double sensor_pos_y   = curr_local_pos[1] + sensor_prm->pos_pol->x * sin(deg_to_rad(curr_local_pos[2]+sensor_prm->pos_pol->y));
 
@@ -1179,7 +1179,7 @@ void process_brut_obj(std::vector<double> curr_local_pos, std::vector<std::strin
                 vect_obj.push_back(Object_env(obj_x, obj_y, 0.0, 0.0, sensor_prm->sensor_ID, get_curr_timestamp()));
             }
         }
-    }
+    // }
 }
 
 void clear_obj_vect(std::vector<double> curr_local_pos, std::vector<Object_env>& vect_obj, int clear_time_ms, double clear_dist_m)
@@ -1339,4 +1339,72 @@ int get_filtred_road_ID(sw::redis::Redis* redis, std::vector<std::tuple<int64_t,
     } 
 
     return final_ID;
+}
+
+int emergency_collision_detector(std::vector<double> curr_local_pos, std::vector<Object_env>& vect_obj)
+{
+    /**
+     * NOTE:
+     * 
+     * Cette function va permettre de detecter les chocs au dernier moment,
+     * qui non pas plus être évité avec l'algorythme de navigation.
+     * 
+     * return 0 si tout va bien 1 en cas de choc frontal et 2 choc arrière.
+     * 
+     */
+
+    double dist_m;
+    bool back_detection = false;
+
+    for(int i = 0; i < vect_obj.size(); i++)
+    {
+        if(vect_obj[i].available)
+        {
+            dist_m = get_distance(curr_local_pos[0], curr_local_pos[1], vect_obj[i].pos->x, vect_obj[i].pos->y); 
+
+            if(dist_m < 0.4)
+            {
+                // recuperer l'angle entre la direction du robot et l'obstacle.
+                double dx = vect_obj[i].pos->x - curr_local_pos[0];
+                if(dx == 0) dx = 0.001;
+                double dy = vect_obj[i].pos->y - curr_local_pos[1];
+                double an = tan(dy/dx);
+                if(an < 0) an += 2*M_PI;
+
+                an = rad_to_deg(an);
+                
+                double diff_angle;
+
+                if(curr_local_pos[2] > an)
+                {
+                    if(curr_local_pos[2] - an > 180)
+                    {
+                        diff_angle = an + (360 - curr_local_pos[2]);
+                    }
+                    else
+                    {
+                        diff_angle = curr_local_pos[2] - an;
+                    }
+                }
+                else
+                {
+                    if(an - curr_local_pos[2] > 180)
+                    {
+                        diff_angle = curr_local_pos[2] + (360 - an);
+                    }
+                    else
+                    {
+                        diff_angle = an - curr_local_pos[2];
+                    }
+                }         
+
+                std::cout << "[W]" << diff_angle << std::endl;
+                if(diff_angle < 45.0) return 1;
+                if(diff_angle > 135.0) back_detection = true;       
+            }
+        }
+    }
+
+    if(back_detection) return 2;
+    return 0;
 }

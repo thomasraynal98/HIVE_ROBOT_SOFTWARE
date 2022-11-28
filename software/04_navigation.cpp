@@ -129,16 +129,19 @@ int main(int argc, char *argv[])
     // variable pour stocker la position du robot sur les 15 dernières secondes.
     std::vector<std::tuple<int64_t,Geographic_point>> vect_geo_save;
     int64_t last_geo_save_ts = get_curr_timestamp();
-    double min_dist_threshold_m = 8.0;
+    double min_dist_threshold_m = 6.0;
 
     // variable qui permet de stocker l'ID de la current road sur les x dernières secondes.
     int road_moy_time = 4000;
     std::vector<std::tuple<int64_t, int>> vect_last_curr_road_id;
 
+    // variable qui va indiquer les risques de colisions et le type de colision.
+    int collision_risk = 0;
+
     //==================================================
     // MAIN LOOP :
     // Cette boucle contient l'unique thread du programme
-    // numéro 4 qui gère la navigation automatique.
+    // numéro 4 qui gère la navigation automatique & manuel.
     //==================================================
     while(true)
     {
@@ -388,6 +391,8 @@ int main(int argc, char *argv[])
         // ENV DATA :
         // Cette partie va lire l'ensemble des channels
         // ou les différents capteurs publish leur data.
+        // Va aussi permettre de detecter les colisions
+        // qui sont évitable.
         //==============================================
 
         if(true)
@@ -479,7 +484,11 @@ int main(int argc, char *argv[])
                 // std::cout << "INPUT S > " << vect_obj.size() << std::endl;
                 clear_obj_vect(curr_local_pos, vect_obj, clear_time, clear_dist);
                 // std::cout << "INPUT E > " << vect_obj.size() << std::endl;
+            
+                collision_risk = emergency_collision_detector(curr_local_pos, vect_obj);
             }
+
+
         }
 
         //==============================================
@@ -1776,6 +1785,60 @@ int main(int argc, char *argv[])
         }
 
         //==============================================
+        // COLISION DETECTION : 
+        // Va vérifier que le robot n'ai pas entrain de se
+        // mettre en position de contact/choc.
+        //==============================================
+
+        if(true)
+        {
+            if(collision_risk == 1)
+            {
+                // colision frontal.
+                std::vector<std::string> vect_motor_command;
+                get_multi_str(motor_command_str, vect_motor_command);
+
+                int compteur_direction = 0;
+
+                for(int i = 1; i < vect_motor_command.size(); i++)
+                {
+                    if(std::stoi(vect_motor_command[i]) > 0) compteur_direction++;
+                }
+
+                if(compteur_direction == 6)
+                {
+                    set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "TRUE");
+                    pub_redis_var(&redis, "EVENT", get_event_str(4, "ERR", "COLISION_DETECTED_BEFORE_CRASH_FRONT"));
+                    set_redis_var(&redis, "MISSION_MOTOR_BRAKE"   , "TRUE");
+                    set_redis_var(&redis, "MISSION_AUTO_STATE"    , "PAUSE");
+                    set_redis_var(&redis, "MISSION_MANUAL_STATE"  , "PAUSE");
+                }
+            }
+            if(collision_risk == 2)
+            {
+                // colision arrière.
+                std::vector<std::string> vect_motor_command;
+                get_multi_str(motor_command_str, vect_motor_command);
+
+                int compteur_direction = 0;
+
+                for(int i = 1; i < vect_motor_command.size(); i++)
+                {
+                    if(std::stoi(vect_motor_command[i]) < 0) compteur_direction++;
+                }
+
+                if(compteur_direction == 6)
+                {
+                    set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "TRUE");
+                    pub_redis_var(&redis, "EVENT", get_event_str(4, "ERR", "COLISION_DETECTED_BEFORE_CRASH_BACK"));
+                    set_redis_var(&redis, "MISSION_MOTOR_BRAKE"   , "TRUE");
+                    set_redis_var(&redis, "MISSION_AUTO_STATE"    , "PAUSE");
+                    set_redis_var(&redis, "MISSION_MANUAL_STATE"  , "PAUSE");
+                }
+            }
+        }
+
+        //==============================================
         // MOTOR BRAKE SECURITY : 
         // Permet de stoper le robot net en cas de demande
         // du programme.
@@ -1785,6 +1848,7 @@ int main(int argc, char *argv[])
         {
             motor_command_str = std::to_string(get_curr_timestamp()) + "|0.0|0.0|0.0|0.0|0.0|0.0|";
         }
+
 
         //==============================================
         // PUBLISH RESULT : 
