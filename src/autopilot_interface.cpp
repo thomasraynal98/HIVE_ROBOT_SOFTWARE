@@ -391,7 +391,7 @@ read_messages()
 				this_timestamps.global_position_int        &&
 //				this_timestamps.position_target_local_ned  &&
 //				this_timestamps.position_target_global_int &&
-//				this_timestamps.highres_imu                &&
+				this_timestamps.highres_imu                &&
 //				this_timestamps.attitude                   &&
 				this_timestamps.local_heading              &&
 				this_timestamps.sys_status

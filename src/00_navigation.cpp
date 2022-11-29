@@ -1142,8 +1142,8 @@ void process_brut_obj(std::vector<double> curr_local_pos, std::vector<std::strin
         double sensor_pos_x   = curr_local_pos[0] + sensor_prm->pos_pol->x * cos(deg_to_rad(curr_local_pos[2]+sensor_prm->pos_pol->y));
         double sensor_pos_y   = curr_local_pos[1] + sensor_prm->pos_pol->x * sin(deg_to_rad(curr_local_pos[2]+sensor_prm->pos_pol->y));
 
-        double obj_x   = sensor_pos_x + std::stod(brut_obj[3]) * cos(deg_to_rad(curr_local_pos[2]+sensor_prm->hdg+std::stod(brut_obj[2])));
-        double obj_y   = sensor_pos_y + std::stod(brut_obj[3]) * sin(deg_to_rad(curr_local_pos[2]+sensor_prm->hdg+std::stod(brut_obj[2])));
+        double obj_x   = sensor_pos_x + std::stod(brut_obj[2]) * cos(deg_to_rad(curr_local_pos[2]+sensor_prm->hdg+std::stod(brut_obj[3])));
+        double obj_y   = sensor_pos_y + std::stod(brut_obj[2]) * sin(deg_to_rad(curr_local_pos[2]+sensor_prm->hdg+std::stod(brut_obj[3])));
 
         // if(sensor_prm->hdg == 180)
         //  std::cout << sensor_prm->pos_pol->x << " " << sensor_prm->pos_pol->y << " " << brut_obj[2] << " " << brut_obj[3] << " " << sensor_pos_x << " " << sensor_pos_y << " " << obj_x << " " << obj_x << std::endl;
@@ -1398,7 +1398,6 @@ int emergency_collision_detector(std::vector<double> curr_local_pos, std::vector
                     }
                 }         
 
-                std::cout << "[W]" << diff_angle << std::endl;
                 if(diff_angle < 45.0) return 1;
                 if(diff_angle > 135.0) back_detection = true;       
             }

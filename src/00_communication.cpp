@@ -230,6 +230,7 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                         set_redis_var(redis, "NAV_LOCAL_POSITION", new_local_position);
                     }
                 }
+
                 if(vect_reponse_mcu_motor.size() == 5 && compare_redis_var(redis, "ROBOT_INFO_MODEL", "MK4_LIGHT"))
                 {
                     if(vect_reponse_mcu_motor[1].compare("6") == 0)

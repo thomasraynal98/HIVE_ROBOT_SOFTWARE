@@ -240,6 +240,7 @@ void f_thread_readwrite_pixhawk()
             debug_str += vect_redis_str[1] + "|";
             debug_str += vect_redis_str[2] + "|";
             debug_str += std::to_string(messages.local_heading.heading) + "|";
+            std::cout << debug_str << std::endl;
             set_redis_var(&redis, "NAV_LOCAL_POSITION", debug_str);
 
             // GLOBAL_POSITION_INT
