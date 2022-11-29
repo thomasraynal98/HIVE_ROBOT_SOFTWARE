@@ -300,6 +300,11 @@ double rad_to_deg(double rad)
     return deg;
 }
 
+double deg_to_rad(double deg)
+{
+    return deg * M_PI / 180.0;
+}
+
 bool is_same_time(int64_t timesptamp1, int64_t timesptamp2)
 {
     if(timesptamp1 == timesptamp2) return true;

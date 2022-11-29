@@ -40,5 +40,6 @@ void print_redis(sw::redis::Redis* redis, std::string channel_str);
 std::string get_standard_robot_id_str(sw::redis::Redis* redis);
 bool compare_redis_var(sw::redis::Redis* redis, std::string channel, std::string compare);
 double rad_to_deg(double rad);
+double deg_to_rad(double deg);
 bool file_exist(std::string file_path);
 

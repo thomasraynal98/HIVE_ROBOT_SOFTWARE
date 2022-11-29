@@ -208,9 +208,9 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                 get_multi_str(reponse, vect_reponse_mcu_motor);
                 double tic_to_meter = std::stod(get_redis_str(redis, "HARD_ENCODER_TIC_TO_M"));
 
-                if(vect_reponse_mcu_motor.size() == 8)
+                if(vect_reponse_mcu_motor.size() == 9 && compare_redis_var(redis, "ROBOT_INFO_MODEL", "MK4"))
                 {
-                    if(vect_reponse_mcu_motor[1].compare("6"))
+                    if(vect_reponse_mcu_motor[1].compare("6") == 0)
                     {
                         // Message de type 6.
                         double dt_left_m  = tic_to_meter * std::stoi(vect_reponse_mcu_motor[2]);
@@ -223,8 +223,30 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                         
                         // Calculer la nouvelle position.
                         std::string new_local_position = std::to_string(get_curr_timestamp()) + "|";
-                        new_local_position += std::to_string(std::stod(vect_redis_str[1]) + dt_moy_m * cos(std::stod(vect_redis_str[3]))) + "|";
-                        new_local_position += std::to_string(std::stod(vect_redis_str[2]) + dt_moy_m * sin(std::stod(vect_redis_str[3]))) + "|";
+                        new_local_position += std::to_string(std::stod(vect_redis_str[1]) + dt_moy_m * cos(deg_to_rad(std::stod(vect_redis_str[3])))) + "|";
+                        new_local_position += std::to_string(std::stod(vect_redis_str[2]) + dt_moy_m * sin(deg_to_rad(std::stod(vect_redis_str[3])))) + "|";
+                        new_local_position += vect_redis_str[3] + "|";
+            
+                        set_redis_var(redis, "NAV_LOCAL_POSITION", new_local_position);
+                    }
+                }
+                if(vect_reponse_mcu_motor.size() == 5 && compare_redis_var(redis, "ROBOT_INFO_MODEL", "MK4_LIGHT"))
+                {
+                    if(vect_reponse_mcu_motor[1].compare("6") == 0)
+                    {
+                        // Message de type 6.
+                        double dt_left_m  = tic_to_meter * std::stoi(vect_reponse_mcu_motor[2]);
+                        double dt_right_m = tic_to_meter * std::stoi(vect_reponse_mcu_motor[3]);
+                        double dt_moy_m   = (dt_left_m + dt_right_m) / 2;
+
+                        // Lire la position actuelle.
+                        std::vector<std::string> vect_redis_str;
+                        get_redis_multi_str(redis, "NAV_LOCAL_POSITION", vect_redis_str);
+                        
+                        // Calculer la nouvelle position.
+                        std::string new_local_position = std::to_string(get_curr_timestamp()) + "|";
+                        new_local_position += std::to_string(std::stod(vect_redis_str[1]) + dt_moy_m * cos(deg_to_rad(std::stod(vect_redis_str[3])))) + "|";
+                        new_local_position += std::to_string(std::stod(vect_redis_str[2]) + dt_moy_m * sin(deg_to_rad(std::stod(vect_redis_str[3])))) + "|";
                         new_local_position += vect_redis_str[3] + "|";
             
                         set_redis_var(redis, "NAV_LOCAL_POSITION", new_local_position);
@@ -288,7 +310,7 @@ void writing_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                 }
             }
             
-            std::cout << "SEND : " << msg_motor_str << std::endl;
+            // std::cout << "SEND : " << msg_motor_str << std::endl;
             com_manager->Write(msg_motor_str+'\n'); 
         }
 
