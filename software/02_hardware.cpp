@@ -240,18 +240,20 @@ void f_thread_readwrite_pixhawk()
             debug_str += vect_redis_str[1] + "|";
             debug_str += vect_redis_str[2] + "|";
             debug_str += std::to_string(messages.local_heading.heading) + "|";
-            std::cout << debug_str << std::endl;
-            set_redis_var(&redis, "NAV_LOCAL_POSITION", debug_str);
+
+            if(messages.local_heading.heading != 0)
+            {set_redis_var(&redis, "NAV_LOCAL_POSITION", debug_str);}
 
             // GLOBAL_POSITION_INT
             // [!] J'ai ajouter dans autopilot_interface.cpp une info pour attendre un nouveau global_position_int.
-            if(messages.global_position_int.lat != 0 && messages.global_position_int.lon != 0)
+            if((messages.global_position_int.lat >= 42 && messages.global_position_int.lat <= 50 ) && (messages.global_position_int.lon <= 5 && messages.global_position_int.lon > 2))
             {
                 debug_str = std::to_string(get_curr_timestamp()) + "|";
                 debug_str += std::to_string((double)(messages.global_position_int.lon)/10000000) + "|";
                 debug_str += std::to_string((double)(messages.global_position_int.lat)/10000000) + "|";
                 debug_str += std::to_string((double)(messages.global_position_int.hdg)/100) + "|";
                 set_redis_var(&redis, "NAV_GLOBAL_POSITION", debug_str);
+                std::cout << debug_str << std::endl;
             }
 
             // GPS HIL
