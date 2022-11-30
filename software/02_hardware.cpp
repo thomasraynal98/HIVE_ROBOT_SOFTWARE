@@ -1,5 +1,6 @@
 #include "00_function.h"
 #include "00_communication.h"
+#include "00_navigation.h"
 
 #include <common/mavlink.h>
 #include "autopilot_interface.h"
@@ -200,12 +201,22 @@ void f_thread_write_mcu_inter()
 void f_thread_readwrite_pixhawk()
 {
     Generic_Port *pixhawk_com_manager;
-    int baudrate_pixhawk = 57600;
+    int baudrate_pixhawk = 115200;
     Autopilot_Interface* autopilot_interface;
 
     double ms_for_loop = frequency_to_ms(std::stoi(get_redis_str(&redis, "HARD_PIXHAWK_COM_HZ")));
     ms_for_loop = 100;
     auto next = std::chrono::high_resolution_clock::now();
+
+    // variable pour filtre local.
+    int counter_outlier = 0;
+    int max_counter_outlier = 5;
+    bool accept_value = false;
+
+    // variable pour filtre global.
+    std::vector<std::string> vect_redis_str;
+    get_redis_multi_str(&redis, "ROBOT_INFO_HOME_POSITION", vect_redis_str);
+    Geographic_point homeland = Geographic_point(std::stod(vect_redis_str[0]), std::stod(vect_redis_str[1]));
 
     while(true)
     {
@@ -233,32 +244,57 @@ void f_thread_readwrite_pixhawk()
 
             std::string debug_str = "";
 
-            // LOCAL_POSITION_NED
+            /**
+             * NOTE: Refaire ce code en filtrant les valeurs abérantes que peux renvoyer le
+             * systême pixhawk.
+             * [1] Local navigation.
+             * [2] global navigation.
+             */
+
+            // [1] Local navigation.
             std::vector<std::string> vect_redis_str;
             get_redis_multi_str(&redis, "NAV_LOCAL_POSITION", vect_redis_str);
-            debug_str = std::to_string(get_curr_timestamp()) + "|";
-            debug_str += vect_redis_str[1] + "|";
-            debug_str += vect_redis_str[2] + "|";
-            debug_str += std::to_string(messages.local_heading.heading) + "|";
+            accept_value = true;
 
-            if(messages.local_heading.heading != 0)
-            {set_redis_var(&redis, "NAV_LOCAL_POSITION", debug_str);}
+            int tempo_hdg = messages.local_heading.heading;
+            if(tempo_hdg - std::stoi(vect_redis_str[3]) > 30)
+            {
+                counter_outlier++;
+                accept_value = false;
+            }
+            if(counter_outlier > max_counter_outlier)
+            {
+                counter_outlier = 0;
+                accept_value = true;
+            }   
 
-            // GLOBAL_POSITION_INT
-            // [!] J'ai ajouter dans autopilot_interface.cpp une info pour attendre un nouveau global_position_int.
-            if((messages.global_position_int.lat >= 42 && messages.global_position_int.lat <= 50 ) && (messages.global_position_int.lon <= 5 && messages.global_position_int.lon > 2))
+            if(tempo_hdg == 0) accept_value = false;
+
+            if(accept_value)
             {
                 debug_str = std::to_string(get_curr_timestamp()) + "|";
-                debug_str += std::to_string((double)(messages.global_position_int.lon)/10000000) + "|";
-                debug_str += std::to_string((double)(messages.global_position_int.lat)/10000000) + "|";
-                debug_str += std::to_string((double)(messages.global_position_int.hdg)/100) + "|";
-                set_redis_var(&redis, "NAV_GLOBAL_POSITION", debug_str);
-                std::cout << debug_str << std::endl;
+                debug_str += vect_redis_str[1] + "|";
+                debug_str += vect_redis_str[2] + "|";
+                debug_str += std::to_string(tempo_hdg) + "|";
+                set_redis_var(&redis, "NAV_LOCAL_POSITION", debug_str);
             }
 
-            // GPS HIL
-            set_redis_var(&redis, "HARD_GPS_FIX_STATE", std::to_string(messages.gps_info.fix_type));
-            set_redis_var(&redis, "HARD_GPS_NUMBER", std::to_string(messages.gps_info.satellites_visible));
+            // [2] global navigation.
+            Geographic_point tempo_pos = Geographic_point((double)((messages.global_position_int.lon)/10000000), (double)((messages.global_position_int.lat)/10000000));
+            tempo_hdg = (double)(messages.global_position_int.hdg)/100;
+
+            if(get_angular_distance(&tempo_pos, &homeland) < 10000 && (tempo_hdg>0 && tempo_hdg<360))
+            {
+                debug_str = std::to_string(get_curr_timestamp()) + "|";
+                debug_str += std::to_string(tempo_pos.longitude) + "|";
+                debug_str += std::to_string(tempo_pos.latitude) + "|";
+                debug_str += std::to_string(tempo_hdg) + "|";
+                set_redis_var(&redis, "NAV_GLOBAL_POSITION", debug_str);
+            }
+
+            // [3] gps reading.
+            set_redis_var(&redis, "HARD_GPS_FIX_STATE", std::to_string(messages.gps_raw.fix_type));
+            set_redis_var(&redis, "HARD_GPS_NUMBER", std::to_string(messages.gps_raw.satellites_visible));
         }
 
         // OPENING PROCEDURE

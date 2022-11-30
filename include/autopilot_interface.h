@@ -157,6 +157,7 @@ struct Time_Stamps
 	uint64_t attitude;
 	uint64_t local_heading;
 	uint64_t gps_info;
+	uint64_t gps_raw;
 
 	void
 	reset_timestamps()
@@ -172,6 +173,7 @@ struct Time_Stamps
 		highres_imu = 0;
 		attitude = 0;
 		local_heading = 0;
+		gps_raw = 0;
 	}
 
 };
@@ -221,6 +223,8 @@ struct Mavlink_Messages {
 
 	// Time Stamps
 	Time_Stamps time_stamps;
+
+	mavlink_gps_raw_int_t gps_raw;
 
 	void
 	reset_timestamps()

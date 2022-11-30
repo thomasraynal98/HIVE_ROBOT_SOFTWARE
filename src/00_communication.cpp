@@ -100,7 +100,7 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
         try
         {
             com_manager->ReadLine(reponse, '\n', timeout_ms);
-            // std::cout << "DATA FROM XXX : " << reponse << std::endl;
+            std::cout << "DATA FROM XXX : " << get_curr_timestamp() << reponse << std::endl;
             // ALL INFORMATION READING BY MCU ESP32.
 
             if(mcu_function_str.compare("CARGO") == 0)
@@ -201,8 +201,9 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                     set_redis_var(redis, "HARD_CARGO_STATE", redis_sensor_str);
                 }
             }
+
             if(mcu_function_str.compare("MOTOR") == 0)
-            {
+            {                
                 // Pour stocker et découper la nouvelle lecture.
                 std::vector<std::string> vect_reponse_mcu_motor;
                 get_multi_str(reponse, vect_reponse_mcu_motor);
@@ -230,7 +231,7 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                         set_redis_var(redis, "NAV_LOCAL_POSITION", new_local_position);
                     }
                 }
-
+                
                 if(vect_reponse_mcu_motor.size() == 5 && compare_redis_var(redis, "ROBOT_INFO_MODEL", "MK4_LIGHT"))
                 {
                     if(vect_reponse_mcu_motor[1].compare("6") == 0)
@@ -251,6 +252,15 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                         new_local_position += vect_redis_str[3] + "|";
             
                         set_redis_var(redis, "NAV_LOCAL_POSITION", new_local_position);
+                    }
+                }
+            
+                if(vect_reponse_mcu_motor.size() == 4)
+                {
+                    if(vect_reponse_mcu_motor[1].compare("7") == 0)
+                    {    
+                        set_redis_var(redis, "NAV_BATTERY_VOLTAGE", vect_reponse_mcu_motor[2]);
+                        set_redis_var(redis, "NAV_BATTERY_PERCENTAGE", std::to_string(get_battery_level(std::stod(vect_reponse_mcu_motor[2]),24.0)));
                     }
                 }
             }
@@ -411,3 +421,48 @@ size_t get_axis_state(struct js_event *event, struct axis_state axes[3])
     return axis;
 }
 
+float get_battery_level(float curr_voltage, float battery_voltage)
+{
+    if(battery_voltage == 24.0)
+    {
+        if(curr_voltage > 28.0) return 100.0;
+
+        std::vector<float> border_vect;
+        border_vect.push_back(28.00);
+        border_vect.push_back(27.3);
+        border_vect.push_back(26.6);
+        border_vect.push_back(25.9);
+        border_vect.push_back(25.2);
+        border_vect.push_back(24.5);
+        border_vect.push_back(23.8);
+        border_vect.push_back(23.0);
+        border_vect.push_back(21.5);
+        border_vect.push_back(20.0);
+
+        for(int i = 0; i < border_vect.size(); i++)
+        {
+            if(i == 0)
+            {
+                if(curr_voltage > border_vect[i]) return 100.0;
+            }
+            if(i != 0 && i != border_vect.size()-1)
+            {
+                if(curr_voltage <= border_vect[i-1] && curr_voltage > border_vect[i])
+                {
+                    return 10*(10-i) + (curr_voltage - border_vect[i]) * 10.0 / (border_vect[i-1] - border_vect[i]);  
+                }
+            }
+            if(i == border_vect.size()-1)
+            {
+                if(curr_voltage <= border_vect[i-1] && curr_voltage > border_vect[i])
+                {
+                    return 10*(10-i) + (curr_voltage - border_vect[i]) * 10.0 / (border_vect[i-1] - border_vect[i]);  
+                }
+                else
+                {
+                    return 0.0;
+                }
+            }
+        }
+    }
+}

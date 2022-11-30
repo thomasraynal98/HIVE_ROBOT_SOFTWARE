@@ -3,7 +3,7 @@
 # GENERAL INFORMATION
 ROBOT_INFO_ID                    : "1"
 ROBOT_INFO_EXPLOITATION          : "LA_DEFENSE"
-ROBOT_INFO_MODEL                 : "MK4_LIGHT"
+ROBOT_INFO_MODEL                 : "MK4"
 ROBOT_INFO_PSEUDO                : "Newt"
 ROBOT_INFO_MCU_MOTOR_ID          : "A"
 ROBOT_INFO_MCU_CARGO_ID          : "B"
@@ -57,7 +57,7 @@ HARD_LID1_ANGLE                  : "0.0"
 HARD_LID2_DX                     : "-0.35"
 HARD_LID2_DY                     : "0.0"
 HARD_LID2_ANGLE                  : "180.0"
-HARD_ENCODER_TIC_TO_M            : "0.00004"
+HARD_ENCODER_TIC_TO_M            : "0.0004"
 HARD_LOCAL_JS_COM_STATE          : "DISCONNECTED"
 
 # NAVIGATION
@@ -88,6 +88,8 @@ NAV_OBJ_CLEARING_TIME_MS         : "3000"
 NAV_OBJ_SAFETY_DIST_M            : "0.3"
 NAV_OPT_STREAM                   : "0"
 NAV_LOCAL_JS_MODE                : "DEACTIVATE"
+NAV_BATTERY_VOLTAGE              : "28.0"
+NAV_BATTERY_PERCENTAGE           : "100.0"
 
 # ACTION/MISSION
 MISSION_MOTOR_BRAKE              : "TRUE"

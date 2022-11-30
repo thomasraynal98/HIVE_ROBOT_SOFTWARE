@@ -43,7 +43,9 @@ pixhawk/mavlink/include/mavlink/v2.0
 src/autopilot_interface.cpp
 include/autopilot_interface.h
 src/serial_port.cpp
-include/serial_port.h)
+include/serial_port.h
+src/00_navigation.cpp 
+include/00_navigation.h)
 
 TARGET_LINK_LIBRARIES(02_HARDWARE
     pthread

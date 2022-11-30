@@ -344,8 +344,8 @@ double get_max_speed(sw::redis::Redis* redis, std::string robot_mode, std::strin
             {
                 return 0.5;
             }
-            if(mode_param.compare("STANDARD")     == 0) return std::stod(get_redis_str(redis, "NAV_MAX_SPEED")) * 0.5;
-            if(mode_param.compare("STANDARD_MAX") == 0) return std::stod(get_redis_str(redis, "NAV_MAX_SPEED")) * 0.9;
+            if(mode_param.compare("STANDARD")     == 0) return std::stod(get_redis_str(redis, "NAV_MAX_SPEED")) * 0.05;
+            if(mode_param.compare("STANDARD_MAX") == 0) return std::stod(get_redis_str(redis, "NAV_MAX_SPEED")) * 0.1;
         }
         else
         {
@@ -360,10 +360,11 @@ double get_max_speed(sw::redis::Redis* redis, std::string robot_mode, std::strin
     {
         if(compare_redis_var(redis, "ROBOT_INFO_MODEL", "MK4_LIGHT"))
         {
-            return 1.5;
+            return 0.4;
         }
         if(compare_redis_var(redis, "ROBOT_INFO_MODEL", "MK4"))
         {
+            return 0.4;
             std::vector<std::string> vect_str;
             get_redis_multi_str(redis, "NAV_ROAD_CURRENT_ID", vect_str);
             int curr_road_id = std::stoi(vect_str[1]);
@@ -1226,52 +1227,6 @@ void clear_obj_vect(std::vector<double> curr_local_pos, std::vector<Object_env>&
             }
         }
 	}
-}
-
-double get_battery_level(double curr_voltage, double battery_voltage)
-{
-    if(battery_voltage == 24.0)
-    {
-        if(curr_voltage > 25.46) return 100.0;
-
-        std::vector<double> border_vect;
-        border_vect.push_back(25.46);
-        border_vect.push_back(25.24);
-        border_vect.push_back(25.00);
-        border_vect.push_back(24.74);
-        border_vect.push_back(24.48);
-        border_vect.push_back(24.20);
-        border_vect.push_back(23.92);
-        border_vect.push_back(23.62);
-        border_vect.push_back(23.32);
-        border_vect.push_back(23.02);
-
-        for(int i = 0; i < border_vect.size(); i++)
-        {
-            if(i == 0)
-            {
-                if(curr_voltage > border_vect[i]) return 100.0;
-            }
-            if(i != 0 && i != border_vect.size()-1)
-            {
-                if(curr_voltage <= border_vect[i-1] && curr_voltage > border_vect[i])
-                {
-                    return 10*(10-i) + (curr_voltage - border_vect[i]) * 10.0 / (border_vect[i-1] - border_vect[i]);  
-                }
-            }
-            if(i == border_vect.size()-1)
-            {
-                if(curr_voltage <= border_vect[i-1] && curr_voltage > border_vect[i])
-                {
-                    return 10*(10-i) + (curr_voltage - border_vect[i]) * 10.0 / (border_vect[i-1] - border_vect[i]);  
-                }
-                else
-                {
-                    return 0.0;
-                }
-            }
-        }
-    }
 }
 
 int get_filtred_road_ID(sw::redis::Redis* redis, std::vector<std::tuple<int64_t,int>>& vect_last_curr_road_ID, int max_time_threshold)

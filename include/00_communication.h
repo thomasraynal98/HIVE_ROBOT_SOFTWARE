@@ -86,3 +86,4 @@ void send_msg_server(sio::socket::ptr current_socket, std::string emit_title, st
 void send_event_server(sio::socket::ptr current_socket, std::string mission_title, std::string mission_state);
 int read_event(int fd, struct js_event *event);
 size_t get_axis_state(struct js_event *event, struct axis_state axes[3]);
+float get_battery_level(float curr_voltage, float battery_voltage);

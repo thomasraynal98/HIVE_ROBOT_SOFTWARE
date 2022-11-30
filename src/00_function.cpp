@@ -166,6 +166,9 @@ void init_redis_var(sw::redis::Redis* redis)
     read_yaml(redis, &fsSettings, "HARD_LOCAL_JS_COM_STATE");
     read_yaml(redis, &fsSettings, "NAV_LOCAL_JS_MODE");
     read_yaml(redis, &fsSettings, "EVENT_LOCAL_JS_DATA");
+
+    read_yaml(redis, &fsSettings, "NAV_BATTERY_VOLTAGE");
+    read_yaml(redis, &fsSettings, "NAV_BATTERY_PERCENTAGE");
 }
 
 int64_t get_curr_timestamp()

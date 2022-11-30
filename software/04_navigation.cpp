@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
     // variable pour stocker la position du robot sur les 15 dernières secondes.
     std::vector<std::tuple<int64_t,Geographic_point>> vect_geo_save;
     int64_t last_geo_save_ts = get_curr_timestamp();
-    double min_dist_threshold_m = 6.0;
+    double min_dist_threshold_m = 0.0;
 
     // variable qui permet de stocker l'ID de la current road sur les x dernières secondes.
     int road_moy_time = 4000;
@@ -336,7 +336,7 @@ int main(int argc, char *argv[])
                         // global_path_str += std::to_string(vect_roadmap[i].dest_time_s) + "s|";
                     }
                     std::cout << global_path_str << std::endl;
-                    // std::cout << vect_roadmap.size() << std::endl;
+
                     set_redis_var(&redis, "SIM_GLOBAL_PATH", global_path_str);
 
                     pub_redis_var(&redis, "EVENT", get_event_str(4, "COMPUTE_GLOBAL_PATH", "SUCCESS"));
@@ -1662,7 +1662,7 @@ int main(int argc, char *argv[])
                 }
             }
         }
-
+        
         //==============================================
         // DEBUG NAVIGATION : 
         // Utilisation de OPENCV pouvant mener à des bugs.
@@ -1672,24 +1672,29 @@ int main(int argc, char *argv[])
         {
             cv::Mat copy = debug_directmap.clone();
 
-
             // ADD CIRCLE
             std::vector<std::string> vect_str_redis;
             get_redis_multi_str(&redis, "SIM_AUTO_PT_ICC_NEW", vect_str_redis);
             Geographic_point pt_circle = Geographic_point(std::stod(vect_str_redis[0]), std::stod(vect_str_redis[1]));
 
+            std::cout << vect_obj.size() << std::endl;
             double radius = std::stoi(get_redis_str(&redis, "SIM_AUTO_RADIUS_ICC_NEW"));
             // double radius = std::stod(get_redis_str(&redis, "DEB_R"));
 
-            double row_idx;
+            double row_idx = 0;
             if(final_side > 0) row_idx = 100 + abs(radius) * 10;
             else{ row_idx = 100 - abs(radius) * 10;}
 
+            if(abs(radius) > 10000) radius = 10000;
+            if(row_idx < 0.005 && row_idx > -0.005) row_idx = 0;
+
+            std::cout << vect_obj.size() << std::endl;
             double distance_m = std::stod(get_redis_str(&redis, "HARD_WHEEL_DISTANCE")) / 2 + std::stod(get_redis_str(&redis, "NAV_OBJ_SAFETY_DIST_M"));
             
+            std::cout << row_idx << " " << radius << " " << distance_m << " " << copy.cols << std::endl;
             cv::circle(copy, cv::Point((int)(100),(int)(row_idx)), (int)(abs(radius)*10)             , cv::Scalar(178, 102, 255)    , 1, cv::LineTypes::LINE_8);
             cv::circle(copy, cv::Point((int)(100),(int)(row_idx)), (int)((distance_m+abs(radius))*10), cv::Scalar(178, 102/2, 255/2), 1, cv::LineTypes::LINE_8);
-
+            std::cout << vect_obj.size() << std::endl;
             double de;
             if(abs(radius)-distance_m < 0 ){row_idx = -row_idx; de = abs(abs(radius)-distance_m);}
             else { de = abs(radius)-distance_m;}
@@ -1705,6 +1710,7 @@ int main(int argc, char *argv[])
             // cv::circle(copy, cv::Point((int)(100),(int)(row_idx)), (int)((de)*10), cv::Scalar(255, 153/2, 31), 1, cv::LineTypes::LINE_8);
 
             // ADD LOCAL POINT
+            std::cout << vect_obj.size() << std::endl;
             for(auto obj : vect_obj)
             {
                 double dist = sqrt(pow(curr_position.l_x - obj.pos->x,2) + pow(curr_position.l_y - obj.pos->y,2));
@@ -1783,14 +1789,14 @@ int main(int argc, char *argv[])
             cv::imshow("DEBUG_DIRECT", copy);
             char d =(char)cv::waitKey(25);
         }
-
+        
         //==============================================
         // COLISION DETECTION : 
         // Va vérifier que le robot n'ai pas entrain de se
         // mettre en position de contact/choc.
         //==============================================
 
-        if(true)
+        if(false)
         {
             if(collision_risk == 1)
             {
@@ -1849,13 +1855,12 @@ int main(int argc, char *argv[])
             motor_command_str = std::to_string(get_curr_timestamp()) + "|0.0|0.0|0.0|0.0|0.0|0.0|";
         }
 
-
         //==============================================
         // PUBLISH RESULT : 
         // Envoyer a redis la commande final qui sera lu
         // par le programme 02.
         //==============================================
-        
+
         set_redis_var(&redis, "HARD_MOTOR_COMMAND", motor_command_str);
     }
 }

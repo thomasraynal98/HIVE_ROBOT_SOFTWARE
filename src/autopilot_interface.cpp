@@ -371,6 +371,14 @@ read_messages()
 					break;
 				}
 
+				case MAVLINK_MSG_ID_GPS_RAW_INT:
+				{
+					mavlink_msg_gps_raw_int_decode(&message, &(current_messages.gps_raw));
+					current_messages.time_stamps.gps_raw = get_time_usec();
+					this_timestamps.gps_raw = current_messages.time_stamps.gps_raw;
+					break;
+				}
+
 				default:
 				{
 					// printf("Warning, did not handle message id %i\n",message.msgid);
