@@ -3,11 +3,11 @@
 #include "00_navigation.h"
 
 //[!!] OPTION FOR HTTP SERVER.
-#include <sio_client.h>
+// #include <sio_client.h>
 
 //[!!] OPTION FOR HTTPS SERVER.
-// #define ASIO_STANDALONE 
-// #define SIO_TLS
+#define ASIO_STANDALONE 
+#define SIO_TLS
 
 using namespace sw::redis;
 auto redis = Redis("tcp://127.0.0.1:6379");
@@ -146,15 +146,15 @@ void f_thread_server()
                 usleep(10000);
                 
                 // UNCOMMENT FOR HTTPS
-                // std::vector<Server_var> vect_msg_server;
-                // vect_msg_server.push_back(Server_var("s", "NAME" , get_redis_str(&redis, "ROBOT_INFO_PSEUDO")));
-                // vect_msg_server.push_back(Server_var("i", "ID"   , get_redis_str(&redis, "ROBOT_INFO_ID"    )));
-                // vect_msg_server.push_back(Server_var("s", "MODEL", get_redis_str(&redis, "ROBOT_INFO_MODEL" )));
-                // send_msg_server(h.socket(), "ROBOT_ID", vect_msg_server);
+                std::vector<Server_var> vect_msg_server;
+                vect_msg_server.push_back(Server_var("s", "NAME" , get_redis_str(&redis, "ROBOT_INFO_PSEUDO")));
+                vect_msg_server.push_back(Server_var("i", "ID"   , get_redis_str(&redis, "ROBOT_INFO_ID"    )));
+                vect_msg_server.push_back(Server_var("s", "MODEL", get_redis_str(&redis, "ROBOT_INFO_MODEL" )));
+                send_msg_server(h.socket(), "ROBOT_ID", vect_msg_server);
 
                 // UNCOMMENT FOR HTTP
-                std::string robot_name = "Newt";
-                h.socket()->emit("ROBOT_ID", robot_name);
+                // std::string robot_name = "Newt";
+                // h.socket()->emit("ROBOT_ID", robot_name);
 
                 usleep(10000);
             }

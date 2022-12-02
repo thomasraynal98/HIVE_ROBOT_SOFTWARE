@@ -70,17 +70,17 @@ std::string map_manual_command(sw::redis::Redis* redis, double back_value, doubl
 
     if(back_value < 0.05 && front_value < 0.05)
     {
-        command_motor_str += "0|0|0|0|0|0|";
+        command_motor_str += "0.0|0.0|0.0|0.0|0.0|0.0|";
         return command_motor_str;
     }
     if(back_value > 0.05 && front_value > 0.05)
     {
-        command_motor_str += "0|0|0|0|0|0|";
+        command_motor_str += "0.0|0.0|0.0|0.0|0.0|0.0|";
         return command_motor_str;
     }
 
     // double vitesse_max = max_speed_Ms; // m/s
-    double vitesse_max = 1.0;
+    double vitesse_max = std::stod(get_redis_str(redis, "NAV_MAX_SPEED"));
 
     if(front_value > 0.05)
     {
@@ -116,8 +116,9 @@ std::string map_manual_command(sw::redis::Redis* redis, double back_value, doubl
         {
             for(int i = 0; i < 6; i++)
             {
-                if(i < 3) command_motor_str += std::to_string(0.2) + "|";
-                if(i >= 3) command_motor_str += std::to_string(-1*0.2) + "|";
+                // if(i < 3) command_motor_str += std::to_string(0.2) + "|";
+                // if(i >= 3) command_motor_str += std::to_string(-1*0.2) + "|";
+                command_motor_str = "0.2|0.05|0.2|-0.2|-0.05|-0.2|";
             }
             return command_motor_str;
         }
@@ -125,8 +126,9 @@ std::string map_manual_command(sw::redis::Redis* redis, double back_value, doubl
         {
             for(int i = 0; i < 6; i++)
             {
-                if(i < 3) command_motor_str += std::to_string(-1*0.2) + "|";
-                if(i >= 3) command_motor_str += std::to_string(0.2) + "|";
+                // if(i < 3) command_motor_str += std::to_string(-1*0.2) + "|";
+                // if(i >= 3) command_motor_str += std::to_string(0.2) + "|";
+                command_motor_str = "-0.2|-0.05|-0.2|0.2|0.05|0.2|";
             }
             return command_motor_str;
         }
@@ -167,29 +169,29 @@ std::string map_manual_command(sw::redis::Redis* redis, double back_value, doubl
 
 std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_Ms, std::vector<std::string>& vect_controller_data)
 {
-    double vect_js = get_distance(0.0, 0.0, std::stod(vect_controller_data[9]), std::stod(vect_controller_data[10]));
+    double vect_js = get_distance(0.0, 0.0, std::stod(vect_controller_data[13]), std::stod(vect_controller_data[14]));
     std::string command_motor_str = std::to_string(get_curr_timestamp()) + "|";
 
-    double weigh_front = std::stod(vect_controller_data[14]);
-    double weigh_back  = std::stod(vect_controller_data[11]);
+    double weigh_front = std::stod(vect_controller_data[17]);
+    double weigh_back  = std::stod(vect_controller_data[18]);
 
     if(vect_js >= 4000 && (weigh_front > -30000 | weigh_back > -30000 ))
     {
-        double x        = std::stod(vect_controller_data[9]);
+        double x        = std::stod(vect_controller_data[13]);
         if(x == 0) x = 1;
 
-        double angle_js = atan(std::stod(vect_controller_data[10])/x);
+        double angle_js = atan(std::stod(vect_controller_data[14])/x);
 
-        if(std::stod(vect_controller_data[10]) <= 0 && angle_js > 0)
+        if(std::stod(vect_controller_data[14]) <= 0 && angle_js > 0)
         {
             angle_js = angle_js - M_PI;
         }
-        if(std::stod(vect_controller_data[10]) >= 0 && angle_js < 0)
+        if(std::stod(vect_controller_data[14]) >= 0 && angle_js < 0)
         {
             angle_js = angle_js + M_PI;
         }
 
-        std::cout << angle_js << " " << vect_controller_data[10] << std::endl;
+        // std::cout << angle_js << " " << vect_controller_data[10] << std::endl;
 
         if(weigh_front > -30000)
         {
@@ -1143,8 +1145,8 @@ void process_brut_obj(std::vector<double> curr_local_pos, std::vector<std::strin
         double sensor_pos_x   = curr_local_pos[0] + sensor_prm->pos_pol->x * cos(deg_to_rad(curr_local_pos[2]+sensor_prm->pos_pol->y));
         double sensor_pos_y   = curr_local_pos[1] + sensor_prm->pos_pol->x * sin(deg_to_rad(curr_local_pos[2]+sensor_prm->pos_pol->y));
 
-        double obj_x   = sensor_pos_x + std::stod(brut_obj[2]) * cos(deg_to_rad(curr_local_pos[2]+sensor_prm->hdg+std::stod(brut_obj[3])));
-        double obj_y   = sensor_pos_y + std::stod(brut_obj[2]) * sin(deg_to_rad(curr_local_pos[2]+sensor_prm->hdg+std::stod(brut_obj[3])));
+        double obj_x   = sensor_pos_x + std::stod(brut_obj[1]) * cos(deg_to_rad(curr_local_pos[2]+sensor_prm->hdg+(-1*std::stod(brut_obj[2]))));
+        double obj_y   = sensor_pos_y + std::stod(brut_obj[1]) * sin(deg_to_rad(curr_local_pos[2]+sensor_prm->hdg+(-1*std::stod(brut_obj[2]))));
 
         // if(sensor_prm->hdg == 180)
         //  std::cout << sensor_prm->pos_pol->x << " " << sensor_prm->pos_pol->y << " " << brut_obj[2] << " " << brut_obj[3] << " " << sensor_pos_x << " " << sensor_pos_y << " " << obj_x << " " << obj_x << std::endl;
@@ -1175,7 +1177,7 @@ void process_brut_obj(std::vector<double> curr_local_pos, std::vector<std::strin
         //==============================================
         if(diff_detection)
         {
-            if(brut_obj[1].compare("o") == 0)
+            if(brut_obj[0].compare("o") == 0)
             {
                 vect_obj.push_back(Object_env(obj_x, obj_y, 0.0, 0.0, sensor_prm->sensor_ID, get_curr_timestamp()));
             }
@@ -1204,7 +1206,7 @@ void clear_obj_vect(std::vector<double> curr_local_pos, std::vector<Object_env>&
             if(!it->available)
             {
                 // FOR NOT AVAILABLE (FAKE OBJ)
-                if(time_is_over(get_curr_timestamp(), it->timestamp, 300))
+                if(time_is_over(get_curr_timestamp(), it->timestamp, 200))
                 {
                     it = vect_obj.erase(it);
                 }

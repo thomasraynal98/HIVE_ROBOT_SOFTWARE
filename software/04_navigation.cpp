@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     std::vector<Data_node> vect_node;
     std::vector<Data_road> vect_road;
 
-    double ms_for_loop = frequency_to_ms(20);
+    double ms_for_loop = frequency_to_ms(30);
     auto next = std::chrono::high_resolution_clock::now();
 
     std::string motor_command_str = "0000000000000|0.0|0.0|0.0|0.0|0.0|0.0|";
@@ -415,18 +415,18 @@ int main(int argc, char *argv[])
                 int min_observation = std::stoi(get_redis_str(&redis, "NAV_OBJ_MIN_OBSERVATION"));
                 double clear_dist   = std::stod(get_redis_str(&redis, "NAV_OBJ_CLEARING_DIST"));
                 int clear_time      = std::stod(get_redis_str(&redis, "NAV_OBJ_CLEARING_TIME_MS"));
-
+                //
                 get_redis_multi_str(&redis, "ENV_CAM1_OBJECTS", vect_redis_str);
                 if(!is_same_time(timesptamp_cam1, std::stoul(vect_redis_str[0])))
                 {
                     timesptamp_cam1 = std::stoul(vect_redis_str[0]);
-                    for(int i = 1; i < vect_redis_str.size(); i += 4)
+                    for(int i = 1; i < vect_redis_str.size(); i += 3)
                     {
                         vect_obj_brut.clear();
                         vect_obj_brut.push_back(vect_redis_str[i+0]);
                         vect_obj_brut.push_back(vect_redis_str[i+1]);
                         vect_obj_brut.push_back(vect_redis_str[i+2]);
-                        vect_obj_brut.push_back(vect_redis_str[i+3]);
+                        // vect_obj_brut.push_back(vect_redis_str[i+3]);
 
                         process_brut_obj(curr_local_pos, vect_obj_brut, &vect_sensor_prm[0], &min_dist, &max_dist, vect_obj, &min_space, &min_observation);
                     }
@@ -436,13 +436,13 @@ int main(int argc, char *argv[])
                 if(!is_same_time(timesptamp_cam2, std::stoul(vect_redis_str[0])))
                 {
                     timesptamp_cam2 = std::stoul(vect_redis_str[0]);
-                    for(int i = 1; i < vect_redis_str.size(); i += 4)
+                    for(int i = 1; i < vect_redis_str.size(); i += 3)
                     {
                         vect_obj_brut.clear();
                         vect_obj_brut.push_back(vect_redis_str[i+0]);
                         vect_obj_brut.push_back(vect_redis_str[i+1]);
                         vect_obj_brut.push_back(vect_redis_str[i+2]);
-                        vect_obj_brut.push_back(vect_redis_str[i+3]);
+                        // vect_obj_brut.push_back(vect_redis_str[i+3]);
 
                         process_brut_obj(curr_local_pos, vect_obj_brut, &vect_sensor_prm[1], &min_dist, &max_dist, vect_obj, &min_space, &min_observation);
                     }

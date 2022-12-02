@@ -42,7 +42,7 @@ struct axis_state {
     //     , y(0)
     //     {}
 };
-
+/// @brief 
 struct Js_state {
     /**
      * NOTE: Me permet de stocker mes valeurs de joysticks dans une struct.
@@ -53,14 +53,14 @@ struct Js_state {
 
     Js_state()
         {
-            for(int i = 0; i < 8; i++) button_state.push_back(false);
+            for(int i = 0; i < 12; i++) button_state.push_back(false);
             for(int i = 0; i < 3; i++) axis_state_vect.push_back(axis_state());
         }
 
     void show()
     {
         std::string output_show = std::to_string(get_curr_timestamp()) + "\n";
-        for(int i = 0; i < 8; i++) output_show += std::to_string(button_state[i]) + "|";
+        for(int i = 0; i < 12; i++) output_show += std::to_string(button_state[i]) + "|";
         output_show += "\n"; 
         for(int i = 0; i < 3; i++) output_show += std::to_string(axis_state_vect[i].x) + "|" + std::to_string(axis_state_vect[i].y) + "\n";
         std::cout << output_show << "\n\n" << std::endl;;
@@ -69,7 +69,7 @@ struct Js_state {
     std::string get_str()
     {
         std::string output;
-        for(int i = 0; i < 8; i++) output += std::to_string(button_state[i]) + "|";
+        for(int i = 0; i < 12; i++) output += std::to_string(button_state[i]) + "|";
         for(int i = 0; i < 3; i++) output += std::to_string(axis_state_vect[i].x) + "|" + std::to_string(axis_state_vect[i].y) + "|";
         return output;
     }

@@ -37,6 +37,9 @@ void init_redis_var(sw::redis::Redis* redis)
     read_yaml(redis, &fsSettings, "HARD_MCU_CARGO_COM_STATE");
     read_yaml(redis, &fsSettings, "HARD_MCU_INTER_COM_STATE");
 
+    read_yaml(redis, &fsSettings, "HARD_LID1_PORT_NAME");
+    read_yaml(redis, &fsSettings, "HARD_LID2_PORT_NAME");
+
     read_yaml(redis, &fsSettings, "HARD_PIXHAWK_PORT_NAME");
     read_yaml(redis, &fsSettings, "HARD_PIXHAWK_COM_STATE");
 

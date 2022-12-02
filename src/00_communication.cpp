@@ -14,6 +14,18 @@ bool port_already_taken(sw::redis::Redis* redis, std::string curr_port_name)
     {
         return true;
     }
+    // if(curr_port_name.compare(*redis->get("HARD_PIXHAWK_PORT_NAME")) == 0)
+    // {
+    //     return true;
+    // }
+    if(curr_port_name.compare(*redis->get("HARD_LID1_PORT_NAME")) == 0)
+    {
+        return true;
+    }
+    if(curr_port_name.compare(*redis->get("HARD_LID2_PORT_NAME")) == 0)
+    {
+        return true;
+    }
     return false;
 }
 

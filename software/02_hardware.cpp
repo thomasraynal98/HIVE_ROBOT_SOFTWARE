@@ -443,6 +443,39 @@ void f_thread_local_joystick()
 
                     // xbox_controller.show(); 
 
+                    // // URGENCE STOP  
+                    // if(xbox_controller.button_state[1])
+                    // {
+                    //     set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "TRUE");
+                    // }       
+
+                    // // PILOTAGE JOYSTICK LOCAL START / STOP
+                    // if(xbox_controller.button_state[6])
+                    // {
+                    //     set_redis_var(&redis, "NAV_LOCAL_JS_MODE", "ACTIVATE");
+                    // } 
+                    // if(xbox_controller.button_state[7])
+                    // {
+                    //     set_redis_var(&redis, "NAV_LOCAL_JS_MODE", "DEACTIVATE");
+                    // } 
+
+                    // // CHANGE MODE
+                    // if(xbox_controller.button_state[4])
+                    // {
+                    //     set_redis_var(&redis, "NAV_MANUAL_MODE", "STANDARD_MAX");
+                    // } 
+                    // if(xbox_controller.button_state[5])
+                    // {
+                    //     set_redis_var(&redis, "NAV_MANUAL_MODE", "STANDARD");
+                    // } 
+
+                    // // OPEN ALL BOX
+                    // if(xbox_controller.button_state[3])
+                    // {
+                    //     std::string new_mission_cargo_str = std::to_string(get_curr_timestamp()) + "|OPEN|OPEN|OPEN|";
+                    //     set_redis_var(&redis, "MISSION_HARD_CARGO", new_mission_cargo_str);
+                    // }
+
                     // URGENCE STOP  
                     if(xbox_controller.button_state[1])
                     {
@@ -460,17 +493,20 @@ void f_thread_local_joystick()
                     } 
 
                     // CHANGE MODE
-                    if(xbox_controller.button_state[4])
+                    if(xbox_controller.button_state[11])
                     {
-                        set_redis_var(&redis, "NAV_MANUAL_MODE", "STANDARD_MAX");
-                    } 
-                    if(xbox_controller.button_state[5])
-                    {
-                        set_redis_var(&redis, "NAV_MANUAL_MODE", "STANDARD");
+                        if(compare_redis_var(&redis, "NAV_MANUAL_MODE", "STANDARD_MAX") == 0)
+                        {
+                            set_redis_var(&redis, "NAV_MANUAL_MODE", "STANDARD_MAX");                      
+                        }
+                        else
+                        {
+                            set_redis_var(&redis, "NAV_MANUAL_MODE", "STANDARD");    
+                        }
                     } 
 
                     // OPEN ALL BOX
-                    if(xbox_controller.button_state[3])
+                    if(xbox_controller.button_state[4])
                     {
                         std::string new_mission_cargo_str = std::to_string(get_curr_timestamp()) + "|OPEN|OPEN|OPEN|";
                         set_redis_var(&redis, "MISSION_HARD_CARGO", new_mission_cargo_str);

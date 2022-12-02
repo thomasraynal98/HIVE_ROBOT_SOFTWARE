@@ -18,7 +18,7 @@ FIND_PACKAGE(websocketpp REQUIRED)
 
 # FIND_PACKAGE(OpenSSL REQUIRED)
 # [!] Comment for HTTPS.
-FIND_PACKAGE(sioclient REQUIRED)
+# FIND_PACKAGE(sioclient REQUIRED)
 
 # # PROGRAMME 01 : GESTION DU SYSTEME YAML ET REDIS + DEBUG
 ADD_EXECUTABLE(01_SYSTEM_MANAGER 
@@ -71,11 +71,11 @@ TARGET_LINK_LIBRARIES(03_SERVER
     redis++
     serial
     # [!] Decomment for HTTPS.
-    # ssl
-    # crypto 
-    # /usr/local/lib/libsioclient_tls.so
+    ssl
+    crypto 
+    /usr/local/lib/libsioclient_tls.so
     # [!] Comment for HTTPS.
-    sioclient
+    # sioclient
     ${OpenCV_LIBS})
 
 # PROGRAMME 04 : ANALYSE DE LA SITUATION EST CHOIX COMMANDE MOTOR ROUES.
@@ -97,15 +97,15 @@ TARGET_LINK_LIBRARIES(04_NAVIGATION
     ${OpenCV_LIBS})
 
 # # PROGRAMME 66 : WTF.
-# ADD_EXECUTABLE(66_EXEMPLE
-# software/66_tempo.cpp)
+ADD_EXECUTABLE(66_EXEMPLE
+software/66_tempo.cpp)
 
-# TARGET_LINK_LIBRARIES(66_EXEMPLE
-#     pthread
-#     hiredis
-#     redis++
-#     sioclient
-#     # /usr/local/lib/libsioclient_tls.so
-#     crypto
-#     ssl
-#     serial)
+TARGET_LINK_LIBRARIES(66_EXEMPLE
+    pthread
+    hiredis
+    redis++
+    sioclient
+    # /usr/local/lib/libsioclient_tls.so
+    crypto
+    ssl
+    serial)
