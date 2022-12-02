@@ -1139,11 +1139,11 @@ void process_brut_obj(std::vector<double> curr_local_pos, std::vector<std::strin
         net dans l'environnement local.
     */
 
-    // if(sensor_prm->pos_pol->x > *min_dist && \
-    // sensor_prm->pos_pol->x < *max_dist)
-    // {
-        double sensor_pos_x   = curr_local_pos[0] + sensor_prm->pos_pol->x * cos(deg_to_rad(curr_local_pos[2]+sensor_prm->pos_pol->y));
-        double sensor_pos_y   = curr_local_pos[1] + sensor_prm->pos_pol->x * sin(deg_to_rad(curr_local_pos[2]+sensor_prm->pos_pol->y));
+    if(std::stod(brut_obj[1]) > *min_dist && \
+    std::stod(brut_obj[1]) < *max_dist)
+    {
+        double sensor_pos_x   = curr_local_pos[0] + sensor_prm->pos_pol->x * cos(deg_to_rad(curr_local_pos[2])+sensor_prm->pos_pol->y);
+        double sensor_pos_y   = curr_local_pos[1] + sensor_prm->pos_pol->x * sin(deg_to_rad(curr_local_pos[2])+sensor_prm->pos_pol->y);
 
         double obj_x   = sensor_pos_x + std::stod(brut_obj[1]) * cos(deg_to_rad(curr_local_pos[2]+sensor_prm->hdg+(-1*std::stod(brut_obj[2]))));
         double obj_y   = sensor_pos_y + std::stod(brut_obj[1]) * sin(deg_to_rad(curr_local_pos[2]+sensor_prm->hdg+(-1*std::stod(brut_obj[2]))));
@@ -1182,7 +1182,7 @@ void process_brut_obj(std::vector<double> curr_local_pos, std::vector<std::strin
                 vect_obj.push_back(Object_env(obj_x, obj_y, 0.0, 0.0, sensor_prm->sensor_ID, get_curr_timestamp()));
             }
         }
-    // }
+    }
 }
 
 void clear_obj_vect(std::vector<double> curr_local_pos, std::vector<Object_env>& vect_obj, int clear_time_ms, double clear_dist_m)

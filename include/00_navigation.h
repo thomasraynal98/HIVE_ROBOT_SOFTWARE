@@ -178,10 +178,13 @@ struct Sensor_prm{
         {
             pos_cart = new Vect_2D(a, b);
             double dist  = sqrt(pow(a,2)+pow(b,2));
-            double angle = 2 * atan(b /(a + dist));
-            if(a + dist == 0) angle = M_PI / 2;
+            double angle = 0;
+            // if(a + dist == 0) angle = M_PI / 2;
+            // else{ angle = 2 * atan(b /(a + dist));}
 
-            // std::cout << a << " " << b << " " << dist << " " << angle << std::endl;
+            angle = atan2(b,a);
+
+            std::cout << a << " " << b << " " << dist << " " << angle << std::endl;
             pos_pol = new Vect_2D(dist, angle);
         }
 };

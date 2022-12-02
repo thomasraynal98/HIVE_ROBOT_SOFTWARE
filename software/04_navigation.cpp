@@ -448,37 +448,37 @@ int main(int argc, char *argv[])
                     }
                 }
 
-                // get_redis_multi_str(&redis, "ENV_LID1_OBSTACLE", vect_redis_str);
-                // if(!is_same_time(timesptamp_lid1, std::stoul(vect_redis_str[0])))
-                // {
-                //     timesptamp_lid1 = std::stoul(vect_redis_str[0]);
-                //     for(int i = 1; i < vect_redis_str.size(); i += 4)
-                //     {
-                //         vect_obj_brut.clear();
-                //         vect_obj_brut.push_back(vect_redis_str[i+0]);
-                //         vect_obj_brut.push_back(vect_redis_str[i+1]);
-                //         vect_obj_brut.push_back(vect_redis_str[i+2]);
-                //         vect_obj_brut.push_back(vect_redis_str[i+3]);
+                get_redis_multi_str(&redis, "ENV_LID1_OBJECTS", vect_redis_str);
+                if(!is_same_time(timesptamp_lid1, std::stoul(vect_redis_str[0])))
+                {
+                    timesptamp_lid1 = std::stoul(vect_redis_str[0]);
+                    for(int i = 1; i < vect_redis_str.size(); i += 3)
+                    {
+                        vect_obj_brut.clear();
+                        vect_obj_brut.push_back(vect_redis_str[i+0]);
+                        vect_obj_brut.push_back(vect_redis_str[i+1]);
+                        vect_obj_brut.push_back(vect_redis_str[i+2]);
+                        // vect_obj_brut.push_back(vect_redis_str[i+3]);
 
-                //         process_brut_obj(curr_local_pos, vect_obj_brut, &vect_sensor_prm[2], &min_dist, &max_dist, vect_obj, &min_space, &min_observation);
-                //     }
-                // }
+                        process_brut_obj(curr_local_pos, vect_obj_brut, &vect_sensor_prm[2], &min_dist, &max_dist, vect_obj, &min_space, &min_observation);
+                    }
+                }
 
-                // get_redis_multi_str(&redis, "ENV_LID2_OBSTACLE", vect_redis_str);
-                // if(!is_same_time(timesptamp_lid2, std::stoul(vect_redis_str[0])))
-                // {
-                //     timesptamp_lid2 = std::stoul(vect_redis_str[0]);
-                //     for(int i = 1; i < vect_redis_str.size(); i += 4)
-                //     {
-                //         vect_obj_brut.clear();
-                //         vect_obj_brut.push_back(vect_redis_str[i+0]);
-                //         vect_obj_brut.push_back(vect_redis_str[i+1]);
-                //         vect_obj_brut.push_back(vect_redis_str[i+2]);
-                //         vect_obj_brut.push_back(vect_redis_str[i+3]);
+                get_redis_multi_str(&redis, "ENV_LID2_OBJECTS", vect_redis_str);
+                if(!is_same_time(timesptamp_lid2, std::stoul(vect_redis_str[0])))
+                {
+                    timesptamp_lid2 = std::stoul(vect_redis_str[0]);
+                    for(int i = 1; i < vect_redis_str.size(); i += 3)
+                    {
+                        vect_obj_brut.clear();
+                        vect_obj_brut.push_back(vect_redis_str[i+0]);
+                        vect_obj_brut.push_back(vect_redis_str[i+1]);
+                        vect_obj_brut.push_back(vect_redis_str[i+2]);
+                        // vect_obj_brut.push_back(vect_redis_str[i+3]);
 
-                //         process_brut_obj(curr_local_pos, vect_obj_brut, &vect_sensor_prm[3], &min_dist, &max_dist, vect_obj, &min_space, &min_observation);
-                //     }
-                // }
+                        process_brut_obj(curr_local_pos, vect_obj_brut, &vect_sensor_prm[3], &min_dist, &max_dist, vect_obj, &min_space, &min_observation);
+                    }
+                }
                 
                 // [?] Le code suivant permet de nettoyer les datas qui se supperpose ou qui sont vieil.
                 // std::cout << "INPUT S > " << vect_obj.size() << std::endl;
