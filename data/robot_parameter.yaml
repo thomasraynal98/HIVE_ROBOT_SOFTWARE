@@ -92,6 +92,8 @@ NAV_OPT_STREAM                   : "0"
 NAV_LOCAL_JS_MODE                : "DEACTIVATE"
 NAV_BATTERY_VOLTAGE              : "28.0"
 NAV_BATTERY_PERCENTAGE           : "100.0"
+NAV_MAX_ACCEL                    : "0.2"                                                         # m/s2
+NAV_MAX_DECCEL                   : "1.0"                                                         # m/s2
 
 # ACTION/MISSION
 MISSION_MOTOR_BRAKE              : "TRUE"

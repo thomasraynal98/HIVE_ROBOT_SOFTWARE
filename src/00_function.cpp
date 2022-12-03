@@ -172,6 +172,9 @@ void init_redis_var(sw::redis::Redis* redis)
 
     read_yaml(redis, &fsSettings, "NAV_BATTERY_VOLTAGE");
     read_yaml(redis, &fsSettings, "NAV_BATTERY_PERCENTAGE");
+
+    read_yaml(redis, &fsSettings, "NAV_MAX_ACCEL");
+    read_yaml(redis, &fsSettings, "NAV_MAX_DECCEL");
 }
 
 int64_t get_curr_timestamp()

@@ -97,15 +97,15 @@ TARGET_LINK_LIBRARIES(04_NAVIGATION
     ${OpenCV_LIBS})
 
 # # PROGRAMME 66 : WTF.
-ADD_EXECUTABLE(66_EXEMPLE
-software/66_tempo.cpp)
+# ADD_EXECUTABLE(66_EXEMPLE
+# software/66_tempo.cpp)
 
-TARGET_LINK_LIBRARIES(66_EXEMPLE
-    pthread
-    hiredis
-    redis++
-    sioclient
-    # /usr/local/lib/libsioclient_tls.so
-    crypto
-    ssl
-    serial)
+# TARGET_LINK_LIBRARIES(66_EXEMPLE
+#     pthread
+#     hiredis
+#     redis++
+#     sioclient
+#     # /usr/local/lib/libsioclient_tls.so
+#     crypto
+#     ssl
+#     serial)

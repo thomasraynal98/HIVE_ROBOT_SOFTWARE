@@ -335,7 +335,7 @@ int main(int argc, char *argv[])
                         // global_path_str += std::to_string(vect_roadmap[i].dest_dist_m) + "m|";
                         // global_path_str += std::to_string(vect_roadmap[i].dest_time_s) + "s|";
                     }
-                    std::cout << global_path_str << std::endl;
+                    // std::cout << global_path_str << std::endl;
 
                     set_redis_var(&redis, "SIM_GLOBAL_PATH", global_path_str);
 
@@ -538,16 +538,26 @@ int main(int argc, char *argv[])
                     {
                         // MANUAL FROM LOCAL JS.
                         get_redis_multi_str(&redis, "EVENT_LOCAL_JS_DATA", vect_cmd_ctr);
-                        if(!time_is_over(get_curr_timestamp(), std::stoul(vect_cmd_ctr[0]), 1000))
+                        if(!time_is_over(get_curr_timestamp(), std::stoul(vect_cmd_ctr[0]), 1500))
                         {
                             std::string flag_manual_mode  = get_redis_str(&redis, "NAV_MANUAL_MODE");
                             curr_max_speed    = get_max_speed(&redis, "MANUAL", flag_manual_mode, vect_road);
-                            motor_command_str = map_local_manual_command(&redis, curr_max_speed, vect_cmd_ctr);
+
+                            // motor_command_str = map_local_manual_command(&redis, curr_max_speed, vect_cmd_ctr);
+                            motor_command_str = map_local_manual_command(&redis, 3.0, vect_cmd_ctr, 30, 0);
+                            std::cout << motor_command_str << std::endl;
                         }
                         else
                         {
-                            set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "TRUE");
-                            pub_redis_var(&redis, "EVENT", get_event_str(4, "MISSION_MANUAL_MOVE", "STANDARD_MODE_OVER_TIME"));
+                            // set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "TRUE");
+                            // pub_redis_var(&redis, "EVENT", get_event_str(4, "MISSION_MANUAL_MOVE", "STANDARD_MODE_OVER_TIME"));
+
+                            std::string flag_manual_mode  = get_redis_str(&redis, "NAV_MANUAL_MODE");
+                            curr_max_speed    = get_max_speed(&redis, "MANUAL", flag_manual_mode, vect_road);
+
+                            // motor_command_str = map_local_manual_command(&redis, curr_max_speed, vect_cmd_ctr);
+                            motor_command_str = map_local_manual_command(&redis, 3.0, vect_cmd_ctr, 30, 1);
+                            std::cout << motor_command_str << std::endl;
                         }
                     }
                 }
@@ -1517,7 +1527,7 @@ int main(int argc, char *argv[])
                                         {
                                             best_dist_orig = vect_traj[i].niv;
                                             Final_traj = vect_traj[i];
-                                            std::cout << " [C] Changement." << std::endl;
+                                            // std::cout << " [C] Changement." << std::endl;
                                         }
                                     }
                                 }
@@ -1587,7 +1597,7 @@ int main(int argc, char *argv[])
                                 }
                                 else
                                 {
-                                    std::cout << "NE DOIT PAS ARRIVER " << get_curr_timestamp() << std::endl;
+                                    // std::cout << "NE DOIT PAS ARRIVER " << get_curr_timestamp() << std::endl;
                                 }
 
                                 // ETAPE 8 : SECURITY
@@ -1601,7 +1611,7 @@ int main(int argc, char *argv[])
 
                                     if(same_dist_bool && same_dist_detection < 1.0 && !recul_forcer)
                                     {
-                                        std::cout << same_dist_detection << std::endl;
+                                        // std::cout << same_dist_detection << std::endl;
                                         if(diff_angle >= 0)memo_side = 1;
                                         else{memo_side = -1;}
                                         start_recul = get_curr_timestamp();
@@ -1677,7 +1687,7 @@ int main(int argc, char *argv[])
             get_redis_multi_str(&redis, "SIM_AUTO_PT_ICC_NEW", vect_str_redis);
             Geographic_point pt_circle = Geographic_point(std::stod(vect_str_redis[0]), std::stod(vect_str_redis[1]));
 
-            std::cout << vect_obj.size() << std::endl;
+            // std::cout << vect_obj.size() << std::endl;
             double radius = std::stoi(get_redis_str(&redis, "SIM_AUTO_RADIUS_ICC_NEW"));
             // double radius = std::stod(get_redis_str(&redis, "DEB_R"));
 
@@ -1688,13 +1698,13 @@ int main(int argc, char *argv[])
             if(abs(radius) > 10000) radius = 10000;
             if(row_idx < 0.005 && row_idx > -0.005) row_idx = 0;
 
-            std::cout << vect_obj.size() << std::endl;
+            // std::cout << vect_obj.size() << std::endl;
             double distance_m = std::stod(get_redis_str(&redis, "HARD_WHEEL_DISTANCE")) / 2 + std::stod(get_redis_str(&redis, "NAV_OBJ_SAFETY_DIST_M"));
             
-            std::cout << row_idx << " " << radius << " " << distance_m << " " << copy.cols << std::endl;
+            // std::cout << row_idx << " " << radius << " " << distance_m << " " << copy.cols << std::endl;
             cv::circle(copy, cv::Point((int)(100),(int)(row_idx)), (int)(abs(radius)*10)             , cv::Scalar(178, 102, 255)    , 1, cv::LineTypes::LINE_8);
             cv::circle(copy, cv::Point((int)(100),(int)(row_idx)), (int)((distance_m+abs(radius))*10), cv::Scalar(178, 102/2, 255/2), 1, cv::LineTypes::LINE_8);
-            std::cout << vect_obj.size() << std::endl;
+            // std::cout << vect_obj.size() << std::endl;
             double de;
             if(abs(radius)-distance_m < 0 ){row_idx = -row_idx; de = abs(abs(radius)-distance_m);}
             else { de = abs(radius)-distance_m;}
@@ -1710,7 +1720,7 @@ int main(int argc, char *argv[])
             // cv::circle(copy, cv::Point((int)(100),(int)(row_idx)), (int)((de)*10), cv::Scalar(255, 153/2, 31), 1, cv::LineTypes::LINE_8);
 
             // ADD LOCAL POINT
-            std::cout << vect_obj.size() << std::endl;
+            // std::cout << vect_obj.size() << std::endl;
             for(auto obj : vect_obj)
             {
                 double dist = sqrt(pow(curr_position.l_x - obj.pos->x,2) + pow(curr_position.l_y - obj.pos->y,2));

@@ -275,6 +275,733 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
     return command_motor_str;
 }
 
+std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_Ms, std::vector<std::string>& vect_controller_data, int navigation_hz, int opt)
+{
+    /**
+     * NOTE:
+     * Cette fonction va mapper les commandes brutes de la manette pour creer une commande moteur
+     * douce et sécurisé qui limite l'accélération ou la déccélération du robot.
+     * 
+     */
+
+    double back_max_speed_Ms = -0.35;
+    double rot_max_speed_Ms = 0.5; // exterieur wheel
+
+    int js_x_id  = 13;
+    int js_y_id  = 14;
+    int js_rt_id = 18;
+    int js_lt_id = 15;
+
+    double vect_js   = get_distance(0.0, 0.0, std::stod(vect_controller_data[js_x_id]), std::stod(vect_controller_data[js_y_id]));
+    double rt_value  = std::stod(vect_controller_data[js_rt_id]);
+    double lt_value  = std::stod(vect_controller_data[js_lt_id]);
+
+    double js_x_value = std::stod(vect_controller_data[js_x_id]);
+    double js_y_value = std::stod(vect_controller_data[js_y_id]);
+
+    double max_accel  = std::stod(get_redis_str(redis, "NAV_MAX_ACCEL"));
+    double max_deccel = std::stod(get_redis_str(redis, "NAV_MAX_DECCEL"));
+
+    int activation_js = 10000;
+
+    if(opt == 1)
+    {
+        vect_js = 0;
+        rt_value = -33000;
+        lt_value = -33000;
+        js_x_value = 0;
+        js_y_value = 0;
+    }
+
+
+    std::vector<std::string> last_vect_command;
+    get_redis_multi_str(redis, "HARD_MOTOR_COMMAND", last_vect_command);
+    
+    /**
+     * NOTE: les modes
+     * 1 - STOP
+     * 2 - FORWARD
+     * 3 - BACKWARD
+     * 4 - ROT LEFT
+     * 5 - ROT RIGHT
+     */
+
+    int previous_mode = 0;
+    if(std::stod(last_vect_command[1]) >  0 && std::stod(last_vect_command[4]) >  0) previous_mode = 2;
+    if(std::stod(last_vect_command[1]) <= 0 && std::stod(last_vect_command[4]) <= 0) previous_mode = 3;
+    if(std::stod(last_vect_command[1]) <  0 && std::stod(last_vect_command[4]) >  0) previous_mode = 4;
+    if(std::stod(last_vect_command[1]) >  0 && std::stod(last_vect_command[4]) <  0) previous_mode = 5;
+    if(std::stod(last_vect_command[1]) == 0 && std::stod(last_vect_command[4]) == 0) previous_mode = 1;
+
+    double previous_speed = 0;
+    double previous_lspeed = 0;
+    if(previous_mode == 4 || previous_mode == 5) previous_speed = abs(std::stod(last_vect_command[1]));
+    else
+    {
+        if(abs(std::stod(last_vect_command[1])) >  abs(std::stod(last_vect_command[4]))) 
+        {
+            previous_speed = std::stod(last_vect_command[1]);
+            previous_lspeed = std::stod(last_vect_command[4]);
+        }
+        else
+        {
+            previous_speed = std::stod(last_vect_command[4]); 
+            previous_lspeed = std::stod(last_vect_command[1]);
+        }
+    }
+
+    std::cout << "MODE" << previous_mode << std::endl;
+
+    double x = js_x_value;
+    if(x == 0) x = 0.01;
+    double angle_js = atan2(js_y_value,x);
+    // if(js_y_id <= 0 && angle_js > 0) angle_js = angle_js - M_PI;
+    // if(js_y_id >= 0 && angle_js < 0) angle_js = angle_js + M_PI;
+
+    std::cout << max_speed_Ms << " " << rt_value << " " << lt_value << " " << js_x_value << " " << js_y_value << " " << vect_js << " " << angle_js << std::endl;
+
+    std::string command_motor_str = std::to_string(get_curr_timestamp()) + "|";
+
+    if(previous_mode == 1)
+    {
+        if(vect_js > activation_js && (rt_value > -4000 | lt_value > -4000))
+        {
+            if(rt_value > -4000)
+            {
+                double curr_speed = previous_speed + max_accel / navigation_hz;
+
+                if(angle_js <= -M_PI_2)
+                {
+                    // front left
+                    for(int i = 0; i < 6; i++)
+                    {
+                        if(i >= 3) command_motor_str += std::to_string(curr_speed) + "|";
+                        if(i < 3)  command_motor_str += std::to_string(curr_speed - curr_speed*((M_PI_2-(angle_js+M_PI))/M_PI_2))  + "|";
+                    }
+                    return command_motor_str;
+                }
+                else if(angle_js > -M_PI_2 && angle_js <= 0)
+                {
+                    // front right
+                    for(int i = 0; i < 6; i++)
+                    {
+                        if(i < 3)  command_motor_str += std::to_string(curr_speed) + "|";
+                        if(i >= 3) command_motor_str += std::to_string(curr_speed - curr_speed*((M_PI_2+angle_js)/M_PI_2))  + "|";
+                    }
+                    return command_motor_str;
+                }
+                else if(angle_js > 0 && angle_js <= M_PI_2)
+                {
+                    // rotate right
+                    command_motor_str += std::to_string(curr_speed) + "|";
+                    command_motor_str += std::to_string(curr_speed/4) + "|";
+                    command_motor_str += std::to_string(curr_speed) + "|";
+                    command_motor_str += std::to_string(-1*curr_speed) + "|";
+                    command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+                    command_motor_str += std::to_string(-1*curr_speed) + "|";
+                    return command_motor_str;
+                }
+                else if(angle_js > M_PI_2 && angle_js <= M_PI)
+                {
+                    // rotate left
+                    command_motor_str += std::to_string(-1*curr_speed) + "|";
+                    command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+                    command_motor_str += std::to_string(-1*curr_speed) + "|";
+                    command_motor_str += std::to_string(curr_speed) + "|";
+                    command_motor_str += std::to_string(curr_speed/4) + "|";
+                    command_motor_str += std::to_string(curr_speed) + "|";
+                    return command_motor_str;
+                }
+            }
+            if(lt_value > -4000)
+            {
+                double curr_speed = previous_speed - max_accel / navigation_hz;
+
+                if(angle_js >= 0)
+                {
+                    if(angle_js < M_PI_2)
+                    {
+                        // back right
+                        for(int i = 0; i < 6; i++)
+                        {
+                            if(i < 3)   command_motor_str += std::to_string(curr_speed) + "|";
+                            if(i >= 3)  command_motor_str += std::to_string(curr_speed - (curr_speed*((M_PI_2-angle_js)/M_PI_2))) + "|";
+                        }
+                        return command_motor_str;
+                    }
+                    else
+                    {
+                        // back left
+                        for(int i = 0; i < 6; i++)
+                        {
+                            if(i >= 3) command_motor_str += std::to_string(curr_speed) + "|";
+                            if(i < 3)  command_motor_str += std::to_string(curr_speed - (curr_speed*((angle_js-M_PI_2)/M_PI_2))) + "|";
+                        }
+                        return command_motor_str;
+                    }
+                }
+                else
+                {
+                    for(int i = 0; i < 6; i++)
+                    {
+                        command_motor_str += std::to_string(curr_speed) + "|";
+                    }
+                    return command_motor_str;
+                }
+            }
+        }
+        else
+        {
+            return command_motor_str + "0.0|0.0|0.0|0.0|0.0|0.0|";
+        }
+    }
+    if(previous_mode == 2)
+    {
+        if(vect_js > activation_js && (rt_value > -4000 | lt_value > -4000))
+        {
+            if(rt_value > -4000)
+            {
+                if(rt_value > -4000 && rt_value < 0)
+                {
+                    double curr_speed = previous_speed - ((max_deccel*0.8) / navigation_hz);
+                    if(curr_speed < 0) curr_speed = 0;
+
+                    double low_speed = curr_speed;
+
+                    if(angle_js <= -M_PI_2)
+                    {
+                        // front left
+                        low_speed = curr_speed - curr_speed*((M_PI_2-(angle_js+M_PI))/M_PI_2);
+
+                        if(previous_lspeed - low_speed > ((max_deccel*0.8) / navigation_hz)) low_speed = previous_lspeed - ((max_deccel*0.8) / navigation_hz);
+
+                        if(curr_speed - low_speed > 0.5) curr_speed -= 0.5;
+                        for(int i = 0; i < 6; i++)
+                        {
+                            if(i >= 3) command_motor_str += std::to_string(curr_speed) + "|";
+                            if(i < 3)  command_motor_str += std::to_string(low_speed)  + "|";
+                        }
+                        return command_motor_str;
+                    }
+                    else if(angle_js > -M_PI_2 && angle_js <= 0)
+                    {
+                        // front right
+                        low_speed = curr_speed - curr_speed*((M_PI_2+angle_js)/M_PI_2);
+
+                        if(previous_lspeed - low_speed > ((max_deccel*0.8) / navigation_hz)) low_speed = previous_lspeed - ((max_deccel*0.8) / navigation_hz);
+
+                        if(curr_speed - low_speed > 0.5) curr_speed -= 0.5;
+                        for(int i = 0; i < 6; i++)
+                        {
+                            if(i < 3)  command_motor_str += std::to_string(curr_speed) + "|";
+                            if(i >= 3) command_motor_str += std::to_string(low_speed)  + "|";
+                        }
+                        return command_motor_str;
+                    }
+                    else
+                    {
+                        /* Si tu essayes de passer en mode rotation 4-5 */
+                        double deccel_multiplicateur = 1.0;
+                        if(previous_speed > 1 && previous_speed < 2) deccel_multiplicateur = 2.0;
+                        if(previous_speed > 2) deccel_multiplicateur = 3.0;
+
+                        double curr_speed;
+                        if(previous_speed > 0)
+                        {
+                            curr_speed = previous_speed - (max_deccel*deccel_multiplicateur) / navigation_hz;
+                            if(curr_speed < 0) curr_speed = 0;
+                        }
+                        else
+                        {
+                            curr_speed = previous_speed + (max_deccel*deccel_multiplicateur) / navigation_hz;
+                            if(curr_speed > 0) curr_speed = 0;
+                        }
+
+                        for(int i = 0; i < 6; i++)
+                        {
+                            command_motor_str += std::to_string(curr_speed) + "|";
+                        }
+                        return command_motor_str;
+                    }
+                }
+                if(rt_value >= 0 && rt_value < 30000)
+                {
+                    double curr_speed = previous_speed;
+                    double low_speed = curr_speed;
+                    
+                    if(angle_js <= -M_PI_2)
+                    {
+                        // front left
+                        low_speed = curr_speed - curr_speed*((M_PI_2-(angle_js+M_PI))/M_PI_2);
+
+                        if(previous_lspeed - low_speed > ((max_deccel*0.8) / navigation_hz)) low_speed = previous_lspeed - ((max_deccel*0.8) / navigation_hz);
+
+                        if(curr_speed - low_speed > 0.5) curr_speed -= 0.5;
+                        for(int i = 0; i < 6; i++)
+                        {
+
+                            if(i >= 3) command_motor_str += std::to_string(curr_speed) + "|";
+                            if(i < 3)  command_motor_str += std::to_string(low_speed)  + "|";
+                        }
+                        return command_motor_str;
+                    }
+                    else if(angle_js > -M_PI_2 && angle_js <= 0)
+                    {
+                        // front right
+                        low_speed = curr_speed - curr_speed*((M_PI_2+angle_js)/M_PI_2);
+
+                        if(previous_lspeed - low_speed > ((max_deccel*0.8) / navigation_hz)) low_speed = previous_lspeed - ((max_deccel*0.8) / navigation_hz);
+
+                        if(curr_speed - low_speed > 0.5) curr_speed -= 0.5;
+
+                        for(int i = 0; i < 6; i++)
+                        {
+                            if(i < 3)  command_motor_str += std::to_string(curr_speed) + "|";
+                            if(i >= 3) command_motor_str += std::to_string(low_speed)  + "|";
+                        }
+                        return command_motor_str;
+                    }
+                    else
+                    {
+                        /* Si tu essayes de passer en mode rotation 4-5 */
+                        double deccel_multiplicateur = 1.0;
+                        if(previous_speed > 1 && previous_speed < 2) deccel_multiplicateur = 2.0;
+                        if(previous_speed > 2) deccel_multiplicateur = 3.0;
+
+                        double curr_speed;
+                        if(previous_speed > 0)
+                        {
+                            curr_speed = previous_speed - (max_deccel*deccel_multiplicateur) / navigation_hz;
+                            if(curr_speed < 0) curr_speed = 0;
+                        }
+                        else
+                        {
+                            curr_speed = previous_speed + (max_deccel*deccel_multiplicateur) / navigation_hz;
+                            if(curr_speed > 0) curr_speed = 0;
+                        }
+
+                        for(int i = 0; i < 6; i++)
+                        {
+                            command_motor_str += std::to_string(curr_speed) + "|";
+                        }
+                        return command_motor_str;
+                    }
+                }
+                if(rt_value >= 30000)
+                {
+                    double curr_speed = previous_speed + ((max_accel*1.0) / navigation_hz);
+                    if(curr_speed > max_speed_Ms) curr_speed = max_speed_Ms;
+
+                    double low_speed = curr_speed;
+                    
+                    if(angle_js <= -M_PI_2)
+                    {
+                        // front left
+                        low_speed = curr_speed - curr_speed*((M_PI_2-(angle_js+M_PI))/M_PI_2);
+
+                        if(previous_lspeed - low_speed > ((max_deccel*0.8) / navigation_hz)) low_speed = previous_lspeed - ((max_deccel*0.8) / navigation_hz);
+
+                        if(curr_speed - low_speed > 0.5) curr_speed -= 0.5;
+                        for(int i = 0; i < 6; i++)
+                        {
+                            if(i >= 3) command_motor_str += std::to_string(curr_speed) + "|";
+                            if(i < 3)  command_motor_str += std::to_string(low_speed)  + "|";
+                        }
+                        return command_motor_str;
+                    }
+                    else if(angle_js > -M_PI_2 && angle_js <= 0)
+                    {
+                        // front right
+                        low_speed = curr_speed - curr_speed*((M_PI_2+angle_js)/M_PI_2);
+
+                        if(previous_lspeed - low_speed > ((max_deccel*0.8) / navigation_hz)) low_speed = previous_lspeed - ((max_deccel*0.8) / navigation_hz);
+                        
+                        if(curr_speed - low_speed > 0.5) curr_speed -= 0.5;
+                        for(int i = 0; i < 6; i++)
+                        {
+                            if(i < 3)  command_motor_str += std::to_string(curr_speed) + "|";
+                            if(i >= 3) command_motor_str += std::to_string(low_speed)  + "|";
+                        }
+                        return command_motor_str;
+                    }
+
+                    /* Si tu essayes de passer en mode rotation 4-5 */
+                    double deccel_multiplicateur = 1.0;
+                    if(previous_speed > 1 && previous_speed < 2) deccel_multiplicateur = 2.0;
+                    if(previous_speed > 2) deccel_multiplicateur = 3.0;
+
+                    double curr_speed1;
+                    if(previous_speed > 0)
+                    {
+                        curr_speed1 = previous_speed - (max_deccel*deccel_multiplicateur) / navigation_hz;
+                        if(curr_speed1 < 0) curr_speed1 = 0;
+                    }
+                    else
+                    {
+                        curr_speed1 = previous_speed + (max_deccel*deccel_multiplicateur) / navigation_hz;
+                        if(curr_speed1 > 0) curr_speed1 = 0;
+                    }
+
+                    for(int i = 0; i < 6; i++)
+                    {
+                        command_motor_str += std::to_string(curr_speed1) + "|";
+                    }
+                    return command_motor_str;
+                }
+            }
+            if(lt_value > -4000)
+            {
+                double deccel_multiplicateur = 1.0;
+                if(previous_speed > 1 && previous_speed < 2) deccel_multiplicateur = 2.0;
+                if(previous_speed > 2) deccel_multiplicateur = 3.0;
+
+                if(lt_value < 18000)
+                {
+                    double curr_speed = previous_speed - (max_deccel*1.2*deccel_multiplicateur) / navigation_hz;
+                    if(curr_speed < 0) curr_speed = 0;
+
+                    for(int i = 0; i < 6; i++)
+                    {
+                        command_motor_str += std::to_string(curr_speed) + "|";
+                    }
+                    return command_motor_str;
+                }
+                if(lt_value >= 18000)
+                {
+                    double curr_speed = previous_speed - (max_deccel*1.6*deccel_multiplicateur) / navigation_hz;
+                    if(curr_speed < 0) curr_speed = 0;
+
+                    for(int i = 0; i < 6; i++)
+                    {
+                        command_motor_str += std::to_string(curr_speed) + "|";
+                    }
+                    return command_motor_str;
+                }
+            }
+        }
+        else
+        {
+            double deccel_multiplicateur = 1.0;
+            if(previous_speed > 1 && previous_speed < 2) deccel_multiplicateur = 2.0;
+            if(previous_speed > 2) deccel_multiplicateur = 3.0;
+
+            double curr_speed;
+            if(previous_speed > 0)
+            {
+                curr_speed = previous_speed - (max_deccel*deccel_multiplicateur) / navigation_hz;
+                if(curr_speed < 0) curr_speed = 0;
+            }
+            else
+            {
+                curr_speed = previous_speed + (max_deccel*deccel_multiplicateur) / navigation_hz;
+                if(curr_speed > 0) curr_speed = 0;
+            }
+
+            for(int i = 0; i < 6; i++)
+            {
+                command_motor_str += std::to_string(curr_speed) + "|";
+            }
+            return command_motor_str;
+        }
+    }
+    if(previous_mode == 3)
+    {
+        if(vect_js > activation_js && (rt_value > -4000 | lt_value > -4000))
+        {
+            if(lt_value > -4000)
+            {
+                if(lt_value > -4000 && lt_value < 0)
+                {
+                    double curr_speed = previous_speed + ((max_deccel*0.8) / navigation_hz);
+                    if(curr_speed > 0) curr_speed = 0;
+                    double low_speed = curr_speed;
+
+                    if(angle_js > M_PI || angle_js < - M_PI_2) angle_js = M_PI;
+                    if(angle_js < 0 && angle_js > -M_PI_2) angle_js = 0;
+
+                    if(angle_js > M_PI_2)
+                    {
+                        // front left
+                        low_speed = curr_speed - (curr_speed*((angle_js-M_PI_2)/M_PI_2));
+                        if(curr_speed - low_speed > 0.5) curr_speed -= 0.5;
+                        for(int i = 0; i < 6; i++)
+                        {
+                            if(i >= 3) command_motor_str += std::to_string(curr_speed) + "|";
+                            if(i < 3)  command_motor_str += std::to_string(low_speed)  + "|";
+                        }
+                        return command_motor_str;
+                    }
+                    if(angle_js < M_PI_2)
+                    {
+                        // front right
+                        low_speed = curr_speed - (curr_speed*((M_PI_2-angle_js)/M_PI_2));
+                        if(curr_speed - low_speed > 0.5) curr_speed -= 0.5;
+                        for(int i = 0; i < 6; i++)
+                        {
+                            if(i < 3)  command_motor_str += std::to_string(curr_speed) + "|";
+                            if(i >= 3) command_motor_str += std::to_string(low_speed)  + "|";
+                        }
+                        return command_motor_str;
+                    }
+                }
+                if(lt_value >= 0 && lt_value < 30000)
+                {
+                    double curr_speed = previous_speed;
+                    double low_speed = curr_speed;
+
+                    if(angle_js > M_PI || angle_js < - M_PI_2) angle_js = M_PI;
+                    if(angle_js < 0 && angle_js > -M_PI_2) angle_js = 0;
+                    
+                    if(angle_js > M_PI_2)
+                    {
+                        // front left
+                        low_speed = curr_speed - (curr_speed*((angle_js-M_PI_2)/M_PI_2));
+                        if(curr_speed - low_speed > 0.5) curr_speed -= 0.5;
+                        for(int i = 0; i < 6; i++)
+                        {
+
+                            if(i >= 3) command_motor_str += std::to_string(curr_speed) + "|";
+                            if(i < 3)  command_motor_str += std::to_string(low_speed)  + "|";
+                        }
+                        return command_motor_str;
+                    }
+                    if(angle_js < M_PI_2)
+                    {
+                        // front right
+                        low_speed = curr_speed - (curr_speed*((M_PI_2-angle_js)/M_PI_2));
+                        if(curr_speed - low_speed > 0.5) curr_speed -= 0.5;
+
+                        for(int i = 0; i < 6; i++)
+                        {
+                            if(i < 3)  command_motor_str += std::to_string(curr_speed) + "|";
+                            if(i >= 3) command_motor_str += std::to_string(low_speed)  + "|";
+                        }
+                        return command_motor_str;
+                    }
+                }
+                if(lt_value >= 30000)
+                {
+                    double curr_speed = previous_speed - ((max_accel*1.0) / navigation_hz);
+                    if(curr_speed < back_max_speed_Ms) curr_speed = back_max_speed_Ms;
+
+                    double low_speed = curr_speed;
+                    
+                    if(angle_js > M_PI || angle_js < - M_PI_2) angle_js = M_PI;
+                    if(angle_js < 0 && angle_js > -M_PI_2) angle_js = 0;
+
+                    if(angle_js > M_PI_2)
+                    {
+                        // front left
+                        low_speed = curr_speed - (curr_speed*((angle_js-M_PI_2)/M_PI_2));
+                        if(curr_speed - low_speed > 0.5) curr_speed -= 0.5;
+                        for(int i = 0; i < 6; i++)
+                        {
+                            if(i >= 3) command_motor_str += std::to_string(curr_speed) + "|";
+                            if(i < 3)  command_motor_str += std::to_string(low_speed)  + "|";
+                        }
+                        return command_motor_str;
+                    }
+                    if(angle_js < M_PI_2)
+                    {
+                        // front right
+                        low_speed = curr_speed - (curr_speed*((M_PI_2-angle_js)/M_PI_2));
+                        if(curr_speed - low_speed > 0.5) curr_speed -= 0.5;
+                        for(int i = 0; i < 6; i++)
+                        {
+                            if(i < 3)  command_motor_str += std::to_string(curr_speed) + "|";
+                            if(i >= 3) command_motor_str += std::to_string(low_speed)  + "|";
+                        }
+                        return command_motor_str;
+                    }
+                }
+            }
+            if(rt_value > -4000)
+            {
+                if(rt_value < 18000)
+                {
+                    double curr_speed = previous_speed + (max_deccel*1.0) / navigation_hz;
+                    if(curr_speed > 0) curr_speed = 0;
+
+                    for(int i = 0; i < 6; i++)
+                    {
+                        command_motor_str += std::to_string(curr_speed) + "|";
+                    }
+                    return command_motor_str;
+                }
+                if(rt_value >= 18000)
+                {
+                    double curr_speed = previous_speed + (max_deccel*1.5) / navigation_hz;
+                    if(curr_speed > 0) curr_speed = 0;
+
+                    for(int i = 0; i < 6; i++)
+                    {
+                        command_motor_str += std::to_string(curr_speed) + "|";
+                    }
+                    return command_motor_str;
+                }
+            }
+        }
+        else
+        {
+            double deccel_multiplicateur = 1.0;
+            if(previous_speed > 1 && previous_speed < 2) deccel_multiplicateur = 2.0;
+            if(previous_speed > 2) deccel_multiplicateur = 3.0;
+
+            double curr_speed;
+            if(previous_speed > 0)
+            {
+                curr_speed = previous_speed - (max_deccel*deccel_multiplicateur) / navigation_hz;
+                if(curr_speed < 0) curr_speed = 0;
+            }
+            else
+            {
+                curr_speed = previous_speed + (max_deccel*deccel_multiplicateur) / navigation_hz;
+                if(curr_speed > 0) curr_speed = 0;
+            }
+
+            for(int i = 0; i < 6; i++)
+            {
+                command_motor_str += std::to_string(curr_speed) + "|";
+            }
+            return command_motor_str;
+        }
+    }
+    if(previous_mode == 4)
+    {
+        // ROT LEFT 
+        if(vect_js > activation_js && (rt_value > -4000))
+        {
+            // if(angle_js < -M_PI_2) angle_js = M_PI;
+            // if(angle_js >= -M_PI_2 && angle_js < 0) angle_js = 0;
+
+            if(angle_js > M_PI_2 && angle_js <= M_PI)
+            {
+                if(rt_value < 18000)
+                {
+                    double curr_speed = previous_speed;
+                    command_motor_str += std::to_string(-1*curr_speed) + "|";
+                    command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+                    command_motor_str += std::to_string(-1*curr_speed) + "|";
+                    command_motor_str += std::to_string(curr_speed) + "|";
+                    command_motor_str += std::to_string(curr_speed/4) + "|";
+                    command_motor_str += std::to_string(curr_speed) + "|";
+                    return command_motor_str;
+                }
+                if(rt_value >= 18000)
+                {
+                    double curr_speed = previous_speed + ((max_accel*0.3) / navigation_hz);
+                    if(curr_speed > rot_max_speed_Ms) curr_speed = rot_max_speed_Ms;
+
+                    command_motor_str += std::to_string(-1*curr_speed) + "|";
+                    command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+                    command_motor_str += std::to_string(-1*curr_speed) + "|";
+                    command_motor_str += std::to_string(curr_speed) + "|";
+                    command_motor_str += std::to_string(curr_speed/4) + "|";
+                    command_motor_str += std::to_string(curr_speed) + "|";
+                    return command_motor_str;
+                }
+            }
+            else
+            {
+                double curr_speed = previous_speed - ((max_deccel*0.3) / navigation_hz);
+                if(curr_speed < 0) curr_speed = 0;
+
+                command_motor_str += std::to_string(-1*curr_speed) + "|";
+                command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+                command_motor_str += std::to_string(-1*curr_speed) + "|";
+                command_motor_str += std::to_string(curr_speed) + "|";
+                command_motor_str += std::to_string(curr_speed/4) + "|";
+                command_motor_str += std::to_string(curr_speed) + "|";
+
+                return command_motor_str;
+                return command_motor_str;
+            }
+        }
+        else
+        {
+
+            double curr_speed = previous_speed - ((max_deccel*0.3) / navigation_hz);
+            if(curr_speed < 0) curr_speed = 0;
+
+            command_motor_str += std::to_string(-1*curr_speed) + "|";
+            command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+            command_motor_str += std::to_string(-1*curr_speed) + "|";
+            command_motor_str += std::to_string(curr_speed) + "|";
+            command_motor_str += std::to_string(curr_speed/4) + "|";
+            command_motor_str += std::to_string(curr_speed) + "|";
+
+            return command_motor_str;
+            return command_motor_str;
+        }
+    }
+    if(previous_mode == 5)
+    {
+        // ROT RIGHT 
+        if(vect_js > activation_js && (rt_value > -4000))
+        {
+            // if(angle_js < -M_PI_2) angle_js = M_PI;
+            // if(angle_js >= -M_PI_2 && angle_js < 0) angle_js = 0;
+
+            if(angle_js < M_PI_2 && angle_js >= 0)
+            {
+                if(rt_value < 18000)
+                {
+                    double curr_speed = previous_speed;
+                    command_motor_str += std::to_string(curr_speed) + "|";
+                    command_motor_str += std::to_string(curr_speed/4) + "|";
+                    command_motor_str += std::to_string(curr_speed) + "|";
+                    command_motor_str += std::to_string(-1*curr_speed) + "|";
+                    command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+                    command_motor_str += std::to_string(-1*curr_speed) + "|";
+                    return command_motor_str;
+                }
+                if(rt_value >= 18000)
+                {
+                    double curr_speed = previous_speed + ((max_accel*0.3) / navigation_hz);
+                    if(curr_speed > rot_max_speed_Ms) curr_speed = rot_max_speed_Ms;
+
+                    command_motor_str += std::to_string(curr_speed) + "|";
+                    command_motor_str += std::to_string(curr_speed/4) + "|";
+                    command_motor_str += std::to_string(curr_speed) + "|";
+                    command_motor_str += std::to_string(-1*curr_speed) + "|";
+                    command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+                    command_motor_str += std::to_string(-1*curr_speed) + "|";
+                    return command_motor_str;
+                }
+            }
+            else
+            {
+                double curr_speed = previous_speed - ((max_deccel*0.3) / navigation_hz);
+                if(curr_speed < 0) curr_speed = 0;
+
+                command_motor_str += std::to_string(curr_speed) + "|";
+                command_motor_str += std::to_string(curr_speed/4) + "|";
+                command_motor_str += std::to_string(curr_speed) + "|";
+                command_motor_str += std::to_string(-1*curr_speed) + "|";
+                command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+                command_motor_str += std::to_string(-1*curr_speed) + "|";
+
+                return command_motor_str;
+            }
+        }
+        else
+        {
+
+            double curr_speed = previous_speed - ((max_deccel*0.3) / navigation_hz);
+            if(curr_speed < 0) curr_speed = 0;
+
+            command_motor_str += std::to_string(curr_speed) + "|";
+            command_motor_str += std::to_string(curr_speed/4) + "|";
+            command_motor_str += std::to_string(curr_speed) + "|";
+            command_motor_str += std::to_string(-1*curr_speed) + "|";
+            command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+            command_motor_str += std::to_string(-1*curr_speed) + "|";
+
+            return command_motor_str;
+        }
+    }
+}
+
 void Read_TXT_file(std::string path, std::vector<Data_node>& vector_node, std::vector<Data_road>& road_vector)
 { 
     vector_node.clear();
