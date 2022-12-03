@@ -231,12 +231,14 @@ struct Trajectory{
     double moy;
     double pt_M;
     int niv;
+    double max_speed;
 
-    Trajectory(double _r)
+    Trajectory(double _r, double _maxspeed)
         : r(_r)
         , moy(0.0)
         , pt_M(0.0)
         , niv(-1)
+        , max_speed(_maxspeed)
         {}
 
     Trajectory operator=(Trajectory a)
@@ -245,9 +247,10 @@ struct Trajectory{
         this->moy = a.moy;
         this->pt_M = a.pt_M;
         this->niv = a.niv;
+        this->max_speed = a.max_speed;
     }
 };
-
+//
 int auto_mode_available(sw::redis::Redis* redis);
 int manual_mode_available(sw::redis::Redis* redis);
 std::string map_manual_command(sw::redis::Redis* redis, double back_value, double front_value, double angle, double max_speed_Ms);

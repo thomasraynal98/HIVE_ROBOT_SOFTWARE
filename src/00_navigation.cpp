@@ -355,8 +355,6 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
     double x = js_x_value;
     if(x == 0) x = 0.01;
     double angle_js = atan2(js_y_value,x);
-    // if(js_y_id <= 0 && angle_js > 0) angle_js = angle_js - M_PI;
-    // if(js_y_id >= 0 && angle_js < 0) angle_js = angle_js + M_PI;
 
     std::cout << max_speed_Ms << " " << rt_value << " " << lt_value << " " << js_x_value << " " << js_y_value << " " << vect_js << " " << angle_js << std::endl;
 
@@ -615,7 +613,7 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
                         low_speed = curr_speed - curr_speed*((M_PI_2+angle_js)/M_PI_2);
 
                         if(previous_lspeed - low_speed > ((max_deccel*0.8) / navigation_hz)) low_speed = previous_lspeed - ((max_deccel*0.8) / navigation_hz);
-                        
+
                         if(curr_speed - low_speed > 0.5) curr_speed -= 0.5;
                         for(int i = 0; i < 6; i++)
                         {
@@ -1093,7 +1091,6 @@ double get_max_speed(sw::redis::Redis* redis, std::string robot_mode, std::strin
         }
         if(compare_redis_var(redis, "ROBOT_INFO_MODEL", "MK4"))
         {
-            return 0.4;
             std::vector<std::string> vect_str;
             get_redis_multi_str(redis, "NAV_ROAD_CURRENT_ID", vect_str);
             int curr_road_id = std::stoi(vect_str[1]);
@@ -1108,6 +1105,7 @@ double get_max_speed(sw::redis::Redis* redis, std::string robot_mode, std::strin
         }
     }
 
+    /* Ne doit pas arriver mais au cas ou. */
     return 0.0;
 }
 
