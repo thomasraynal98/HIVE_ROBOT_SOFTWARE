@@ -2023,8 +2023,16 @@ int main(int argc, char *argv[])
                                     }
                                     else
                                     {
+                                        double back_speed_max = -0.3;
+
                                         motor_command_str = std::to_string(get_curr_timestamp()) + "|";
-                                        motor_command_str += "-0.2|-0.2|-0.2|-0.2|-0.2|-0.2|";
+                                        for(int j = 0; j < 6; j++)
+                                        {
+                                            double v = last_command_motor_double[j] - ((max_deccel*1.0)/30);
+                                            if(v < back_speed_max) v = back_speed_max;
+                                            motor_command_str += std::to_string(v) + "|";
+                                        }
+                                        // motor_command_str += "-0.2|-0.2|-0.2|-0.2|-0.2|-0.2|";
                                     }
                                 }
                             }       
