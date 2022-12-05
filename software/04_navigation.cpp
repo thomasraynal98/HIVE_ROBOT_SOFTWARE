@@ -1770,6 +1770,7 @@ int main(int argc, char *argv[])
                                  //std::coutt << Final_traj.max_speed << " " << speed_with_obj << std::endl;
                                     
                                     if(speed_with_obj > Final_traj.max_speed) speed_with_obj = Final_traj.max_speed;
+                                    if(speed_with_obj > curr_max_speed) speed_with_obj = curr_max_speed;
 
                                     /**
                                      * NOTE:

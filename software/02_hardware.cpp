@@ -257,7 +257,7 @@ void f_thread_readwrite_pixhawk()
             accept_value = true;
 
             int tempo_hdg = messages.local_heading.heading;
-            if(tempo_hdg - std::stoi(vect_redis_str[3]) > 30)
+            if(abs(tempo_hdg - std::stoi(vect_redis_str[3])) > 30)
             {
                 counter_outlier++;
                 accept_value = false;
@@ -272,6 +272,7 @@ void f_thread_readwrite_pixhawk()
 
             if(accept_value)
             {
+                counter_outlier = 0;
                 debug_str = std::to_string(get_curr_timestamp()) + "|";
                 debug_str += vect_redis_str[1] + "|";
                 debug_str += vect_redis_str[2] + "|";
@@ -280,7 +281,7 @@ void f_thread_readwrite_pixhawk()
             }
 
             // [2] global navigation.
-            Geographic_point tempo_pos = Geographic_point((double)((messages.global_position_int.lon)/10000000), (double)((messages.global_position_int.lat)/10000000));
+            Geographic_point tempo_pos = Geographic_point(((double)(messages.global_position_int.lon)/10000000), ((double)(messages.global_position_int.lat)/10000000));
             tempo_hdg = (double)(messages.global_position_int.hdg)/100;
 
             if(get_angular_distance(&tempo_pos, &homeland) < 10000 && (tempo_hdg>0 && tempo_hdg<360))

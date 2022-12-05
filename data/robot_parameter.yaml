@@ -10,7 +10,7 @@ ROBOT_INFO_MCU_CARGO_ID          : "B"
 ROBOT_INFO_MCU_INTER_ID          : "C"
 # ROBOT_INFO_SERVER_ADRESS         : "https://api.hiverobotics.fr"
 ROBOT_INFO_SERVER_ADRESS         : "https://0.0.0.0:5000"
-ROBOT_INFO_HOME_POSITION         : "2.23649|48.89589|"                                            # "LONGITUDE|LATITUDE|"
+ROBOT_INFO_HOME_POSITION         : "2.00245|49.04642|"                                            # "LONGITUDE|LATITUDE|"
 ROBOT_MODE                       : "INIT"
 
 # SERVER

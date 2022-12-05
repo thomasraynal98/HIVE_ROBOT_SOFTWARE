@@ -350,13 +350,13 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
         }
     }
 
-    std::cout << "MODE" << previous_mode << std::endl;
+    // std::cout << "MODE" << previous_mode << std::endl;
 
     double x = js_x_value;
     if(x == 0) x = 0.01;
     double angle_js = atan2(js_y_value,x);
 
-    std::cout << max_speed_Ms << " " << rt_value << " " << lt_value << " " << js_x_value << " " << js_y_value << " " << vect_js << " " << angle_js << std::endl;
+    // std::cout << max_speed_Ms << " " << rt_value << " " << lt_value << " " << js_x_value << " " << js_y_value << " " << vect_js << " " << angle_js << std::endl;
 
     std::string command_motor_str = std::to_string(get_curr_timestamp()) + "|";
 
