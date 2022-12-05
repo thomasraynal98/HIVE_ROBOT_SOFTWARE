@@ -65,52 +65,52 @@ int main(int argc, char *argv[])
     vect_traj.push_back(Trajectory(-1.2,  0.3));
     vect_traj.push_back(Trajectory(-1.4,  0.4));
     vect_traj.push_back(Trajectory(-1.6,  0.5));
-    vect_traj.push_back(Trajectory(-1.8,  0.6));
-    vect_traj.push_back(Trajectory(-2.0,  0.7));
-    vect_traj.push_back(Trajectory(-2.5,  0.8));
-    vect_traj.push_back(Trajectory(-3.0,  0.9));
-    vect_traj.push_back(Trajectory(-4.0,  1.0));
-    vect_traj.push_back(Trajectory(-5.0,  1.0));
-    vect_traj.push_back(Trajectory(-6.0,  1.0));
-    vect_traj.push_back(Trajectory(-7.0,  1.0));
-    vect_traj.push_back(Trajectory(-8.0,  1.5));
-    vect_traj.push_back(Trajectory(-10.0, 1.5));
-    vect_traj.push_back(Trajectory(-15.0, 1.5));
-    vect_traj.push_back(Trajectory(-20.0, 1.5));
-    vect_traj.push_back(Trajectory(-25.0, 1.5));
-    vect_traj.push_back(Trajectory(-30.0, 1.5));
-    vect_traj.push_back(Trajectory(-35.0, 1.5));
-    vect_traj.push_back(Trajectory(-40.0, 2.5));
-    vect_traj.push_back(Trajectory(-45.0, 2.5));
-    vect_traj.push_back(Trajectory(-50.0, 2.5));
-    vect_traj.push_back(Trajectory(-60.0, 2.5));
+    vect_traj.push_back(Trajectory(-1.8,  0.5));
+    vect_traj.push_back(Trajectory(-2.0,  0.5));
+    vect_traj.push_back(Trajectory(-2.5,  0.6));
+    vect_traj.push_back(Trajectory(-3.0,  0.6));
+    vect_traj.push_back(Trajectory(-4.0,  0.75));
+    vect_traj.push_back(Trajectory(-5.0,  0.75));
+    vect_traj.push_back(Trajectory(-6.0,  0.75));
+    vect_traj.push_back(Trajectory(-7.0,  0.75));
+    vect_traj.push_back(Trajectory(-8.0,  1.0));
+    vect_traj.push_back(Trajectory(-10.0, 1.0));
+    vect_traj.push_back(Trajectory(-15.0, 1.0));
+    vect_traj.push_back(Trajectory(-20.0, 1.0));
+    vect_traj.push_back(Trajectory(-25.0, 1.0));
+    vect_traj.push_back(Trajectory(-30.0, 1.0));
+    vect_traj.push_back(Trajectory(-35.0, 1.0));
+    vect_traj.push_back(Trajectory(-40.0, 2.0));
+    vect_traj.push_back(Trajectory(-45.0, 2.0));
+    vect_traj.push_back(Trajectory(-50.0, 2.0));
+    vect_traj.push_back(Trajectory(-60.0, 2.0));
     vect_traj.push_back(Trajectory(-75.0, 2.5));
-    vect_traj.push_back(Trajectory(-100.0, 3.0));
+    vect_traj.push_back(Trajectory(-100.0, 2.5));
     vect_traj.push_back(Trajectory(-200.0, 3.0));
     vect_traj.push_back(Trajectory(-1000.0, 3.0));
     vect_traj.push_back(Trajectory(1000.0, 3.0));
     vect_traj.push_back(Trajectory(200.0, 3.0));
-    vect_traj.push_back(Trajectory(100.0, 3.0));
+    vect_traj.push_back(Trajectory(100.0, 2.5));
     vect_traj.push_back(Trajectory(75.0, 2.5));
-    vect_traj.push_back(Trajectory(60.0, 2.5));
-    vect_traj.push_back(Trajectory(50.0, 2.5));
-    vect_traj.push_back(Trajectory(45.0, 2.5));
-    vect_traj.push_back(Trajectory(40.0, 2.5));
-    vect_traj.push_back(Trajectory(35.0, 1.5));
-    vect_traj.push_back(Trajectory(30.0, 1.5));
-    vect_traj.push_back(Trajectory(25.0, 1.5));
-    vect_traj.push_back(Trajectory(20.0, 1.5));
-    vect_traj.push_back(Trajectory(15.0, 1.5));
-    vect_traj.push_back(Trajectory(10.0, 1.5));
-    vect_traj.push_back(Trajectory(8.0,  1.5));
-    vect_traj.push_back(Trajectory(7.0, 1.0));
-    vect_traj.push_back(Trajectory(6.0, 1.0));
-    vect_traj.push_back(Trajectory(5.0, 1.0));
-    vect_traj.push_back(Trajectory(4.0, 1.0));
-    vect_traj.push_back(Trajectory(3.0, 0.9));
-    vect_traj.push_back(Trajectory(2.5, 0.8));
-    vect_traj.push_back(Trajectory(2.0, 0.7));
-    vect_traj.push_back(Trajectory(1.8, 0.6));
+    vect_traj.push_back(Trajectory(60.0, 2.0));
+    vect_traj.push_back(Trajectory(50.0, 2.0));
+    vect_traj.push_back(Trajectory(45.0, 2.0));
+    vect_traj.push_back(Trajectory(40.0, 2.0));
+    vect_traj.push_back(Trajectory(35.0, 1.0));
+    vect_traj.push_back(Trajectory(30.0, 1.0));
+    vect_traj.push_back(Trajectory(25.0, 1.0));
+    vect_traj.push_back(Trajectory(20.0, 1.0));
+    vect_traj.push_back(Trajectory(15.0, 1.0));
+    vect_traj.push_back(Trajectory(10.0, 1.0));
+    vect_traj.push_back(Trajectory(8.0,  1.0));
+    vect_traj.push_back(Trajectory(7.0, 0.75));
+    vect_traj.push_back(Trajectory(6.0, 0.75));
+    vect_traj.push_back(Trajectory(5.0, 0.75));
+    vect_traj.push_back(Trajectory(4.0, 0.75));
+    vect_traj.push_back(Trajectory(3.0, 0.6));
+    vect_traj.push_back(Trajectory(2.5, 0.6));
+    vect_traj.push_back(Trajectory(2.0, 0.5));
+    vect_traj.push_back(Trajectory(1.8, 0.5));
     vect_traj.push_back(Trajectory(1.6, 0.5));
     vect_traj.push_back(Trajectory(1.4, 0.4));
     vect_traj.push_back(Trajectory(1.2, 0.3));
@@ -545,7 +545,7 @@ int main(int argc, char *argv[])
 
                             // motor_command_str = map_local_manual_command(&redis, curr_max_speed, vect_cmd_ctr);
                             motor_command_str = map_local_manual_command(&redis, 3.0, vect_cmd_ctr, 30, 0);
-                            std::cout << motor_command_str << std::endl;
+                         //std::cout << motor_command_str << std::endl;
                         }
                         else
                         {
@@ -557,7 +557,7 @@ int main(int argc, char *argv[])
 
                             // motor_command_str = map_local_manual_command(&redis, curr_max_speed, vect_cmd_ctr);
                             motor_command_str = map_local_manual_command(&redis, 3.0, vect_cmd_ctr, 30, 1);
-                            std::cout << motor_command_str << std::endl;
+                         //std::cout << motor_command_str << std::endl;
                         }
                     }
                 }
@@ -1272,7 +1272,7 @@ int main(int argc, char *argv[])
                             //====================
                             // ROTATION SUR PLACE
                             //====================
-                            double opt_treshold = 60;
+                            double opt_treshold = 75;
                             if(diff_angle > opt_treshold)
                             {
                                 //[!] Il faut faire demi tour vers la droite.
@@ -1303,7 +1303,7 @@ int main(int argc, char *argv[])
                                     if(std::stod(last_command_motor[1]) >  0 && std::stod(last_command_motor[4]) <  0) previous_mode = 5;
                                     if(std::stod(last_command_motor[1]) == 0 && std::stod(last_command_motor[4]) == 0) previous_mode = 1;
 
-                                    std::cout << previous_mode << std::endl;
+                                 //std::cout << previous_mode << std::endl;
 
                                     std::vector<double> last_command_motor_double;
                                     last_command_motor_double.push_back(std::stod(last_command_motor[1]));
@@ -1366,7 +1366,7 @@ int main(int argc, char *argv[])
                                 {
                                     motor_command_str += "0.2|0.2|0.2|-0.2|-0.2|-0.2|";
                                 }
-                                std::cout << motor_command_str << std::endl;
+                          //std::coutt << motor_command_str << std::endl;
                             }
                             if(diff_angle < -opt_treshold)
                             {
@@ -1380,7 +1380,7 @@ int main(int argc, char *argv[])
 
                                     std::vector<std::string> last_command_motor;
                                     get_redis_multi_str(&redis, "HARD_MOTOR_COMMAND", last_command_motor);
-                                    std::cout << "JUST BEFORE PREVIOUS " << get_redis_str(&redis, "HARD_MOTOR_COMMAND") << std::endl;
+                                 //std::cout << "JUST BEFORE PREVIOUS " << get_redis_str(&redis, "HARD_MOTOR_COMMAND") << std::endl;
                                     int previous_mode = 0;
                                     if(std::stod(last_command_motor[1]) >= 0 && std::stod(last_command_motor[4]) >= 0) previous_mode = 2;
                                     if(std::stod(last_command_motor[1]) <= 0 && std::stod(last_command_motor[4]) <= 0) previous_mode = 3;
@@ -1398,7 +1398,7 @@ int main(int argc, char *argv[])
 
                                     double previous_speed = 0;
                                     double previous_lspeed = 0;
-                                    std::cout << previous_mode << std::endl;
+                                 //std::cout << previous_mode << std::endl;
                                     if(previous_mode == 4 || previous_mode == 5) previous_speed = abs(std::stod(last_command_motor[1]));
                                     else
                                     {
@@ -1445,12 +1445,13 @@ int main(int argc, char *argv[])
                                             motor_command_str += std::to_string(v) + "|";
                                         }
                                     }
+                                 //std::coutt << motor_command_str << std::endl;
                                 }
                                 if(compare_redis_var(&redis, "ROBOT_INFO_MODEL", "MK4_LIGHT"))
                                 {
                                     motor_command_str += "-0.2|-0.2|-0.2|0.2|0.2|0.2|";
                                 }
-                                std::cout << motor_command_str << std::endl;
+                          //std::coutt << motor_command_str << std::endl;
                             }
                             if(diff_angle <= opt_treshold && diff_angle >= -opt_treshold)
                             {
@@ -1603,6 +1604,7 @@ int main(int argc, char *argv[])
 
                                 speed_with_obj = min_speed_detect;
 
+
                                 double l_radius_circle;
                                 if(diff_angle >= 0) l_radius_circle = radius_circle;
                                 else{l_radius_circle = -radius_circle;}
@@ -1618,6 +1620,11 @@ int main(int argc, char *argv[])
                                     vect_traj[i].niv  = -1;
                                     vect_traj[i].moy  = 0.0;
                                     vect_traj[i].pt_M = 0.0;
+                                }
+
+                                if(first_trajectory_safe)
+                                {
+                                   Final_traj = vect_traj[min_diff_radius_idx];
                                 }
 
                                 if(!first_trajectory_safe)
@@ -1732,6 +1739,7 @@ int main(int argc, char *argv[])
                                  * NOTE: Etape 5
                                  * On va transformer la trajectoire selectionner en commande moteur.
                                  */
+                                bool final_obstacle_detected = false;
                                 if(first_trajectory_safe || (Final_traj.r != 0.0))
                                 {
                                     if(first_trajectory_safe)
@@ -1742,7 +1750,7 @@ int main(int argc, char *argv[])
                                             memo_side = -1;
                                         }
 
-                                        Final_traj.max_speed = speed_with_obj;
+                                        speed_with_obj = Final_traj.max_speed;
                                     }
 
                                     if(Final_traj.r != 0.0) 
@@ -1759,7 +1767,8 @@ int main(int argc, char *argv[])
                                      * cependant il faut faire attention à ne pas "effacer" la diminution de vitesse du au obstacle.
                                      */
                                     
-                                    std::cout << Final_traj.max_speed << " " << speed_with_obj << " " << get_redis_str(&redis, "HARD_MOTOR_COMMAND") << std::endl;
+                                 //std::coutt << Final_traj.max_speed << " " << speed_with_obj << std::endl;
+                                    
                                     if(speed_with_obj > Final_traj.max_speed) speed_with_obj = Final_traj.max_speed;
 
                                     /**
@@ -1770,7 +1779,7 @@ int main(int argc, char *argv[])
 
                                     rapport_int_ext    = 2 * M_PI * (final_radius + std::stod(get_redis_str(&redis, "HARD_WHEEL_DISTANCE"))/2) / speed_with_obj;
                                     speed_int_with_obj = 2 * M_PI * (final_radius - std::stod(get_redis_str(&redis, "HARD_WHEEL_DISTANCE"))/2) / rapport_int_ext;
-                                    
+                                
                                     
                                     // if(final_side == 1)
                                     // {
@@ -1820,7 +1829,7 @@ int main(int argc, char *argv[])
                                         }
                                     }
 
-                                    std::cout << speed_with_obj << " " << speed_int_with_obj << " " << Final_traj.max_speed << " " << Final_traj.r << " " << first_trajectory_safe << std::endl;
+                                 //std::cout << speed_with_obj << " " << speed_int_with_obj << " " << Final_traj.max_speed << " " << Final_traj.r << " " << first_trajectory_safe << std::endl;
 
                                     std::vector<double> final_command_vector;
                                     for(int j = 0; j < 6; j++) final_command_vector.push_back(0.0);
@@ -1862,75 +1871,178 @@ int main(int argc, char *argv[])
                                      * 
                                      * Dans ce cas il faut que le moteur le plus en avance garde le rapport.
                                      */
-                                    // double rapport = speed_with_obj / speed_int_with_obj;
-                                    // bool previous_to_left = true;
-                                    // if(last_command_motor_double[1] > last_command_motor_double[4]) previous_to_left = false;
-                                    // bool curr_to_left = true;
-                                    // if(final_command_vector[1] > final_command_vector[4]) curr_to_left = false;
+                                    double rapport = speed_with_obj / speed_int_with_obj;
+                                    bool previous_to_left = true;
+                                    if(last_command_motor_double[1] > last_command_motor_double[4]) previous_to_left = false;
+                                    bool curr_to_left = true;
+                                    if(final_command_vector[1] > final_command_vector[4]) curr_to_left = false;
 
-                                    // int previous_mode = 0;
-                                    // if(last_command_motor_double[0] >= 0 && last_command_motor_double[3] >= 0) previous_mode = 2;
-                                    // if(last_command_motor_double[0] <= 0 && last_command_motor_double[3] <= 0) previous_mode = 3;
-                                    // if(last_command_motor_double[0] <  0 && last_command_motor_double[3] >  0) previous_mode = 4;
-                                    // if(last_command_motor_double[0] >  0 && last_command_motor_double[3] <  0) previous_mode = 5;
-                                    // if(last_command_motor_double[0] == 0 && last_command_motor_double[3] == 0) previous_mode = 1;
+                                    int previous_mode = 0;
+                                    if(last_command_motor_double[0] >= 0 && last_command_motor_double[3] >= 0) previous_mode = 2;
+                                    if(last_command_motor_double[0] <= 0 && last_command_motor_double[3] <= 0) previous_mode = 3;
+                                    if(last_command_motor_double[0] == 0 && last_command_motor_double[3] == 0) previous_mode = 1;
+                                    if(last_command_motor_double[0] <  0 && last_command_motor_double[3] >  0) previous_mode = 4;
+                                    if(last_command_motor_double[0] >  0 && last_command_motor_double[3] <  0) previous_mode = 5;
 
-                                    // std::cout << "LE MODE " << previous_mode << " " << previous_to_left << " " << curr_to_left << " " << rapport << std::endl;
-                                    // std::cout << "AVANT" << std::endl;
-                                    // std::cout << final_command_vector[0] << " " << final_command_vector[3] << std::endl;
-                                    // if(previous_mode == 4)
-                                    // {
-                                    //     // ROT LEFT.
-                                    //     if()
-                                    //     final_command_vector[3] = last_command_motor_double[3];
-                                    //     final_command_vector[4] = last_command_motor_double[4];
-                                    //     final_command_vector[5] = last_command_motor_double[5];
-                                    // }
-                                    // if(previous_mode == 5)
-                                    // {
-                                    //     // ROT RIGHT.
-                                    //     final_command_vector[0] = last_command_motor_double[0];
-                                    //     final_command_vector[1] = last_command_motor_double[1];
-                                    //     final_command_vector[2] = last_command_motor_double[2];
-                                    // }
-                                    // std::cout << final_command_vector[0] << " " << final_command_vector[3] << std::endl;
-                                    // std::cout << "APRES" << std::endl;
-                                    // if(previous_mode == 2)
-                                    // {
-                                    //     // FORWARD.
-                                    //     if(curr_to_left)
-                                    //     {
-                                    //         if(final_command_vector[3] / final_command_vector[0] > rapport)
-                                    //         {
-                                    //             final_command_vector[3] = last_command_motor_double[3];
-                                    //             final_command_vector[4] = last_command_motor_double[4];
-                                    //             final_command_vector[5] = last_command_motor_double[5];
-                                    //         }
-                                    //         else
-                                    //         {
-                                    //             final_command_vector[0] = last_command_motor_double[0];
-                                    //             final_command_vector[1] = last_command_motor_double[1];
-                                    //             final_command_vector[2] = last_command_motor_double[2];
-                                    //         }
-                                    //     }
-                                    //     else
-                                    //     {
-                                    //         if(final_command_vector[0] / final_command_vector[3] > rapport)
-                                    //         {
-                                    //             final_command_vector[0] = last_command_motor_double[0];
-                                    //             final_command_vector[1] = last_command_motor_double[1];
-                                    //             final_command_vector[2] = last_command_motor_double[2];
-                                    //         }
-                                    //         else
-                                    //         {
-                                    //             final_command_vector[3] = last_command_motor_double[3];
-                                    //             final_command_vector[4] = last_command_motor_double[4];
-                                    //             final_command_vector[5] = last_command_motor_double[5];
-                                    //         }
-                                    //     }
-                                    // }
+                                 //std::coutt << "MODE : " << previous_mode << std::endl;
 
+                                    std::string opti;
+                                    for(int i = 0; i < 6; i++) opti += std::to_string(optimal_command_vect[i]) + "|";
+                                 //std::coutt << opti << std::endl;
+
+                                    std::string prop;
+                                    for(int i = 0; i < 6; i++) prop += std::to_string(final_command_vector[i]) + "|";
+                                 //std::coutt << prop << std::endl;
+
+                                    if(previous_mode == 4)
+                                    {
+                                        /* Rotation vers la gauche. */
+
+                                        /* Moteur de droite doivent ralentir pour attendre. On compute leur vitesse. */
+                                        double transition_speed_ext = last_command_motor_double[3] - (max_accel/30);
+                                        if(transition_speed_ext < 0.01) transition_speed_ext = 0.01;
+
+                                        double transition_speed_central = last_command_motor_double[4] - (max_accel/30);
+                                        if(transition_speed_central < 0.01) transition_speed_central = 0.01;
+
+                                        if(final_command_vector[1] > 0) final_command_vector[1] = 0.0;
+
+                                        final_command_vector[3] = transition_speed_ext;
+                                        final_command_vector[4] = transition_speed_central;
+                                        final_command_vector[5] = transition_speed_ext;
+
+                                    }
+                                    if(previous_mode == 5)
+                                    {
+                                        /* Rotation vers la droite. */
+
+                                        /* Moteur de gauche doivent ralentir pour attendre. On compute leur vitesse. */
+                                        double transition_speed_ext = last_command_motor_double[0] - (max_accel/30);
+                                        if(transition_speed_ext < 0.01) transition_speed_ext = 0.01;
+
+                                        double transition_speed_central = last_command_motor_double[1] - (max_accel/30);
+                                        if(transition_speed_central < 0.01) transition_speed_central = 0.01;
+
+                                        if(final_command_vector[4] > 0) final_command_vector[1] = 0.0;
+
+                                        final_command_vector[0] = transition_speed_ext;
+                                        final_command_vector[1] = transition_speed_central;
+                                        final_command_vector[2] = transition_speed_ext;
+                                    }
+                                    if(previous_mode == 2)
+                                    {
+                                        if(final_side == -1)
+                                        {
+                                            /* Tout droit vers la gauche.*/
+                                            double rapport_opti = optimal_command_vect[3] / optimal_command_vect[0];
+                                            double rapport_reel = final_command_vector[3] / final_command_vector[0];
+                                         //std::coutt << final_side << " " << rapport_opti << " " << rapport_reel << std::endl;
+                                            double threshold_rapport = 0.04;
+
+                                            if(abs(rapport_opti - rapport_reel > threshold_rapport))
+                                            {
+                                                double perfect_speed = final_command_vector[0] / rapport_opti;
+                                                double new_speed;
+                                                if(abs(final_command_vector[0] - perfect_speed) > max_deccel/30)
+                                                {
+                                                    new_speed = final_command_vector[0] - (max_deccel/30);
+                                                }
+                                                else
+                                                {
+                                                    new_speed = perfect_speed;
+                                                }
+
+                                                final_command_vector[0] = new_speed;
+                                                final_command_vector[1] = new_speed;
+                                                final_command_vector[2] = new_speed;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            /* Tout droit vers la droite.*/
+                                            double rapport_opti = optimal_command_vect[0] / optimal_command_vect[3];
+                                            double rapport_reel = final_command_vector[0] / final_command_vector[3];
+                                         //std::coutt << final_side << " " << rapport_opti << " " << rapport_reel << std::endl;
+                                            double threshold_rapport = 0.04;
+
+                                            if(abs(rapport_opti - rapport_reel > threshold_rapport))
+                                            {
+                                                double perfect_speed = final_command_vector[0] / rapport_opti;
+                                                double new_speed;
+                                                if(abs(final_command_vector[3] - perfect_speed) > max_deccel/30)
+                                                {
+                                                    new_speed = final_command_vector[3] - (max_deccel/30);
+                                                }
+                                                else
+                                                {
+                                                    new_speed = perfect_speed;
+                                                }
+
+                                                final_command_vector[3] = new_speed;
+                                                final_command_vector[4] = new_speed;
+                                                final_command_vector[5] = new_speed;
+                                            }
+                                        }
+                                    }
+                                    
                                     //////////////////////////////////
+
+                                    /**
+                                     * NOTE:
+                                     * Maintenant que la trajectoire est lisser et propre on doit verifier si
+                                     * un obstacle ce trouve dedans.
+                                     * 1 - On calcul le rayon du cercle que la trajectoire va faire.
+                                     * 2 - On determine si des obtacles si trouve sans prendre en compte la zone 
+                                     * de sécurité.
+                                     */
+                                    
+                                    final_obstacle_detected = false;
+                                    /* 1 - Trouver le rayon. */
+                                    double A = speed_with_obj;
+                                    double B = speed_int_with_obj;
+                                    bool vers_la_gauche = true;
+
+                                    if(final_command_vector[0] > final_command_vector[3])
+                                    {
+                                        A = final_command_vector[0];
+                                        B = final_command_vector[3];
+                                    }
+                                    else
+                                    {
+                                        vers_la_gauche = false;
+                                        A = final_command_vector[3];
+                                        B = final_command_vector[0]; 
+                                    }
+                                    double c = (std::stod(get_redis_str(&redis, "HARD_WHEEL_DISTANCE"))/2);
+                                    double r = (-(A*c)-(B*c))/(B-A);
+
+                                    /* 2 - On cherche des obstacles dedans. */
+                                    double distance_m2 = (std::stod(get_redis_str(&redis, "HARD_WHEEL_DISTANCE")) / 2) + 0.05;
+                                    double dst_robot_obj = 0;
+                                    for(int ii = 0; ii < DirectMap_obs.size(); ii++)
+                                    {
+                                        // ETAPE 4 : POUR CHAQUE POINT PROJETER ON REGARDE SI ILS SONT DANS TRAJECTOIRE.
+                                        // ETAPE 4A: ON DETERMINE LE CENTRE DU CERCLE. 
+
+                                        if(vers_la_gauche) center_row = 100 + abs(r) * 10;
+                                        else{center_row = 100 - abs(r) * 10;}
+                                        
+                                        // ETAPE 4B : VERIFIER SI ILS SONT DANS TRAJECTOIRE
+                                        dist_obj_center = sqrt(pow(100-DirectMap_obs[ii].x,2)+pow(center_row-DirectMap_obs[ii].y,2))/10;
+                                        diff_dist_obj_robot_center = abs(dist_obj_center - abs(r));
+
+                                        if(abs(diff_dist_obj_robot_center) < distance_m2)
+                                        {
+                                            dst_robot_obj = sqrt(pow(100-DirectMap_obs[ii].x,2)+pow(100-DirectMap_obs[ii].y,2))/10;
+                                            if(dst_robot_obj < 3.0)
+                                            {
+                                                final_obstacle_detected = true;
+                                             //std::coutt << "OBSTACLE DETECTED" << std::endl;
+                                            }
+                                        }
+                                    }
+
+
 
                                     /* Fabriquer le messages string vect. */
                                     motor_command_str = std::to_string(get_curr_timestamp()) + "|";
@@ -1939,7 +2051,8 @@ int main(int argc, char *argv[])
                                         motor_command_str += std::to_string(final_command_vector[j]) + "|";
                                         
                                     }
-                                    std::cout << motor_command_str << std::endl;
+                                 //std::coutt << Final_traj.r << " " << motor_command_str << std::endl;
+
 
                                     // [SIM_CIRCLE NEW]
 
@@ -1966,15 +2079,11 @@ int main(int argc, char *argv[])
                                 }
 
                                 // ETAPE 8 : SECURITY
-                                if(first_trajectory_safe)
-                                {
-                                    // std::cout << "FIRST TRAJECTORY" << std::endl;
-                                }
-                                if(!no_obs_traj && !first_trajectory_safe || (same_dist_bool && same_dist_detection < 1.0 && vect_traj[0].niv != -1))
+                                if(!no_obs_traj && !first_trajectory_safe || (same_dist_bool && same_dist_detection < 1.0 && vect_traj[0].niv != -1) && final_obstacle_detected)
                                 {
                                     // std::cout << "[O] SECURITY" << std::endl;
 
-                                    if(same_dist_bool && same_dist_detection < 1.0 && !recul_forcer)
+                                    if((same_dist_bool && same_dist_detection < 1.0 && !recul_forcer) || (final_obstacle_detected && !recul_forcer))
                                     {
                                         // std::cout << same_dist_detection << std::endl;
                                         if(diff_angle >= 0)memo_side = 1;
@@ -1982,53 +2091,28 @@ int main(int argc, char *argv[])
                                         start_recul = get_curr_timestamp();
                                         recul_forcer = true;
                                     }
-
-                                    if(memo_side == -1)
-                                    {
-                                        //[!] Il faut faire demi tour vers la gauche.
-                                        motor_command_str = std::to_string(get_curr_timestamp()) + "|";
-                                        if(compare_redis_var(&redis, "ROBOT_INFO_MODEL", "MK4"))
-                                        {
-                                            motor_command_str += "-0.5|-0.2|-0.5|0.5|0.2|0.5|";
-                                        }
-                                        if(compare_redis_var(&redis, "ROBOT_INFO_MODEL", "MK4_LIGHT"))
-                                        {
-                                            motor_command_str += "-0.2|-0.2|-0.2|0.2|0.2|0.2|";
-                                        }
-                                    }
-                                    if(memo_side == 1)
-                                    {
-                                        //[!] Il faut faire demi tour vers la droite.
-                                        motor_command_str = std::to_string(get_curr_timestamp()) + "|";
-                                        if(compare_redis_var(&redis, "ROBOT_INFO_MODEL", "MK4"))
-                                        {
-                                            motor_command_str += "0.5|0.2|0.5|-0.5|-0.2|-0.5|";
-                                        }
-                                        if(compare_redis_var(&redis, "ROBOT_INFO_MODEL", "MK4_LIGHT"))
-                                        {
-                                            motor_command_str += "0.2|0.2|0.2|-0.2|-0.2|-0.2|";
-                                        }
-                                    }
-
-                                    // motor_command_str = std::to_string(get_curr_timestamp()) + "|";
-                                    // motor_command_str += "-0.2|-0.2|-0.2|-0.2|-0.2|-0.2|";
                                 }
 
                                 // ETAPE 8 SECURITY
                                 if(recul_forcer)
                                 {
-                                    if(time_is_over(get_curr_timestamp(), start_recul, 4000))
+                                    if(time_is_over(get_curr_timestamp(), start_recul, 2000))
                                     {
                                         recul_forcer = false;
                                     }
                                     else
                                     {
-                                        double back_speed_max = -0.3;
+                                        double back_speed_max = -0.2;
 
                                         motor_command_str = std::to_string(get_curr_timestamp()) + "|";
                                         for(int j = 0; j < 6; j++)
                                         {
-                                            double v = last_command_motor_double[j] - ((max_deccel*1.0)/30);
+                                            double v = 0;
+                                            if(last_command_motor_double[j] < 0) v = last_command_motor_double[j] - ((max_accel*1.0)/30);
+                                            else
+                                            {
+                                                v = last_command_motor_double[j] - ((max_deccel*1.0)/30);
+                                            }
                                             if(v < back_speed_max) v = back_speed_max;
                                             motor_command_str += std::to_string(v) + "|";
                                         }
