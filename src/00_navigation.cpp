@@ -287,10 +287,17 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
     double back_max_speed_Ms = -0.35;
     double rot_max_speed_Ms = 0.5; // exterieur wheel
 
+    // FOR THOMAS.
     int js_x_id  = 13;
     int js_y_id  = 14;
     int js_rt_id = 18;
     int js_lt_id = 15;
+
+    // FOR ALFRED.
+    // int js_x_id  = 13;
+    // int js_y_id  = 14;
+    // int js_rt_id = 17;
+    // int js_lt_id = 18;
 
     double vect_js   = get_distance(0.0, 0.0, std::stod(vect_controller_data[js_x_id]), std::stod(vect_controller_data[js_y_id]));
     double rt_value  = std::stod(vect_controller_data[js_rt_id]);
@@ -327,11 +334,11 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
      */
 
     int previous_mode = 0;
-    if(std::stod(last_vect_command[1]) >  0 && std::stod(last_vect_command[4]) >  0) previous_mode = 2;
+    if(std::stod(last_vect_command[1]) >= 0 && std::stod(last_vect_command[4]) >= 0) previous_mode = 2;
     if(std::stod(last_vect_command[1]) <= 0 && std::stod(last_vect_command[4]) <= 0) previous_mode = 3;
+    if(std::stod(last_vect_command[1]) == 0 && std::stod(last_vect_command[4]) == 0) previous_mode = 1;
     if(std::stod(last_vect_command[1]) <  0 && std::stod(last_vect_command[4]) >  0) previous_mode = 4;
     if(std::stod(last_vect_command[1]) >  0 && std::stod(last_vect_command[4]) <  0) previous_mode = 5;
-    if(std::stod(last_vect_command[1]) == 0 && std::stod(last_vect_command[4]) == 0) previous_mode = 1;
 
     double previous_speed = 0;
     double previous_lspeed = 0;
@@ -350,12 +357,12 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
         }
     }
 
-    // std::cout << "MODE" << previous_mode << std::endl;
 
     double x = js_x_value;
     if(x == 0) x = 0.01;
     double angle_js = atan2(js_y_value,x);
 
+    // std::cout << "MODE" << previous_mode << std::endl;
     // std::cout << max_speed_Ms << " " << rt_value << " " << lt_value << " " << js_x_value << " " << js_y_value << " " << vect_js << " " << angle_js << std::endl;
 
     std::string command_motor_str = std::to_string(get_curr_timestamp()) + "|";

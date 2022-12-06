@@ -60,8 +60,12 @@ int main(int argc, char *argv[])
      * que le robot peux choisir de prendre.
      */ 
     std::vector<Trajectory> vect_traj;
-    // vect_traj.push_back(Trajectory(-0.8));
-    // vect_traj.push_back(Trajectory(-1.0));
+    vect_traj.push_back(Trajectory(-0.1,  0.15));
+    vect_traj.push_back(Trajectory(-0.2,  0.15));
+    vect_traj.push_back(Trajectory(-0.4,  0.15));
+    vect_traj.push_back(Trajectory(-0.6,  0.2));
+    vect_traj.push_back(Trajectory(-0.8,  0.2));
+    vect_traj.push_back(Trajectory(-1.0,  0.2));
     vect_traj.push_back(Trajectory(-1.2,  0.3));
     vect_traj.push_back(Trajectory(-1.4,  0.4));
     vect_traj.push_back(Trajectory(-1.6,  0.5));
@@ -114,8 +118,12 @@ int main(int argc, char *argv[])
     vect_traj.push_back(Trajectory(1.6, 0.5));
     vect_traj.push_back(Trajectory(1.4, 0.4));
     vect_traj.push_back(Trajectory(1.2, 0.3));
-    // vect_traj.push_back(Trajectory(1.0));
-    // vect_traj.push_back(Trajectory(0.8));
+    vect_traj.push_back(Trajectory(1.0, 0.2));
+    vect_traj.push_back(Trajectory(0.8, 0.2));
+    vect_traj.push_back(Trajectory(0.6, 0.2));
+    vect_traj.push_back(Trajectory(0.4, 0.15));
+    vect_traj.push_back(Trajectory(0.2, 0.15));
+    vect_traj.push_back(Trajectory(0.1, 0.15));
 
     double final_side = 0;
     double memo_side = 0;
@@ -538,7 +546,7 @@ int main(int argc, char *argv[])
                     {
                         // MANUAL FROM LOCAL JS.
                         get_redis_multi_str(&redis, "EVENT_LOCAL_JS_DATA", vect_cmd_ctr);
-                        if(!time_is_over(get_curr_timestamp(), std::stoul(vect_cmd_ctr[0]), 1500))
+                        if(!time_is_over(get_curr_timestamp(), std::stoul(vect_cmd_ctr[0]), 2000))
                         {
                             std::string flag_manual_mode  = get_redis_str(&redis, "NAV_MANUAL_MODE");
                             curr_max_speed    = get_max_speed(&redis, "MANUAL", flag_manual_mode, vect_road);
@@ -1455,11 +1463,18 @@ int main(int argc, char *argv[])
                             }
                             if(diff_angle <= opt_treshold && diff_angle >= -opt_treshold)
                             {
-
                                 //==========================================
                                 // OBSTACLE ALGO NIV 1 : 
                                 //==========================================
                                 
+                                /**
+                                 * NOTE:
+                                 * Variables pour statistique debug.
+                                 */
+                                int trajectory_tested = 0;
+                                int64_t start_trajectory_selection_ts = get_curr_timestamp();
+
+
                                 /**
                                  * NOTE: 
                                  * Les variables suivantes sont résevé au calcul de lissage des commandes moteurs.
@@ -1604,6 +1619,7 @@ int main(int argc, char *argv[])
 
                                 speed_with_obj = min_speed_detect;
 
+                                trajectory_tested++;
 
                                 double l_radius_circle;
                                 if(diff_angle >= 0) l_radius_circle = radius_circle;
@@ -1647,6 +1663,8 @@ int main(int argc, char *argv[])
                                     // ETAPE 3 : ON PARCOURS CHAQUE TRAJECTOIRE
                                     for(int i = 0; i < vect_traj.size(); i++)
                                     {
+                                        trajectory_tested++;
+
                                         sum_moy = 0.0;
                                         min_dist_obj_robot = 20;
                                         comptor_pt = 0;
@@ -1688,6 +1706,8 @@ int main(int argc, char *argv[])
                                         }
                                     }
                                 }
+
+                                std::cout << "count traj tested: " << trajectory_tested << " total time : " << get_elapsed_time(get_curr_timestamp(), start_trajectory_selection_ts) << std::endl;
 
                                 // ETAPE CLEANING:
                                 bool no_obs_traj = false;
@@ -1732,8 +1752,6 @@ int main(int argc, char *argv[])
                                         }
                                     }
                                 }
-
-                                // std::cout << std::endl << std::endl;
 
                                 /**
                                  * NOTE: Etape 5
@@ -1780,53 +1798,62 @@ int main(int argc, char *argv[])
 
                                     rapport_int_ext    = 2 * M_PI * (final_radius + std::stod(get_redis_str(&redis, "HARD_WHEEL_DISTANCE"))/2) / speed_with_obj;
                                     speed_int_with_obj = 2 * M_PI * (final_radius - std::stod(get_redis_str(&redis, "HARD_WHEEL_DISTANCE"))/2) / rapport_int_ext;
-                                
                                     
-                                    // if(final_side == 1)
-                                    // {
-                                    //     motor_command_str = std::to_string(get_curr_timestamp()) + "|";
-                                    //     for(int i = 0; i < 3; i++)
-                                    //     {
-                                    //         motor_command_str += std::to_string(speed_with_obj) + "|";
-                                    //     }
-                                    //     for(int i = 3; i < 6; i++)
-                                    //     {
-                                    //         motor_command_str += std::to_string(speed_int_with_obj) + "|";
-                                    //     }
-                                    // }
-                                    // else
-                                    // {
-                                    //     motor_command_str = std::to_string(get_curr_timestamp()) + "|";
-                                    //     for(int i = 0; i < 3; i++)
-                                    //     {
-                                    //         motor_command_str += std::to_string(speed_int_with_obj) + "|";
-                                    //     }
-                                    //     for(int i = 3; i < 6; i++)
-                                    //     {
-                                    //         motor_command_str += std::to_string(speed_with_obj) + "|";
-                                    //     }
-                                    // }
+                                    /**
+                                     * NOTE:
+                                     * Afin de diminuer les frottements du au systême de 6 roues, les 4 roues diagonal doivent tourner
+                                     * plus vite que les 2 roues centrales.
+                                     */
+                                    double r_ext_diag = sqrt(pow((final_radius + std::stod(get_redis_str(&redis, "HARD_WHEEL_DISTANCE"))/2),2) + pow(std::stod(get_redis_str(&redis, "HARD_WHEEL_SEPARATION")),2));
+                                    double r_int_diag = sqrt(pow((final_radius - std::stod(get_redis_str(&redis, "HARD_WHEEL_DISTANCE"))/2),2) + pow(std::stod(get_redis_str(&redis, "HARD_WHEEL_SEPARATION")),2));
+                                    double speed_ext_diag = 2 * M_PI * r_ext_diag / rapport_int_ext;
+                                    double speed_int_diag = 2 * M_PI * r_int_diag / rapport_int_ext;
+
+                                    std::cout << "RADIUS: " << r_ext_diag << " " << r_int_diag << " SPEEDEXT: " << speed_ext_diag << " " << speed_with_obj << " SPEEDINT: " << speed_int_diag << " " << speed_int_with_obj << std::endl;
+
+                                    /**
+                                     * NOTE:
+                                     * On calcul les commandes optimals.
+                                     */
+
                                     std::vector<double> optimal_command_vect;
                                     if(final_side == 1)
                                     {
+                                        // les valeurs de i non pas vraiment d'interet. Leur ordre oui.
                                         for(int i = 0; i < 3; i++)
                                         {
-                                            optimal_command_vect.push_back(speed_with_obj);
+                                            if(i==1) optimal_command_vect.push_back(speed_with_obj);
+                                            else
+                                            {
+                                                optimal_command_vect.push_back(speed_ext_diag);
+                                            }
                                         }
                                         for(int i = 3; i < 6; i++)
                                         {
-                                            optimal_command_vect.push_back(speed_int_with_obj);
+                                            if(i==4) optimal_command_vect.push_back(speed_int_with_obj);
+                                            else
+                                            {
+                                                optimal_command_vect.push_back(speed_int_diag);
+                                            }
                                         }
                                     }
                                     else
                                     {
-                                        for(int i = 0; i < 3; i++)
-                                        {
-                                            optimal_command_vect.push_back(speed_int_with_obj);
-                                        }
                                         for(int i = 3; i < 6; i++)
                                         {
-                                            optimal_command_vect.push_back(speed_with_obj);
+                                            if(i==4) optimal_command_vect.push_back(speed_int_with_obj);
+                                            else
+                                            {
+                                                optimal_command_vect.push_back(speed_int_diag);
+                                            }
+                                        }
+                                        for(int i = 0; i < 3; i++)
+                                        {
+                                            if(i==1) optimal_command_vect.push_back(speed_with_obj);
+                                            else
+                                            {
+                                                optimal_command_vect.push_back(speed_ext_diag);
+                                            }
                                         }
                                     }
 
@@ -1885,15 +1912,15 @@ int main(int argc, char *argv[])
                                     if(last_command_motor_double[0] <  0 && last_command_motor_double[3] >  0) previous_mode = 4;
                                     if(last_command_motor_double[0] >  0 && last_command_motor_double[3] <  0) previous_mode = 5;
 
-                                 //std::coutt << "MODE : " << previous_mode << std::endl;
+                                    //std::coutt << "MODE : " << previous_mode << std::endl;
 
                                     std::string opti;
                                     for(int i = 0; i < 6; i++) opti += std::to_string(optimal_command_vect[i]) + "|";
-                                 //std::coutt << opti << std::endl;
+                                    //std::coutt << opti << std::endl;
 
                                     std::string prop;
                                     for(int i = 0; i < 6; i++) prop += std::to_string(final_command_vector[i]) + "|";
-                                 //std::coutt << prop << std::endl;
+                                    //std::coutt << prop << std::endl;
 
                                     if(previous_mode == 4)
                                     {
@@ -2052,7 +2079,7 @@ int main(int argc, char *argv[])
                                         motor_command_str += std::to_string(final_command_vector[j]) + "|";
                                         
                                     }
-                                 //std::coutt << Final_traj.r << " " << motor_command_str << std::endl;
+                                    //std::coutt << Final_traj.r << " " << motor_command_str << std::endl;
 
 
                                     // [SIM_CIRCLE NEW]
@@ -2076,7 +2103,7 @@ int main(int argc, char *argv[])
                                 }
                                 else
                                 {
-                                    // std::cout << "NE DOIT PAS ARRIVER " << get_curr_timestamp() << std::endl;
+                                    std::cout << "NE DOIT PAS ARRIVER " << get_curr_timestamp() << std::endl;
                                 }
 
                                 // ETAPE 8 : SECURITY
@@ -2092,6 +2119,10 @@ int main(int argc, char *argv[])
                                         start_recul = get_curr_timestamp();
                                         recul_forcer = true;
                                     }
+                                }
+                                else
+                                {
+                                    // std::cout << "LET'S MAKE CODE CRASH" << std::endl;
                                 }
 
                                 // ETAPE 8 SECURITY
@@ -2118,6 +2149,27 @@ int main(int argc, char *argv[])
                                             motor_command_str += std::to_string(v) + "|";
                                         }
                                         // motor_command_str += "-0.2|-0.2|-0.2|-0.2|-0.2|-0.2|";
+                                    }
+                                }
+
+                                // ETAPE 9 : Pour ne pas faire crash le code.
+                                std::vector<std::string> vect_verif;
+                                get_multi_str(motor_command_str, vect_verif);
+                                if(vect_verif.size() <= 2)
+                                {
+                                    double back_speed_max = -0.2;
+                                    std::cout << "BUG BUG BUG" << std::endl << std::endl << std::endl << std::endl;
+                                    motor_command_str = std::to_string(get_curr_timestamp()) + "|";
+                                    for(int j = 0; j < 6; j++)
+                                    {
+                                        double v = 0;
+                                        if(last_command_motor_double[j] < 0) v = last_command_motor_double[j] - ((max_accel*1.0)/30);
+                                        else
+                                        {
+                                            v = last_command_motor_double[j] - ((max_accel*1.0)/30);
+                                        }
+                                        if(v < back_speed_max) v = back_speed_max;
+                                        motor_command_str += std::to_string(v) + "|";
                                     }
                                 }
                             }       
@@ -2351,6 +2403,51 @@ int main(int argc, char *argv[])
                 }
                 
                 motor_command_str += std::to_string(v) + "|";
+            }
+        }
+
+        //==============================================
+        // PROTECTION CRASH : 
+        // Permet de proteger contre pas de selection de trajectoire
+        // en mode automatique.
+        //==============================================
+
+        if(true)
+        {
+            std::vector<std::string> vect_control;
+            get_multi_str(motor_command_str, vect_control);
+            if(vect_control.size() <= 2)
+            {
+                std::cout << "[!][!] L'algorythme à commis une erreur que le code à pu corriger. [!][!]" << std::endl;
+                std::vector<std::string> last_command_motor;
+                get_redis_multi_str(&redis, "HARD_MOTOR_COMMAND", last_command_motor);
+                motor_command_str = std::to_string(get_curr_timestamp()) + "|";
+
+                std::vector<double> last_command_motor_double;
+                last_command_motor_double.push_back(std::stod(last_command_motor[1]));
+                last_command_motor_double.push_back(std::stod(last_command_motor[2]));
+                last_command_motor_double.push_back(std::stod(last_command_motor[3]));
+                last_command_motor_double.push_back(std::stod(last_command_motor[4]));
+                last_command_motor_double.push_back(std::stod(last_command_motor[5]));
+                last_command_motor_double.push_back(std::stod(last_command_motor[6]));
+
+                double max_deccel = std::stod(get_redis_str(&redis,"NAV_MAX_DECCEL"));
+                for(int j = 0; j < 6; j++)
+                {
+                    double v;
+                    if(last_command_motor_double[j] > 0)
+                    {
+                        v = last_command_motor_double[j] - ((max_deccel*1.2)/30);
+                        if(v < 0) v = 0;
+                    }
+                    else
+                    {
+                        v = last_command_motor_double[j] + ((max_deccel*1.2)/30);
+                        if(v > 0) v = 0;
+                    }
+                    
+                    motor_command_str += std::to_string(v) + "|";
+                }
             }
         }
 
