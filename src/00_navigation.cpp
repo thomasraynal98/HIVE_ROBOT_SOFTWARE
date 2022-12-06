@@ -288,16 +288,16 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
     double rot_max_speed_Ms = 0.5; // exterieur wheel
 
     // FOR THOMAS.
-    int js_x_id  = 13;
-    int js_y_id  = 14;
-    int js_rt_id = 18;
-    int js_lt_id = 15;
-
-    // FOR ALFRED.
     // int js_x_id  = 13;
     // int js_y_id  = 14;
-    // int js_rt_id = 17;
-    // int js_lt_id = 18;
+    // int js_rt_id = 18;
+    // int js_lt_id = 15;
+
+    // FOR ALFRED.
+    int js_x_id  = 13;
+    int js_y_id  = 14;
+    int js_rt_id = 17;
+    int js_lt_id = 18;
 
     double vect_js   = get_distance(0.0, 0.0, std::stod(vect_controller_data[js_x_id]), std::stod(vect_controller_data[js_y_id]));
     double rt_value  = std::stod(vect_controller_data[js_rt_id]);
