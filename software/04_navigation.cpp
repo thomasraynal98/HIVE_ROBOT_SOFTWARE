@@ -146,6 +146,9 @@ int main(int argc, char *argv[])
     // variable qui va indiquer les risques de colisions et le type de colision.
     int collision_risk = 0;
 
+    // variable propre au phase de realignement
+    double realig_rapport = 1;
+
     //==================================================
     // MAIN LOOP :
     // Cette boucle contient l'unique thread du programme
@@ -1362,12 +1365,72 @@ int main(int argc, char *argv[])
                                     }
                                     if(previous_mode == 2)
                                     {
+                                        /**
+                                         * NOTE: 
+                                         * A ce moment le robot doit frainer avant de se realigner, le probleme
+                                         * c'est qu'il doit conserver le rapport qu'il avait avant le réalignement
+                                         * car si on diminue de manière uniforme les moteurs, la courbe qu'il était 
+                                         * entrain de faire va augmenter et causer des problemes.
+                                         */
+
+                                        std::vector<double> opti_command; // opti : dans le sens pour frainer le plus vite.
                                         for(int j = 0; j < 6; j++)
                                         {
                                             double v = last_command_motor_double[j] - (max_deccel/30);
                                             if(v < 0) v = 0;
-                                            motor_command_str += std::to_string(v) + "|";
+                                            opti_command.push_back(v);
                                         }
+
+                                        // std::string deb = "0000408640000|";
+                                        // for(int i = 0; i < 6; i++)
+                                        // {
+                                        //     deb += std::to_string(opti_command[i]) + "|";
+                                        // }
+                                        // std::cout << "FIR: " << deb << std::endl;
+
+                                        bool rot_left = true;
+                                        if(last_command_motor_double[0] - last_command_motor_double[3] < 0) rot_left = false;
+
+                                        double rapport_opti = realig_rapport;
+
+                                        if(rot_left)
+                                        {
+                                            // les moteurs moins rapides doivent frainer plus doucement car ceux rapide fraine
+                                            // au max.
+                                            double good_speed_right = opti_command[0] / rapport_opti;
+                                            if(abs(opti_command[3] - good_speed_right) > (max_accel/30))
+                                            {
+                                                opti_command[0] += (max_accel/30);
+                                                opti_command[1] += (max_accel/30);
+                                                opti_command[2] += (max_accel/30);
+                                            }
+                                            else
+                                            {
+                                                opti_command[3] = good_speed_right;
+                                                opti_command[4] = good_speed_right;
+                                                opti_command[5] = good_speed_right;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            double good_speed_left = opti_command[3] / rapport_opti;
+                                            if(abs(opti_command[0] - good_speed_left) > (max_accel/30))
+                                            {
+                                                opti_command[0] += (max_accel/30);
+                                                opti_command[1] += (max_accel/30);
+                                                opti_command[2] += (max_accel/30);
+                                            }
+                                            else
+                                            {
+                                                opti_command[0] = good_speed_left;
+                                                opti_command[1] = good_speed_left;
+                                                opti_command[2] = good_speed_left;
+                                            }
+                                        }
+                                        
+                                        for(int i = 0; i < 6; i++) motor_command_str += std::to_string(opti_command[i]) + "|";
+                                        // std::cout << "END: " << motor_command_str << std::endl;
+
                                     }
                                 }
                                 if(compare_redis_var(&redis, "ROBOT_INFO_MODEL", "MK4_LIGHT"))
@@ -1446,14 +1509,73 @@ int main(int argc, char *argv[])
                                     }
                                     if(previous_mode == 2)
                                     {
+                                        /**
+                                         * NOTE: 
+                                         * A ce moment le robot doit frainer avant de se realigner, le probleme
+                                         * c'est qu'il doit conserver le rapport qu'il avait avant le réalignement
+                                         * car si on diminue de manière uniforme les moteurs, la courbe qu'il était 
+                                         * entrain de faire va augmenter et causer des problemes.
+                                         */
+
+                                        std::vector<double> opti_command; // opti : dans le sens pour frainer le plus vite.
                                         for(int j = 0; j < 6; j++)
                                         {
-                                            double v = last_command_motor_double[j] - ((max_deccel*1.2)/30);
+                                            double v = last_command_motor_double[j] - (max_deccel/30);
                                             if(v < 0) v = 0;
-                                            motor_command_str += std::to_string(v) + "|";
+                                            opti_command.push_back(v);
                                         }
+
+                                        // std::string deb = "0000408640000|";
+                                        // for(int i = 0; i < 6; i++)
+                                        // {
+                                        //     deb += std::to_string(opti_command[i]) + "|";
+                                        // }
+                                        // std::cout << "FIR: " << deb << std::endl;
+
+                                        bool rot_left = true;
+                                        if(last_command_motor_double[0] - last_command_motor_double[3] < 0) rot_left = false;
+
+                                        double rapport_opti = realig_rapport;
+
+                                        if(rot_left)
+                                        {
+                                            // les moteurs moins rapides doivent frainer plus doucement car ceux rapide fraine
+                                            // au max.
+                                            double good_speed_right = opti_command[0] / rapport_opti;
+                                            if(abs(opti_command[3] - good_speed_right) > (max_accel/30))
+                                            {
+                                                opti_command[0] += (max_accel/30);
+                                                opti_command[1] += (max_accel/30);
+                                                opti_command[2] += (max_accel/30);
+                                            }
+                                            else
+                                            {
+                                                opti_command[3] = good_speed_right;
+                                                opti_command[4] = good_speed_right;
+                                                opti_command[5] = good_speed_right;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            double good_speed_left = opti_command[3] / rapport_opti;
+                                            if(abs(opti_command[0] - good_speed_left) > (max_accel/30))
+                                            {
+                                                opti_command[0] += (max_accel/30);
+                                                opti_command[1] += (max_accel/30);
+                                                opti_command[2] += (max_accel/30);
+                                            }
+                                            else
+                                            {
+                                                opti_command[0] = good_speed_left;
+                                                opti_command[1] = good_speed_left;
+                                                opti_command[2] = good_speed_left;
+                                            }
+                                        }
+                                        
+                                        for(int i = 0; i < 6; i++) motor_command_str += std::to_string(opti_command[i]) + "|";
+                                        // std::cout << "END: " << motor_command_str << std::endl;
+
                                     }
-                                 //std::coutt << motor_command_str << std::endl;
                                 }
                                 if(compare_redis_var(&redis, "ROBOT_INFO_MODEL", "MK4_LIGHT"))
                                 {
@@ -1785,7 +1907,7 @@ int main(int argc, char *argv[])
                                      * cependant il faut faire attention à ne pas "effacer" la diminution de vitesse du au obstacle.
                                      */
                                     
-                                 //std::coutt << Final_traj.max_speed << " " << speed_with_obj << std::endl;
+                                    // std::coutt << Final_traj.max_speed << " " << speed_with_obj << std::endl;
                                     
                                     if(speed_with_obj > Final_traj.max_speed) speed_with_obj = Final_traj.max_speed;
                                     if(speed_with_obj > curr_max_speed) speed_with_obj = curr_max_speed;
@@ -1809,7 +1931,7 @@ int main(int argc, char *argv[])
                                     double speed_ext_diag = 2 * M_PI * r_ext_diag / rapport_int_ext;
                                     double speed_int_diag = 2 * M_PI * r_int_diag / rapport_int_ext;
 
-                                    std::cout << "RADIUS: " << r_ext_diag << " " << r_int_diag << " SPEEDEXT: " << speed_ext_diag << " " << speed_with_obj << " SPEEDINT: " << speed_int_diag << " " << speed_int_with_obj << std::endl;
+                                    // std::cout << "RADIUS: " << r_ext_diag << " " << r_int_diag << " SPEEDEXT: " << speed_ext_diag << " " << speed_with_obj << " SPEEDINT: " << speed_int_diag << " " << speed_int_with_obj << std::endl;
 
                                     /**
                                      * NOTE:
@@ -1857,7 +1979,7 @@ int main(int argc, char *argv[])
                                         }
                                     }
 
-                                 //std::cout << speed_with_obj << " " << speed_int_with_obj << " " << Final_traj.max_speed << " " << Final_traj.r << " " << first_trajectory_safe << std::endl;
+                                    // std::cout << speed_with_obj << " " << speed_int_with_obj << " " << Final_traj.max_speed << " " << Final_traj.r << " " << first_trajectory_safe << std::endl;
 
                                     std::vector<double> final_command_vector;
                                     for(int j = 0; j < 6; j++) final_command_vector.push_back(0.0);
@@ -1963,11 +2085,12 @@ int main(int argc, char *argv[])
                                         {
                                             /* Tout droit vers la gauche.*/
                                             double rapport_opti = optimal_command_vect[3] / optimal_command_vect[0];
+                                            realig_rapport = rapport_opti;
                                             double rapport_reel = final_command_vector[3] / final_command_vector[0];
                                          //std::coutt << final_side << " " << rapport_opti << " " << rapport_reel << std::endl;
-                                            double threshold_rapport = 0.04;
+                                            double threshold_rapport = 0.02;
 
-                                            if(abs(rapport_opti - rapport_reel > threshold_rapport))
+                                            if(abs(rapport_opti - rapport_reel) > threshold_rapport)
                                             {
                                                 double perfect_speed = final_command_vector[0] / rapport_opti;
                                                 double new_speed;
@@ -1989,11 +2112,12 @@ int main(int argc, char *argv[])
                                         {
                                             /* Tout droit vers la droite.*/
                                             double rapport_opti = optimal_command_vect[0] / optimal_command_vect[3];
+                                            realig_rapport = rapport_opti;
                                             double rapport_reel = final_command_vector[0] / final_command_vector[3];
                                          //std::coutt << final_side << " " << rapport_opti << " " << rapport_reel << std::endl;
-                                            double threshold_rapport = 0.04;
+                                            double threshold_rapport = 0.02;
 
-                                            if(abs(rapport_opti - rapport_reel > threshold_rapport))
+                                            if(abs(rapport_opti - rapport_reel) > threshold_rapport)
                                             {
                                                 double perfect_speed = final_command_vector[0] / rapport_opti;
                                                 double new_speed;
@@ -2012,6 +2136,8 @@ int main(int argc, char *argv[])
                                             }
                                         }
                                     }
+
+                                    if(realig_rapport == 0) realig_rapport = 1.0;
                                     
                                     //////////////////////////////////
 
@@ -2137,19 +2263,83 @@ int main(int argc, char *argv[])
                                         double back_speed_max = -0.2;
 
                                         motor_command_str = std::to_string(get_curr_timestamp()) + "|";
-                                        for(int j = 0; j < 6; j++)
+
+                                        int previous_mode = 0;
+                                        if(last_command_motor_double[0] >= 0 && last_command_motor_double[3] >= 0) previous_mode = 2;
+                                        if(last_command_motor_double[0] <= 0 && last_command_motor_double[3] <= 0) previous_mode = 3;
+                                        if(last_command_motor_double[0] == 0 && last_command_motor_double[3] == 0) previous_mode = 1;
+                                        if(last_command_motor_double[0] <  0 && last_command_motor_double[3] >  0) previous_mode = 4;
+                                        if(last_command_motor_double[0] >  0 && last_command_motor_double[3] <  0) previous_mode = 5;
+
+                                        if(previous_mode == 2)
                                         {
-                                            double v = 0;
-                                            if(last_command_motor_double[j] < 0) v = last_command_motor_double[j] - ((max_accel*1.0)/30);
+                                            std::vector<double> opti_command; // opti : dans le sens pour frainer le plus vite.
+                                            for(int j = 0; j < 6; j++)
+                                            {
+                                                double v = last_command_motor_double[j] - (max_deccel/30);
+                                                if(v < 0) v = 0;
+                                                opti_command.push_back(v);
+                                            }
+
+                                            bool rot_left = true;
+                                            if(last_command_motor_double[0] - last_command_motor_double[3] < 0) rot_left = false;
+
+                                            double rapport_opti = realig_rapport;
+
+                                            if(rot_left)
+                                            {
+                                                // les moteurs moins rapides doivent frainer plus doucement car ceux rapide fraine
+                                                // au max.
+                                                double good_speed_right = opti_command[0] / rapport_opti;
+                                                if(abs(opti_command[3] - good_speed_right) > (max_accel/30))
+                                                {
+                                                    opti_command[0] += (max_accel/30);
+                                                    opti_command[1] += (max_accel/30);
+                                                    opti_command[2] += (max_accel/30);
+                                                }
+                                                else
+                                                {
+                                                    opti_command[3] = good_speed_right;
+                                                    opti_command[4] = good_speed_right;
+                                                    opti_command[5] = good_speed_right;
+                                                }
+                                            }
                                             else
                                             {
-                                                v = last_command_motor_double[j] - ((max_deccel*1.0)/30);
+                                                double good_speed_left = opti_command[3] / rapport_opti;
+                                                if(abs(opti_command[0] - good_speed_left) > (max_accel/30))
+                                                {
+                                                    opti_command[0] += (max_accel/30);
+                                                    opti_command[1] += (max_accel/30);
+                                                    opti_command[2] += (max_accel/30);
+                                                }
+                                                else
+                                                {
+                                                    opti_command[0] = good_speed_left;
+                                                    opti_command[1] = good_speed_left;
+                                                    opti_command[2] = good_speed_left;
+                                                }
                                             }
-                                            if(v < back_speed_max) v = back_speed_max;
-                                            motor_command_str += std::to_string(v) + "|";
+                                            
+                                            for(int i = 0; i < 6; i++) motor_command_str += std::to_string(opti_command[i]) + "|";
                                         }
-                                        // motor_command_str += "-0.2|-0.2|-0.2|-0.2|-0.2|-0.2|";
+                                        else
+                                        {
+                                            for(int j = 0; j < 6; j++)
+                                            {
+                                                double v = 0;
+                                                if(last_command_motor_double[j] < 0) v = last_command_motor_double[j] - ((max_accel*1.0)/30);
+                                                else
+                                                {
+                                                    /* Il doit frainer avant la marche arrière, mais de la bonne manière en respectant le ratio. */
+                                                    v = last_command_motor_double[j] - ((max_deccel*1.0)/30);
+                                                }
+                                                if(v < back_speed_max) v = back_speed_max;
+                                                motor_command_str += std::to_string(v) + "|";
+                                            }
+                                        }
                                     }
+                                    std::cout << motor_command_str << std::endl;
                                 }
 
                                 // ETAPE 9 : Pour ne pas faire crash le code.
@@ -2374,6 +2564,9 @@ int main(int argc, char *argv[])
         {
             // motor_command_str = std::to_string(get_curr_timestamp()) + "|0.0|0.0|0.0|0.0|0.0|0.0|";
 
+            double max_deccel = std::stod(get_redis_str(&redis,"NAV_MAX_DECCEL"));
+            double max_accel  = std::stod(get_redis_str(&redis,"NAV_MAX_ACCEL"));
+
             std::vector<std::string> last_command_motor;
             get_redis_multi_str(&redis, "HARD_MOTOR_COMMAND", last_command_motor);
 
@@ -2387,50 +2580,71 @@ int main(int argc, char *argv[])
             last_command_motor_double.push_back(std::stod(last_command_motor[5]));
             last_command_motor_double.push_back(std::stod(last_command_motor[6]));
 
-            double max_deccel = std::stod(get_redis_str(&redis,"NAV_MAX_DECCEL"));
-            for(int j = 0; j < 6; j++)
+            /**
+             * NOTE: 
+             * A ce moment le robot doit frainer avant de se realigner, le probleme
+             * c'est qu'il doit conserver le rapport qu'il avait avant le réalignement
+             * car si on diminue de manière uniforme les moteurs, la courbe qu'il était 
+             * entrain de faire va augmenter et causer des problemes.
+             */
+
+            int previous_mode = 0;
+            if(last_command_motor_double[0] >= 0 && last_command_motor_double[3] >= 0) previous_mode = 2;
+
+            if(previous_mode == 2)
             {
-                double v;
-                if(last_command_motor_double[j] > 0)
+                std::vector<double> opti_command; // opti : dans le sens pour frainer le plus vite.
+                for(int j = 0; j < 6; j++)
                 {
-                    v = last_command_motor_double[j] - ((max_deccel*1.2)/30);
+                    double v = last_command_motor_double[j] - (max_deccel/30);
                     if(v < 0) v = 0;
+                    opti_command.push_back(v);
+                }
+
+                bool rot_left = true;
+                if(last_command_motor_double[0] - last_command_motor_double[3] < 0) rot_left = false;
+
+                double rapport_opti = realig_rapport;
+
+                if(rot_left)
+                {
+                    // les moteurs moins rapides doivent frainer plus doucement car ceux rapide fraine
+                    // au max.
+                    double good_speed_right = opti_command[0] / rapport_opti;
+                    if(abs(opti_command[3] - good_speed_right) > (max_accel/30))
+                    {
+                        opti_command[0] += (max_accel/30);
+                        opti_command[1] += (max_accel/30);
+                        opti_command[2] += (max_accel/30);
+                    }
+                    else
+                    {
+                        opti_command[3] = good_speed_right;
+                        opti_command[4] = good_speed_right;
+                        opti_command[5] = good_speed_right;
+                    }
                 }
                 else
                 {
-                    v = last_command_motor_double[j] + ((max_deccel*1.2)/30);
-                    if(v > 0) v = 0;
+                    double good_speed_left = opti_command[3] / rapport_opti;
+                    if(abs(opti_command[0] - good_speed_left) > (max_accel/30))
+                    {
+                        opti_command[0] += (max_accel/30);
+                        opti_command[1] += (max_accel/30);
+                        opti_command[2] += (max_accel/30);
+                    }
+                    else
+                    {
+                        opti_command[0] = good_speed_left;
+                        opti_command[1] = good_speed_left;
+                        opti_command[2] = good_speed_left;
+                    }
                 }
                 
-                motor_command_str += std::to_string(v) + "|";
+                for(int i = 0; i < 6; i++) motor_command_str += std::to_string(opti_command[i]) + "|";
             }
-        }
-
-        //==============================================
-        // PROTECTION CRASH : 
-        // Permet de proteger contre pas de selection de trajectoire
-        // en mode automatique.
-        //==============================================
-
-        if(true)
-        {
-            std::vector<std::string> vect_control;
-            get_multi_str(motor_command_str, vect_control);
-            if(vect_control.size() <= 2)
+            else
             {
-                std::cout << "[!][!] L'algorythme à commis une erreur que le code à pu corriger. [!][!]" << std::endl;
-                std::vector<std::string> last_command_motor;
-                get_redis_multi_str(&redis, "HARD_MOTOR_COMMAND", last_command_motor);
-                motor_command_str = std::to_string(get_curr_timestamp()) + "|";
-
-                std::vector<double> last_command_motor_double;
-                last_command_motor_double.push_back(std::stod(last_command_motor[1]));
-                last_command_motor_double.push_back(std::stod(last_command_motor[2]));
-                last_command_motor_double.push_back(std::stod(last_command_motor[3]));
-                last_command_motor_double.push_back(std::stod(last_command_motor[4]));
-                last_command_motor_double.push_back(std::stod(last_command_motor[5]));
-                last_command_motor_double.push_back(std::stod(last_command_motor[6]));
-
                 double max_deccel = std::stod(get_redis_str(&redis,"NAV_MAX_DECCEL"));
                 for(int j = 0; j < 6; j++)
                 {
@@ -2452,11 +2666,116 @@ int main(int argc, char *argv[])
         }
 
         //==============================================
+        // PROTECTION CRASH : 
+        // Permet de proteger contre pas de selection de trajectoire
+        // en mode automatique.
+        //==============================================
+
+        if(true)
+        {
+            std::vector<std::string> vect_control;
+            get_multi_str(motor_command_str, vect_control);
+            double max_deccel = std::stod(get_redis_str(&redis,"NAV_MAX_DECCEL"));
+            double max_accel  = std::stod(get_redis_str(&redis,"NAV_MAX_ACCEL"));
+
+            if(vect_control.size() <= 2)
+            {
+                std::cout << "[!][!] L'algorythme à commis une erreur que le code à pu corriger. [!][!]" << std::endl;
+                std::vector<std::string> last_command_motor;
+                get_redis_multi_str(&redis, "HARD_MOTOR_COMMAND", last_command_motor);
+                motor_command_str = std::to_string(get_curr_timestamp()) + "|";
+
+                std::vector<double> last_command_motor_double;
+                last_command_motor_double.push_back(std::stod(last_command_motor[1]));
+                last_command_motor_double.push_back(std::stod(last_command_motor[2]));
+                last_command_motor_double.push_back(std::stod(last_command_motor[3]));
+                last_command_motor_double.push_back(std::stod(last_command_motor[4]));
+                last_command_motor_double.push_back(std::stod(last_command_motor[5]));
+                last_command_motor_double.push_back(std::stod(last_command_motor[6]));
+
+                int previous_mode = 0;
+                if(last_command_motor_double[0] >= 0 && last_command_motor_double[3] >= 0) previous_mode = 2;
+
+                if(previous_mode == 2)
+                {
+                    std::vector<double> opti_command; // opti : dans le sens pour frainer le plus vite.
+                    for(int j = 0; j < 6; j++)
+                    {
+                        double v = last_command_motor_double[j] - (max_deccel/30);
+                        if(v < 0) v = 0;
+                        opti_command.push_back(v);
+                    }
+
+                    bool rot_left = true;
+                    if(last_command_motor_double[0] - last_command_motor_double[3] < 0) rot_left = false;
+
+                    double rapport_opti = realig_rapport;
+
+                    if(rot_left)
+                    {
+                        // les moteurs moins rapides doivent frainer plus doucement car ceux rapide fraine
+                        // au max.
+                        double good_speed_right = opti_command[0] / rapport_opti;
+                        if(abs(opti_command[3] - good_speed_right) > (max_accel/30))
+                        {
+                            opti_command[0] += (max_accel/30);
+                            opti_command[1] += (max_accel/30);
+                            opti_command[2] += (max_accel/30);
+                        }
+                        else
+                        {
+                            opti_command[3] = good_speed_right;
+                            opti_command[4] = good_speed_right;
+                            opti_command[5] = good_speed_right;
+                        }
+                    }
+                    else
+                    {
+                        double good_speed_left = opti_command[3] / rapport_opti;
+                        if(abs(opti_command[0] - good_speed_left) > (max_accel/30))
+                        {
+                            opti_command[0] += (max_accel/30);
+                            opti_command[1] += (max_accel/30);
+                            opti_command[2] += (max_accel/30);
+                        }
+                        else
+                        {
+                            opti_command[0] = good_speed_left;
+                            opti_command[1] = good_speed_left;
+                            opti_command[2] = good_speed_left;
+                        }
+                    }
+                    
+                    for(int i = 0; i < 6; i++) motor_command_str += std::to_string(opti_command[i]) + "|";
+                }
+                else
+                {
+                    double max_deccel = std::stod(get_redis_str(&redis,"NAV_MAX_DECCEL"));
+                    for(int j = 0; j < 6; j++)
+                    {
+                        double v;
+                        if(last_command_motor_double[j] > 0)
+                        {
+                            v = last_command_motor_double[j] - ((max_deccel*1.2)/30);
+                            if(v < 0) v = 0;
+                        }
+                        else
+                        {
+                            v = last_command_motor_double[j] + ((max_deccel*1.2)/30);
+                            if(v > 0) v = 0;
+                        }
+                        
+                        motor_command_str += std::to_string(v) + "|";
+                    }
+                }
+            }
+        }
+
+        //==============================================
         // PUBLISH RESULT : 
         // Envoyer a redis la commande final qui sera lu
         // par le programme 02.
         //==============================================
-
         set_redis_var(&redis, "HARD_MOTOR_COMMAND", motor_command_str);
     }
 }

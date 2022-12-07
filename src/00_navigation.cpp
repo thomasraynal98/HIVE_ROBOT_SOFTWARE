@@ -1201,7 +1201,7 @@ int get_road_ID_from_pos(sw::redis::Redis* redis, std::vector<Data_road>& vect_r
                 return road_ID;
             }
             else
-            {
+            {                                   
                 double min_dist_m = 99999000;
                 double dist_m     = 99999000;
                 int road_ID       = -1;
