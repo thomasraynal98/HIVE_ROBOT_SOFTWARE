@@ -1203,8 +1203,16 @@ int main(int argc, char *argv[])
                             }
 
                             //[NOTE] L'algo de base prend en compte la vélocité du robot pour choisir la prochaine cible. Ici non. Pour l'instant.
-                            xs = xt ;//+ (-xf);
-                            ys = yt ;//+ (-yf);
+                            
+                            std::vector<std::string> last_command_motor;
+                            get_redis_multi_str(&redis, "HARD_MOTOR_COMMAND", last_command_motor);
+                            double force = (std::stod(last_command_motor[1]) + std::stod(last_command_motor[3])) / 2;
+                            if(force < 1.0) force = 1.0;
+                            xf   = force * cos(deg_to_rad(curr_position.g_hdg));
+                            yf   = force * sin(deg_to_rad(curr_position.g_hdg));
+
+                            xs = xt + (-xf);
+                            ys = yt + (-yf);
      
 
                             // [SIM_AUTO_POINT_TARGET]
