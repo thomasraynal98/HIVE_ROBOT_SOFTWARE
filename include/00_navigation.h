@@ -232,13 +232,15 @@ struct Trajectory{
     double pt_M;
     int niv;
     double max_speed;
+    double security_dist;
 
-    Trajectory(double _r, double _maxspeed)
+    Trajectory(double _r, double _maxspeed, double _securitydist)
         : r(_r)
         , moy(0.0)
         , pt_M(0.0)
         , niv(-1)
         , max_speed(_maxspeed)
+        , security_dist(_securitydist)
         {}
 
     Trajectory operator=(Trajectory a)
@@ -248,6 +250,7 @@ struct Trajectory{
         this->pt_M = a.pt_M;
         this->niv = a.niv;
         this->max_speed = a.max_speed;
+        this->security_dist = a.security_dist;
     }
 };
 //

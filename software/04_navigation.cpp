@@ -59,71 +59,144 @@ int main(int argc, char *argv[])
      * Ce vecteur permet de stocker l'ensemble des trajectoires automatiques
      * que le robot peux choisir de prendre.
      */ 
-    std::vector<Trajectory> vect_traj;
-    vect_traj.push_back(Trajectory(-0.1,  0.15));
-    vect_traj.push_back(Trajectory(-0.2,  0.15));
-    vect_traj.push_back(Trajectory(-0.4,  0.15));
-    vect_traj.push_back(Trajectory(-0.6,  0.2));
-    vect_traj.push_back(Trajectory(-0.8,  0.2));
-    vect_traj.push_back(Trajectory(-1.0,  0.2));
-    vect_traj.push_back(Trajectory(-1.2,  0.3));
-    vect_traj.push_back(Trajectory(-1.4,  0.4));
-    vect_traj.push_back(Trajectory(-1.6,  0.5));
-    vect_traj.push_back(Trajectory(-1.8,  0.5));
-    vect_traj.push_back(Trajectory(-2.0,  0.5));
-    vect_traj.push_back(Trajectory(-2.5,  0.6));
-    vect_traj.push_back(Trajectory(-3.0,  0.6));
-    vect_traj.push_back(Trajectory(-4.0,  0.75));
-    vect_traj.push_back(Trajectory(-5.0,  0.75));
-    vect_traj.push_back(Trajectory(-6.0,  0.75));
-    vect_traj.push_back(Trajectory(-7.0,  0.75));
-    vect_traj.push_back(Trajectory(-8.0,  1.0));
-    vect_traj.push_back(Trajectory(-10.0, 1.0));
-    vect_traj.push_back(Trajectory(-15.0, 1.0));
-    vect_traj.push_back(Trajectory(-20.0, 1.0));
-    vect_traj.push_back(Trajectory(-25.0, 1.0));
-    vect_traj.push_back(Trajectory(-30.0, 1.0));
-    vect_traj.push_back(Trajectory(-35.0, 1.0));
-    vect_traj.push_back(Trajectory(-40.0, 2.0));
-    vect_traj.push_back(Trajectory(-45.0, 2.0));
-    vect_traj.push_back(Trajectory(-50.0, 2.0));
-    vect_traj.push_back(Trajectory(-60.0, 2.0));
-    vect_traj.push_back(Trajectory(-75.0, 2.5));
-    vect_traj.push_back(Trajectory(-100.0, 2.5));
-    vect_traj.push_back(Trajectory(-200.0, 3.0));
-    vect_traj.push_back(Trajectory(-1000.0, 3.0));
-    vect_traj.push_back(Trajectory(1000.0, 3.0));
-    vect_traj.push_back(Trajectory(200.0, 3.0));
-    vect_traj.push_back(Trajectory(100.0, 2.5));
-    vect_traj.push_back(Trajectory(75.0, 2.5));
-    vect_traj.push_back(Trajectory(60.0, 2.0));
-    vect_traj.push_back(Trajectory(50.0, 2.0));
-    vect_traj.push_back(Trajectory(45.0, 2.0));
-    vect_traj.push_back(Trajectory(40.0, 2.0));
-    vect_traj.push_back(Trajectory(35.0, 1.0));
-    vect_traj.push_back(Trajectory(30.0, 1.0));
-    vect_traj.push_back(Trajectory(25.0, 1.0));
-    vect_traj.push_back(Trajectory(20.0, 1.0));
-    vect_traj.push_back(Trajectory(15.0, 1.0));
-    vect_traj.push_back(Trajectory(10.0, 1.0));
-    vect_traj.push_back(Trajectory(8.0,  1.0));
-    vect_traj.push_back(Trajectory(7.0, 0.75));
-    vect_traj.push_back(Trajectory(6.0, 0.75));
-    vect_traj.push_back(Trajectory(5.0, 0.75));
-    vect_traj.push_back(Trajectory(4.0, 0.75));
-    vect_traj.push_back(Trajectory(3.0, 0.6));
-    vect_traj.push_back(Trajectory(2.5, 0.6));
-    vect_traj.push_back(Trajectory(2.0, 0.5));
-    vect_traj.push_back(Trajectory(1.8, 0.5));
-    vect_traj.push_back(Trajectory(1.6, 0.5));
-    vect_traj.push_back(Trajectory(1.4, 0.4));
-    vect_traj.push_back(Trajectory(1.2, 0.3));
-    vect_traj.push_back(Trajectory(1.0, 0.2));
-    vect_traj.push_back(Trajectory(0.8, 0.2));
-    vect_traj.push_back(Trajectory(0.6, 0.2));
-    vect_traj.push_back(Trajectory(0.4, 0.15));
-    vect_traj.push_back(Trajectory(0.2, 0.15));
-    vect_traj.push_back(Trajectory(0.1, 0.15));
+
+
+    /* New TRAJECTORY system ! */
+    std::vector<Trajectory> vect_traj_80;
+    std::vector<Trajectory> vect_traj_50;
+    std::vector<Trajectory> vect_traj_25;
+    std::vector<Trajectory> vect_traj_10;
+
+    vect_traj_80.push_back(Trajectory(   -6, 2.0, 1.20));
+    vect_traj_80.push_back(Trajectory(   -8, 2.0, 1.20));
+    vect_traj_80.push_back(Trajectory(  -10, 2.5, 0.80));
+    vect_traj_80.push_back(Trajectory(  -15, 2.5, 0.80));
+    vect_traj_80.push_back(Trajectory(  -20, 2.5, 0.80));
+    vect_traj_80.push_back(Trajectory(  -30, 3.0, 0.80));
+    vect_traj_80.push_back(Trajectory(  -40, 3.0, 0.80));
+    vect_traj_80.push_back(Trajectory(  -60, 3.0, 0.80));
+    vect_traj_80.push_back(Trajectory(  -80, 3.0, 0.80));
+    vect_traj_80.push_back(Trajectory( -100, 3.0, 0.80));
+    vect_traj_80.push_back(Trajectory(-1000, 3.0, 0.80));
+    vect_traj_80.push_back(Trajectory(-1000, 3.0, 0.80));
+    vect_traj_80.push_back(Trajectory( 1000, 3.0, 0.80));
+    vect_traj_80.push_back(Trajectory(  100, 3.0, 0.80));
+    vect_traj_80.push_back(Trajectory(   80, 3.0, 0.80));
+    vect_traj_80.push_back(Trajectory(   60, 3.0, 0.80));
+    vect_traj_80.push_back(Trajectory(   40, 3.0, 0.80));
+    vect_traj_80.push_back(Trajectory(   30, 3.0, 0.80));
+    vect_traj_80.push_back(Trajectory(   20, 2.5, 0.80));
+    vect_traj_80.push_back(Trajectory(   15, 2.5, 0.80));
+    vect_traj_80.push_back(Trajectory(   10, 2.5, 0.80));
+    vect_traj_80.push_back(Trajectory(   -8, 2.0, 1.20));
+    vect_traj_80.push_back(Trajectory(   -6, 2.0, 1.20));
+
+    // vect_traj_50.push_back(Trajectory( -1.0, 1.0, 0.50));
+    // vect_traj_50.push_back(Trajectory(-1.25, 1.0, 0.50));
+    // vect_traj_50.push_back(Trajectory(-1.50, 1.0, 0.50));
+    // vect_traj_50.push_back(Trajectory(-1.75, 1.0, 0.50));
+    // vect_traj_50.push_back(Trajectory( -2.0, 1.0, 0.50));
+    // vect_traj_50.push_back(Trajectory( -2.5, 1.0, 0.50));
+    // vect_traj_50.push_back(Trajectory(   -3, 1.0, 0.50));
+    // vect_traj_50.push_back(Trajectory(   -4, 2.0, 0.50));
+    // vect_traj_50.push_back(Trajectory(   -5, 2.0, 0.50));
+    // vect_traj_50.push_back(Trajectory(   -6, 2.5, 0.50));
+    vect_traj_50.push_back(Trajectory(   -8, 2.5, 0.60));
+    vect_traj_50.push_back(Trajectory(  -10, 2.5, 0.60));
+    vect_traj_50.push_back(Trajectory(  -15, 2.5, 0.60));
+    vect_traj_50.push_back(Trajectory(  -20, 2.5, 0.60));
+    vect_traj_50.push_back(Trajectory(  -30, 3.0, 0.60));
+    vect_traj_50.push_back(Trajectory(  -40, 3.0, 0.60));
+    vect_traj_50.push_back(Trajectory(  -60, 3.0, 0.60));
+    vect_traj_50.push_back(Trajectory(  -80, 3.0, 0.60));
+    vect_traj_50.push_back(Trajectory(   80, 3.0, 0.60));
+    vect_traj_50.push_back(Trajectory(   60, 3.0, 0.60));
+    vect_traj_50.push_back(Trajectory(   40, 3.0, 0.60));
+    vect_traj_50.push_back(Trajectory(   30, 3.0, 0.60));
+    vect_traj_50.push_back(Trajectory(   20, 2.5, 0.60));
+    vect_traj_50.push_back(Trajectory(   15, 2.5, 0.60));
+    vect_traj_50.push_back(Trajectory(   10, 2.5, 0.60));
+    vect_traj_50.push_back(Trajectory(    8, 2.5, 0.60));
+    // vect_traj_50.push_back(Trajectory(    6, 2.5, 0.50));
+    // vect_traj_50.push_back(Trajectory(    5, 2.0, 0.50));
+    // vect_traj_50.push_back(Trajectory(    4, 2.0, 0.50));
+    // vect_traj_50.push_back(Trajectory(    3, 1.0, 0.50));
+    // vect_traj_50.push_back(Trajectory(  2.5, 1.0, 0.50));
+    // vect_traj_50.push_back(Trajectory(  2.0, 1.0, 0.50));
+    // vect_traj_50.push_back(Trajectory( 1.75, 1.0, 0.50));
+    // vect_traj_50.push_back(Trajectory( 1.50, 1.0, 0.50));
+    // vect_traj_50.push_back(Trajectory( 1.25, 1.0, 0.50));
+    // vect_traj_50.push_back(Trajectory(  1.0, 1.0, 0.50));
+
+    // vect_traj_25.push_back(Trajectory(-1.00, 1.0, 0.30));
+    // vect_traj_25.push_back(Trajectory(-1.25, 1.0, 0.30));
+    // vect_traj_25.push_back(Trajectory(-1.50, 1.0, 0.30));
+    // vect_traj_25.push_back(Trajectory(-1.75, 1.0, 0.30));
+    // vect_traj_25.push_back(Trajectory(-2.00, 1.0, 0.30));
+    vect_traj_25.push_back(Trajectory(-2.25, 1.0, 0.25));
+    vect_traj_25.push_back(Trajectory(-2.50, 1.0, 0.25));
+    vect_traj_25.push_back(Trajectory(-2.75, 1.0, 0.25));
+    vect_traj_25.push_back(Trajectory(-3.00, 1.0, 0.25));
+    vect_traj_25.push_back(Trajectory(-3.25, 1.5, 0.25));
+    vect_traj_25.push_back(Trajectory( -3.5, 1.5, 0.25));
+    vect_traj_25.push_back(Trajectory( -4.0, 2.0, 0.25));
+    vect_traj_25.push_back(Trajectory( -4.5, 2.0, 0.25));
+    vect_traj_25.push_back(Trajectory(   -5, 2.0, 0.25));
+    vect_traj_25.push_back(Trajectory(   -6, 2.5, 0.25));
+    vect_traj_25.push_back(Trajectory(  -50, 2.5, 0.25));
+    vect_traj_25.push_back(Trajectory( -200, 2.5, 0.25));
+    vect_traj_25.push_back(Trajectory(-1000, 2.5, 0.25));
+    vect_traj_25.push_back(Trajectory( 1000, 2.5, 0.25));
+    vect_traj_25.push_back(Trajectory(  200, 2.5, 0.25));
+    vect_traj_25.push_back(Trajectory(   50, 2.5, 0.25));
+    vect_traj_25.push_back(Trajectory(    6, 2.5, 0.25));
+    vect_traj_25.push_back(Trajectory(    5, 2.0, 0.25));
+    vect_traj_25.push_back(Trajectory(  4.5, 2.0, 0.25));
+    vect_traj_25.push_back(Trajectory(  4.0, 2.0, 0.25));
+    vect_traj_25.push_back(Trajectory(  3.5, 1.5, 0.25));
+    vect_traj_25.push_back(Trajectory( 3.25, 1.5, 0.25));
+    vect_traj_25.push_back(Trajectory( 3.00, 1.0, 0.25));
+    vect_traj_25.push_back(Trajectory( 2.75, 1.0, 0.25));
+    vect_traj_25.push_back(Trajectory( 2.50, 1.0, 0.25));
+    vect_traj_25.push_back(Trajectory( 2.25, 1.0, 0.25));
+    // vect_traj_25.push_back(Trajectory( 2.00, 1.0, 0.30));
+    // vect_traj_25.push_back(Trajectory( 1.75, 1.0, 0.30));
+    // vect_traj_25.push_back(Trajectory( 1.50, 1.0, 0.30));
+    // vect_traj_25.push_back(Trajectory( 1.25, 1.0, 0.30));
+    // vect_traj_25.push_back(Trajectory( 1.00, 1.0, 0.30));
+
+    vect_traj_10.push_back(Trajectory(-0.40, 0.2, 0.10));
+    vect_traj_10.push_back(Trajectory(-0.45, 0.2, 0.10));
+    vect_traj_10.push_back(Trajectory(-0.50, 0.2, 0.10));
+    vect_traj_10.push_back(Trajectory(-0.55, 0.5, 0.10));
+    vect_traj_10.push_back(Trajectory(-0.60, 0.5, 0.10));
+    vect_traj_10.push_back(Trajectory(-0.70, 0.5, 0.10));
+    vect_traj_10.push_back(Trajectory(-0.80, 0.5, 0.10));
+    vect_traj_10.push_back(Trajectory(-0.90, 0.8, 0.10));
+    vect_traj_10.push_back(Trajectory(-1.00, 0.8, 0.10));
+    vect_traj_10.push_back(Trajectory(-1.25, 0.8, 0.10));
+    vect_traj_10.push_back(Trajectory(-1.50, 0.8, 0.10));
+    vect_traj_10.push_back(Trajectory( 1.50, 0.8, 0.10));
+    vect_traj_10.push_back(Trajectory( 1.25, 0.8, 0.10));
+    vect_traj_10.push_back(Trajectory( 1.00, 0.8, 0.10));
+    vect_traj_10.push_back(Trajectory( 0.90, 0.8, 0.10));
+    vect_traj_10.push_back(Trajectory( 0.80, 0.5, 0.10));
+    vect_traj_10.push_back(Trajectory( 0.70, 0.5, 0.10));
+    vect_traj_10.push_back(Trajectory( 0.60, 0.5, 0.10));
+    vect_traj_10.push_back(Trajectory( 0.55, 0.5, 0.10));
+    vect_traj_10.push_back(Trajectory( 0.50, 0.2, 0.10));
+    vect_traj_10.push_back(Trajectory( 0.45, 0.2, 0.10));
+    vect_traj_10.push_back(Trajectory( 0.40, 0.2, 0.10));
+
+    std::vector<std::vector<Trajectory>> trajectory_registre;
+    trajectory_registre.push_back(vect_traj_80);
+    trajectory_registre.push_back(vect_traj_50);
+    trajectory_registre.push_back(vect_traj_25);
+    trajectory_registre.push_back(vect_traj_10);
+
+    double memory_dist = 0.8;
+
+    /* End TRAJECTORY new system ! */
 
     double final_side = 0;
     double memo_side = 0;
@@ -160,6 +233,8 @@ int main(int argc, char *argv[])
     {
         next += std::chrono::milliseconds((int)ms_for_loop);
         std::this_thread::sleep_until(next);
+
+        // std::cout << get_curr_timestamp() << std::endl;
 
         //==============================================
         // HMR : 
@@ -1185,7 +1260,7 @@ int main(int argc, char *argv[])
                             double ddx = XX - xb;
                             double ddy = YY - yb;
                             double dist_proj_to_target = sqrt(pow(ddx,2)+pow(ddy,2));
-
+                            // std::cout << "dist: " << dist_proj_to_target << std::endl;
                             if(dist_proj_to_target >= std::stod(get_redis_str(&redis, "NAV_AUTO_TARGET_EXTENSION")))
                             {
                                 // TODO: Avancer de x mètres le point projeter sur road.
@@ -1197,11 +1272,13 @@ int main(int argc, char *argv[])
                             {
                                 double bearing_start_target = get_bearing(curr_target_node, next_target_node);
                                 double road_extension = std::stod(get_redis_str(&redis, "NAV_AUTO_TARGET_EXTENSION")) - dist_proj_to_target;
+                                // road_extension = 5.0;
 
-                                if(road_extension < 0) road_extension = 0;
+                                // if(road_extension < 0) road_extension = 0;
 
-                                xt = xb + (road_extension + 2.0) * cos(deg_to_rad(bearing_start_target));
-                                yt = yb + (road_extension + 2.0) * sin(deg_to_rad(bearing_start_target));
+                                xt = xb + (abs(road_extension)) * cos(deg_to_rad(bearing_start_target));
+                                yt = yb + (abs(road_extension)) * sin(deg_to_rad(bearing_start_target));
+
                             }
 
                             //[NOTE] L'algo de base prend en compte la vélocité du robot pour choisir la prochaine cible. Ici non. Pour l'instant.
@@ -1293,7 +1370,7 @@ int main(int argc, char *argv[])
                             //====================
                             // ROTATION SUR PLACE
                             //====================
-                            double opt_treshold = 75;
+                            double opt_treshold = 120;
                             if(diff_angle > opt_treshold || (realig_process_start && diff_angle > 0))
                             {
                                 //[!] Verifier le process de realignement.
@@ -1661,7 +1738,8 @@ int main(int argc, char *argv[])
                                 double x = 0.0; double y = 0.0; double angle = 0.0;
                                 double angle_diff2 = 0.0;
                                 double idx_col = 0.0; double idx_row = 0.0;
-                                double distance_m = std::stod(get_redis_str(&redis, "HARD_WHEEL_DISTANCE")) / 2 + std::stod(get_redis_str(&redis, "NAV_OBJ_SAFETY_DIST_M"));
+                                memory_dist = 0.8;
+                                double distance_m = std::stod(get_redis_str(&redis, "HARD_WHEEL_DISTANCE")) / 2 + memory_dist;
                                 double center_row = 0.0;
                                 bool first_trajectory_safe = true;
                                 double min_diff_radius = 9999;
@@ -1680,13 +1758,14 @@ int main(int argc, char *argv[])
                                 double final_radius = radius_circle;
                                 final_side = 0;
 
+
                                 if(diff_angle > 0) final_side = 1;
                                 else{final_side = -1;}
 
                                 // ETAPE 0 : INIT LA PROJECTION DES POINTS.
                                 std::vector<Vect_2D> DirectMap_obs;
                                 std::vector<double> DirectMap_obs_diff_angle;
-                                Trajectory Final_traj = Trajectory(0.0, 0.0);
+                                Trajectory Final_traj = Trajectory(0.0, 0.0, 0.0);
 
                                 // ETAPE 1 : TEST ORIGINAL TRAJECTORY
                                 for(auto obj : vect_obj)
@@ -1757,6 +1836,8 @@ int main(int argc, char *argv[])
                                     }
                                 }
 
+                                // std::cout << vect_obj.size() << " CLEAN : " << DirectMap_obs.size() << std::endl;
+
                                 speed_with_obj = min_speed_detect;
 
                                 trajectory_tested++;
@@ -1764,134 +1845,217 @@ int main(int argc, char *argv[])
                                 double l_radius_circle;
                                 if(diff_angle >= 0) l_radius_circle = radius_circle;
                                 else{l_radius_circle = -radius_circle;}
-                                for(int i = 0; i < vect_traj.size(); i++)
+                                min_diff_radius = 9999;
+                                for(int i = 0; i < trajectory_registre[0].size(); i++)
                                 {
-                                    if(abs(vect_traj[i].r - l_radius_circle) < min_diff_radius)
+                                    if(abs(trajectory_registre[0][i].r - l_radius_circle) < min_diff_radius)
                                     {
-                                        min_diff_radius = abs(vect_traj[i].r - l_radius_circle);
+                                        min_diff_radius = abs(trajectory_registre[0][i].r - l_radius_circle);
                                         min_diff_radius_idx = i;
                                     }
 
                                     // ETAPE 2B : RESET
-                                    vect_traj[i].niv  = -1;
-                                    vect_traj[i].moy  = 0.0;
-                                    vect_traj[i].pt_M = 0.0;
+                                    trajectory_registre[0][i].niv  = -1;
+                                    trajectory_registre[0][i].moy  = 0.0;
+                                    trajectory_registre[0][i].pt_M = 0.0;
                                 }
 
+                                bool trajectory_found_in_bash = false;
                                 if(first_trajectory_safe)
                                 {
-                                   Final_traj = vect_traj[min_diff_radius_idx];
+                                   trajectory_found_in_bash = true;
+                                   Final_traj = trajectory_registre[0][min_diff_radius_idx];
                                 }
 
                                 if(!first_trajectory_safe)
                                 {
-                                    // ETAPE 2 : ON INIT LES NIV DE TRAJECTOIRE EN PARTANT DE LA PLUS PROCHE A L'ORIGINAL JUSQUA LA PLUS ELOIGNER.
-                                    for(int i = min_diff_radius_idx; i >= 0; i--)
+                                    trajectory_found_in_bash = false;
+                                    /**
+                                     * NOTE: Nouvelle algorythme de selection de trajectoire.
+                                     * 
+                                     */
+
+                                    std::vector<double> activation_dist_vect;
+                                    activation_dist_vect.push_back(6.0);
+                                    activation_dist_vect.push_back(4.0);
+                                    activation_dist_vect.push_back(2.3);
+                                    activation_dist_vect.push_back(0.6);
+
+                                    for(int y = 0; y < 4 && (!trajectory_found_in_bash); y++)
                                     {
-                                        vect_traj[i].niv = comptor;
-                                        comptor++;
-                                    }
-
-                                    comptor = 0;
-
-                                    for(int i = min_diff_radius_idx; i < vect_traj.size(); i++)
-                                    {
-                                        vect_traj[i].niv = comptor;
-                                        comptor++;
-                                    }
-                                    
-                                    // ETAPE 3 : ON PARCOURS CHAQUE TRAJECTOIRE
-                                    for(int i = 0; i < vect_traj.size(); i++)
-                                    {
-                                        trajectory_tested++;
-
-                                        sum_moy = 0.0;
-                                        min_dist_obj_robot = 20;
-                                        comptor_pt = 0;
-                                        for(int ii = 0; ii < DirectMap_obs.size(); ii++)
-                                        {
-                                            // ETAPE 4 : POUR CHAQUE POINT PROJETER ON REGARDE SI ILS SONT DANS TRAJECTOIRE.
-                                            // ETAPE 4A: ON DETERMINE LE CENTRE DU CERCLE. 
-                                            // PS: ADD DIRECT A L'INIT
-                                            if(vect_traj[i].r >= 0) center_row = 100 + abs(vect_traj[i].r) * 10;
-                                            else{center_row = 100 - abs(vect_traj[i].r) * 10;}
-                                            
-                                            // ETAPE 4B : VERIFIER SI ILS SONT DANS TRAJECTOIRE
-                                            dist_obj_center = sqrt(pow(100-DirectMap_obs[ii].x,2)+pow(center_row-DirectMap_obs[ii].y,2))/10;
-                                            diff_dist_obj_robot_center = abs(dist_obj_center - abs(vect_traj[i].r));
-                                            if(diff_dist_obj_robot_center < distance_m)
-                                            {
-                                                // REVOIR
-                                                // dist_obj_robot = 2 * M_PI * abs(vect_traj[i].r) * ((180 - 2 * DirectMap_obs_diff_angle[i]) / 360);
-                                                dist_obj_robot = sqrt(pow(100 - DirectMap_obs[ii].x ,2) + pow(100 - DirectMap_obs[ii].y ,2)) / 10;
-
-
-                                                // ETAPE 4Ci : DETERMINE SI C LE POINT LE PLUS PROCHE
-                                                if(dist_obj_robot < min_dist_obj_robot) min_dist_obj_robot = dist_obj_robot;
-                                            }
-                                            else
-                                            {
-                                                // ETAPE 4Cii : ON UPDATE LA MOYENNE
-                                                sum_moy += diff_dist_obj_robot_center;
-                                                comptor_pt++;
-                                            }
-                                        }
-
-                                        vect_traj[i].moy  = sum_moy / comptor_pt;
-                                        vect_traj[i].pt_M = min_dist_obj_robot;
-
-                                        if(Final_traj.pt_M < vect_traj[i].pt_M)
-                                        {
-                                            Final_traj = vect_traj[i];
-                                        }
-                                    }
-                                }
-
-                                std::cout << "count traj tested: " << trajectory_tested << " total time : " << get_elapsed_time(get_curr_timestamp(), start_trajectory_selection_ts) << std::endl;
-
-                                // ETAPE CLEANING:
-                                bool no_obs_traj = false;
-                                bool same_dist_bool = true;
-                                double same_dist_detection = vect_traj[0].pt_M;
-
-                                for(auto traj : vect_traj)
-                                {
-                                    if(same_dist_detection != traj.pt_M)
-                                    {
-                                        same_dist_bool = false;
-                                    }
-
-                                    if(traj.r == Final_traj.r) 
-                                    {
-                                        // std::cout << "[X] ";
-                                        no_obs_traj = true;
+                                        /* Pour ce bacht, identifier l'index le plus proche de la perfect trajectory. */
+                                        /* La variable est "min_diff_radius_idx" */
                                         
-                                        if(traj.r >= 0) memo_side = 1;
-                                        else{memo_side = -1;}
-                                    }
-                                    else
-                                    {
-                                        // std::cout << "[ ] ";
-                                    }
-                                    // std::cout << traj.r << " " << traj.niv << " " << traj.pt_M << " " << traj.moy << std::endl;
+                                        distance_m = (std::stod(get_redis_str(&redis, "HARD_WHEEL_DISTANCE")) / 2) + trajectory_registre[y][0].security_dist;
+                                        memory_dist = distance_m;
 
-                                    // VERIFIER SI IL N'Y A AUCUNE TRAJECTOIRE DISPO.
-                                }
-
-                                // CHECK IF LE MEILLEUR A UNE TAILLE DE 20 PRENDRE LE PLUS PROCHE DE L4ORIGNIAL.
-                                int best_dist_orig = Final_traj.niv;
-                                if(Final_traj.pt_M == 20)
-                                {
-                                    for(int i = 0; i < vect_traj.size(); i++)
-                                    {
-                                        if(vect_traj[i].pt_M == 20 && vect_traj[i].niv < best_dist_orig)
+                                        double l_radius_circle;
+                                        if(diff_angle >= 0) l_radius_circle = radius_circle;
+                                        else{l_radius_circle = -radius_circle;}
+                                        for(int i = 0; i < trajectory_registre[y].size(); i++)
                                         {
-                                            best_dist_orig = vect_traj[i].niv;
-                                            Final_traj = vect_traj[i];
-                                            // std::cout << " [C] Changement." << std::endl;
+                                            if(abs(trajectory_registre[y][i].r - l_radius_circle) < min_diff_radius)
+                                            {
+                                                min_diff_radius = abs(trajectory_registre[y][i].r - l_radius_circle);
+                                                min_diff_radius_idx = i;
+                                            }
+
+                                            // ETAPE 2B : RESET INTERN VALUE.
+                                            trajectory_registre[y][i].niv  = -1;
+                                            trajectory_registre[y][i].moy  = 0.0;
+                                            trajectory_registre[y][i].pt_M = 0.0;
                                         }
+
+                                        /**
+                                         * NOTE: grace au minimun, on va initialiser l'ordre de priorité des trajectoires de ce bacht.
+                                         * 
+                                         */
+
+                                        for(int i = min_diff_radius_idx; i >= 0; i--)
+                                        {
+                                            trajectory_registre[y][i].niv = comptor;
+                                            comptor++;
+                                        }
+
+                                        comptor = 0;
+
+                                        for(int i = min_diff_radius_idx; i < trajectory_registre[y].size(); i++)
+                                        {
+                                            trajectory_registre[y][i].niv = comptor;
+                                            comptor++;
+                                        }
+
+                                        /**
+                                         * NOTE: on parcour l'ensemble des trajectoires du bacht pour trouver une trajectoire.
+                                         * 
+                                         */
+
+                                        for(int i = 0; i < trajectory_registre[y].size(); i++)
+                                        {
+                                            trajectory_tested++;
+
+                                            min_dist_obj_robot = 20;
+
+                                            for(int ii = 0; ii < DirectMap_obs.size(); ii++)
+                                            {
+                                                // ETAPE 4 : POUR CHAQUE POINT PROJETER ON REGARDE SI ILS SONT DANS TRAJECTOIRE.
+                                                // ETAPE 4A: ON DETERMINE LE CENTRE DU CERCLE. 
+                                                // PS: ADD DIRECT A L'INIT
+                                                if(trajectory_registre[y][i].r >= 0) center_row = 100 + abs(trajectory_registre[y][i].r) * 10;
+                                                else{center_row = 100 - abs(trajectory_registre[y][i].r) * 10;}
+                                                
+                                                // ETAPE 4B : VERIFIER SI ILS SONT DANS TRAJECTOIRE
+                                                dist_obj_center = sqrt(pow(100-DirectMap_obs[ii].x,2)+pow(center_row-DirectMap_obs[ii].y,2))/10;
+                                                diff_dist_obj_robot_center = abs(dist_obj_center - abs(trajectory_registre[y][i].r));
+                                                if(diff_dist_obj_robot_center < distance_m)
+                                                {
+                                                    // REVOIR
+                                                    // dist_obj_robot = 2 * M_PI * abs(vect_traj[i].r) * ((180 - 2 * DirectMap_obs_diff_angle[i]) / 360);
+                                                    dist_obj_robot = sqrt(pow(100 - DirectMap_obs[ii].x ,2) + pow(100 - DirectMap_obs[ii].y ,2)) / 10;
+
+
+                                                    // ETAPE 4Ci : DETERMINE SI C LE POINT LE PLUS PROCHE
+                                                    if(dist_obj_robot < min_dist_obj_robot) min_dist_obj_robot = dist_obj_robot;
+
+                                                    // if(min_dist_obj_robot < activation_dist_vect[y]) break;
+                                                }
+                                            }
+
+                                            trajectory_registre[y][i].pt_M = min_dist_obj_robot;
+
+                                            if(Final_traj.pt_M < trajectory_registre[y][i].pt_M)
+                                            {
+                                                Final_traj = trajectory_registre[y][i];
+                                            }
+                                        }
+
+                                        /**
+                                         * NOTE: Une fois l'ensemble du bacht traité c'est ok. Il faut voir si une trajectoire et valider ou non.
+                                         * 
+                                         * 1 - On parcours le tableau pour savoir si toute les données sont égale. (on compare au premier)
+                                         * 2 - On note l'orientation actuelle de la trajectoire final ? (Peux être fait a la fin je pense)
+                                         * 
+                                         * NOTE: Si cela retourne la même valeur est qu'elle est différente de 20, cela veut dire que toute les trajectoires
+                                         * percute le même obstacle.
+                                         */
+                                        
+                                        bool same_dist_bool = true;
+                                        double same_dist_detection = trajectory_registre[y][0].pt_M;
+                                        for(int i = 0; i < trajectory_registre[y].size(); i++)
+                                        {
+                                            // [1]
+                                            if(same_dist_detection != trajectory_registre[y][i].pt_M)
+                                            {
+                                                same_dist_bool = false;
+                                            }
+
+                                            // [2]
+                                            // if(traj.r == Final_traj.r) 
+                                            // {
+                                            //     no_obs_traj = true;
+                                                
+                                            //     if(traj.r >= 0) memo_side = 1;
+                                            //     else{memo_side = -1;}
+                                            // }
+                                        }
+
+                                        /**
+                                         * NOTE: Si on a plusieurs trajectoires avec la distance (20) il faut faire un choix.
+                                         * 1 - On utilise la distance à la courbe parfaite.
+                                         */
+                                        
+                                        int best_dist_orig = Final_traj.niv;
+                                        if(Final_traj.pt_M == 20)
+                                        {
+                                            for(int i = 0; i < trajectory_registre[y].size(); i++)
+                                            {
+                                                if(trajectory_registre[y][i].pt_M == 20 && trajectory_registre[y][i].niv < best_dist_orig)
+                                                {
+                                                    best_dist_orig = trajectory_registre[y][i].niv;
+                                                    Final_traj = trajectory_registre[y][i];
+                                                    // std::cout << " [C] Changement." << std::endl;
+                                                }
+                                            }
+                                        }
+
+                                        /**
+                                         * NOTE: A la différence de l'autre algorythme, on peux choisir de n'en prendre aucune, même si elle
+                                         * ont toute une distance to robot différentes.
+                                         */
+
+                                        if(y == 0 && Final_traj.pt_M >= activation_dist_vect[y]) trajectory_found_in_bash = true;
+                                        if(y == 1 && Final_traj.pt_M >= activation_dist_vect[y]) trajectory_found_in_bash = true;
+                                        if(y == 2 && Final_traj.pt_M >= activation_dist_vect[y]) trajectory_found_in_bash = true;
+                                        if(y == 3 && Final_traj.pt_M >= activation_dist_vect[y]) trajectory_found_in_bash = true;
                                     }
+                                    // END ALGORYTHME.
                                 }
+
+                                std::cout << "count traj tested: " << trajectory_tested << " total time : " << get_elapsed_time(get_curr_timestamp(), start_trajectory_selection_ts) << " " <<  Final_traj.niv << std::endl;
+                                if(trajectory_found_in_bash) 
+                                {
+                                    std::cout << Final_traj.r << " " << Final_traj.pt_M << " " << Final_traj.security_dist << std::endl;                                     
+                                    if(Final_traj.r >= 0) memo_side = 1;
+                                    else{memo_side = -1;}
+                                }
+                                else
+                                {
+                                    std::cout << "[!] Aucune trajectoire trouver [!]" << std::endl;
+                                }
+                                // CHECK IF LE MEILLEUR A UNE TAILLE DE 20 PRENDRE LE PLUS PROCHE DE L4ORIGNIAL.
+                                // int best_dist_orig = Final_traj.niv;
+                                // if(Final_traj.pt_M == 20)
+                                // {
+                                //     for(int i = 0; i < vect_traj.size(); i++)
+                                //     {
+                                //         if(vect_traj[i].pt_M == 20 && vect_traj[i].niv < best_dist_orig)
+                                //         {
+                                //             best_dist_orig = vect_traj[i].niv;
+                                //             Final_traj = vect_traj[i];
+                                //             // std::cout << " [C] Changement." << std::endl;
+                                //         }
+                                //     }
+                                // }
 
                                 /**
                                  * NOTE: Etape 5
@@ -1902,10 +2066,15 @@ int main(int argc, char *argv[])
                                 {
                                     if(first_trajectory_safe)
                                     {
-                                        if(diff_angle > 0) memo_side = 1;
+                                        if(diff_angle > 0)
+                                        {
+                                          memo_side = 1;  
+                                          final_side = 1;
+                                        }
                                         else
                                         {
                                             memo_side = -1;
+                                            final_side = -1;
                                         }
 
                                         speed_with_obj = Final_traj.max_speed;
@@ -2052,7 +2221,7 @@ int main(int argc, char *argv[])
                                     if(last_command_motor_double[0] <  0 && last_command_motor_double[3] >  0) previous_mode = 4;
                                     if(last_command_motor_double[0] >  0 && last_command_motor_double[3] <  0) previous_mode = 5;
 
-                                    //std::coutt << "MODE : " << previous_mode << std::endl;
+                                    std::cout << "MODE : " << previous_mode << std::endl;
 
                                     std::string opti;
                                     for(int i = 0; i < 6; i++) opti += std::to_string(optimal_command_vect[i]) + "|";
@@ -2105,7 +2274,7 @@ int main(int argc, char *argv[])
                                             double rapport_opti = optimal_command_vect[3] / optimal_command_vect[0];
                                             realig_rapport = rapport_opti;
                                             double rapport_reel = final_command_vector[3] / final_command_vector[0];
-                                         //std::coutt << final_side << " " << rapport_opti << " " << rapport_reel << std::endl;
+                                            std::cout << final_side << " " << rapport_opti << " " << rapport_reel << std::endl;
                                             double threshold_rapport = 0.02;
 
                                             if(abs(rapport_opti - rapport_reel) > threshold_rapport)
@@ -2113,6 +2282,7 @@ int main(int argc, char *argv[])
                                                 double perfect_speed = final_command_vector[0] / rapport_opti;
                                                 double new_speed;
                                                 if(abs(final_command_vector[0] - perfect_speed) > max_deccel/30)
+                                                // if(abs(final_command_vector[0] - perfect_speed) > 0)
                                                 {
                                                     new_speed = final_command_vector[0] - (max_deccel/30);
                                                 }
@@ -2132,7 +2302,7 @@ int main(int argc, char *argv[])
                                             double rapport_opti = optimal_command_vect[0] / optimal_command_vect[3];
                                             realig_rapport = rapport_opti;
                                             double rapport_reel = final_command_vector[0] / final_command_vector[3];
-                                         //std::coutt << final_side << " " << rapport_opti << " " << rapport_reel << std::endl;
+                                            std::cout << final_side << " " << rapport_opti << " " << rapport_reel << std::endl;
                                             double threshold_rapport = 0.02;
 
                                             if(abs(rapport_opti - rapport_reel) > threshold_rapport)
@@ -2140,6 +2310,7 @@ int main(int argc, char *argv[])
                                                 double perfect_speed = final_command_vector[0] / rapport_opti;
                                                 double new_speed;
                                                 if(abs(final_command_vector[3] - perfect_speed) > max_deccel/30)
+                                                // if(abs(final_command_vector[0] - perfect_speed) > 0)
                                                 {
                                                     new_speed = final_command_vector[3] - (max_deccel/30);
                                                 }
@@ -2231,7 +2402,11 @@ int main(int argc, char *argv[])
                                     /**
                                      * NOTE: Cette partie est uniquement pour la simulation. 
                                      */
-
+                                    if(trajectory_found_in_bash) final_radius = Final_traj.r;
+                                    else
+                                    {
+                                        final_radius = 0.1; 
+                                    }
                                     Geographic_point center_circle = Geographic_point(0.0,0.0);
                                     if(final_side == -1)
                                     {
@@ -2251,11 +2426,11 @@ int main(int argc, char *argv[])
                                 }
 
                                 // ETAPE 8 : SECURITY
-                                if(!no_obs_traj && !first_trajectory_safe || (same_dist_bool && same_dist_detection < 1.0 && vect_traj[0].niv != -1) && final_obstacle_detected)
+                                if(((!first_trajectory_safe) && (!trajectory_found_in_bash)) && final_obstacle_detected)
                                 {
                                     // std::cout << "[O] SECURITY" << std::endl;
 
-                                    if((same_dist_bool && same_dist_detection < 1.0 && !recul_forcer) || (final_obstacle_detected && !recul_forcer))
+                                    if((((!first_trajectory_safe) && (!trajectory_found_in_bash)) && !recul_forcer) || (final_obstacle_detected && !recul_forcer))
                                     {
                                         // std::cout << same_dist_detection << std::endl;
                                         if(diff_angle >= 0)memo_side = 1;
@@ -2357,8 +2532,8 @@ int main(int argc, char *argv[])
                                             }
                                         }
                                     }
-                                    std::cout << motor_command_str << std::endl;
                                 }
+                                std::cout << motor_command_str << std::endl;
 
                                 // ETAPE 9 : Pour ne pas faire crash le code.
                                 std::vector<std::string> vect_verif;
@@ -2409,6 +2584,10 @@ int main(int argc, char *argv[])
             double radius = std::stoi(get_redis_str(&redis, "SIM_AUTO_RADIUS_ICC_NEW"));
             // double radius = std::stod(get_redis_str(&redis, "DEB_R"));
 
+            //REMOVE
+            // radius = std::stod(get_redis_str(&redis, "angle"));
+            // double a = std::stod(get_redis_str(&redis, "dist"));
+
             double row_idx = 0;
             if(final_side > 0) row_idx = 100 + abs(radius) * 10;
             else{ row_idx = 100 - abs(radius) * 10;}
@@ -2418,6 +2597,8 @@ int main(int argc, char *argv[])
 
             // std::cout << vect_obj.size() << std::endl;
             double distance_m = std::stod(get_redis_str(&redis, "HARD_WHEEL_DISTANCE")) / 2 + std::stod(get_redis_str(&redis, "NAV_OBJ_SAFETY_DIST_M"));
+            distance_m = memory_dist;
+            // double distance_m = std::stod(get_redis_str(&redis, "HARD_WHEEL_DISTANCE")) / 2 + a;
             
             // std::cout << row_idx << " " << radius << " " << distance_m << " " << copy.cols << std::endl;
             cv::circle(copy, cv::Point((int)(100),(int)(row_idx)), (int)(abs(radius)*10)             , cv::Scalar(178, 102, 255)    , 1, cv::LineTypes::LINE_8);
