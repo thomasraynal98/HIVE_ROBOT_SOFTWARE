@@ -257,7 +257,7 @@ void f_thread_readwrite_pixhawk()
             accept_value = true;
 
             int tempo_hdg = messages.local_heading.heading;
-            if(abs(tempo_hdg - std::stoi(vect_redis_str[3])) > 30)
+            if(abs(tempo_hdg - std::stoi(vect_redis_str[3])) > 20)
             {
                 counter_outlier++;
                 accept_value = false;

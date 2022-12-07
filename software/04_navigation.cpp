@@ -148,6 +148,8 @@ int main(int argc, char *argv[])
 
     // variable propre au phase de realignement
     double realig_rapport = 1;
+    double thresold_stop_realig = 15; // +- 15 deg
+    bool realig_process_start = false;
 
     //==================================================
     // MAIN LOOP :
@@ -1198,8 +1200,8 @@ int main(int argc, char *argv[])
 
                                 if(road_extension < 0) road_extension = 0;
 
-                                xt = xb + road_extension * cos(deg_to_rad(bearing_start_target));
-                                yt = yb + road_extension * sin(deg_to_rad(bearing_start_target));
+                                xt = xb + (road_extension + 2.0) * cos(deg_to_rad(bearing_start_target));
+                                yt = yb + (road_extension + 2.0) * sin(deg_to_rad(bearing_start_target));
                             }
 
                             //[NOTE] L'algo de base prend en compte la vélocité du robot pour choisir la prochaine cible. Ici non. Pour l'instant.
@@ -1292,8 +1294,12 @@ int main(int argc, char *argv[])
                             // ROTATION SUR PLACE
                             //====================
                             double opt_treshold = 75;
-                            if(diff_angle > opt_treshold)
+                            if(diff_angle > opt_treshold || (realig_process_start && diff_angle > 0))
                             {
+                                //[!] Verifier le process de realignement.
+                                realig_process_start = true;
+                                if(diff_angle < thresold_stop_realig) realig_process_start = false;
+
                                 //[!] Il faut faire demi tour vers la droite.
                                 double max_roat_speed = 0.4;
 
@@ -1447,8 +1453,12 @@ int main(int argc, char *argv[])
                                 }
                           //std::coutt << motor_command_str << std::endl;
                             }
-                            if(diff_angle < -opt_treshold)
+                            if(diff_angle < -opt_treshold || (realig_process_start && diff_angle < 0))
                             {
+                                //[!] Verifier le process de realignement.
+                                realig_process_start = true;
+                                if(diff_angle > -thresold_stop_realig) realig_process_start = false;
+
                                 //[!] Il faut faire demi tour vers la gauche.
                                 motor_command_str = std::to_string(get_curr_timestamp()) + "|";
                                 double max_roat_speed = 0.4;
@@ -1591,7 +1601,7 @@ int main(int argc, char *argv[])
                                 }
                           //std::coutt << motor_command_str << std::endl;
                             }
-                            if(diff_angle <= opt_treshold && diff_angle >= -opt_treshold)
+                            if(diff_angle <= opt_treshold && diff_angle >= -opt_treshold && (!realig_process_start))
                             {
                                 //==========================================
                                 // OBSTACLE ALGO NIV 1 : 
