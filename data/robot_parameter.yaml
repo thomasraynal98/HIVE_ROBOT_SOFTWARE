@@ -74,7 +74,7 @@ NAV_AUTO_MODE                    : "OBSTACLE_AVOIDANCE_NIV1"
 NAV_AUTO_MODE_PARKING            : "NO_VAL"
 NAV_AUTO_MODE_PARKING_DIST_M     : "30"
 NAV_MANUAL_MODE                  : "STANDARD"
-NAV_MAX_SPEED                    : "0.3"                                                          # m/s
+NAV_MAX_SPEED                    : "1.0"                                                          # m/s
 NAV_GLOBAL_POSITION              : "0000000000000|0.0|0.0|0.0|"                                   # "0000000000000|LONGITUDE|LATITUDE|ORIENTATION|"
 NAV_LOCAL_POSITION               : "0000000000000|0.0|0.0|0.0|"                                   # "0000000000000|X|Y|ORIENTATION|"
 NAV_ROAD_CURRENT_ID              : "0000000000000|-1|"
@@ -84,17 +84,17 @@ NAV_AUTO_DESTINATION_ROAD_ID     : "0000000000000|-1|"
 NAV_AUTO_TARGET_EXTENSION        : "8.0"
 NAV_OBJ_MIN_DIST                 : "0.3"
 NAV_OBJ_MAX_DIST                 : "12.0"
-NAV_OBJ_MIN_SPACE                : "0.1"
+NAV_OBJ_MIN_SPACE                : "0.15"
 NAV_OBJ_MIN_OBSERVATION          : "3"
-NAV_OBJ_CLEARING_DIST            : "12.0"
+NAV_OBJ_CLEARING_DIST            : "7.0"
 NAV_OBJ_CLEARING_TIME_MS         : "1000"
 NAV_OBJ_SAFETY_DIST_M            : "0.4"
 NAV_OPT_STREAM                   : "0"
 NAV_LOCAL_JS_MODE                : "DEACTIVATE"
 NAV_BATTERY_VOLTAGE              : "28.0"
 NAV_BATTERY_PERCENTAGE           : "100.0"
-NAV_MAX_ACCEL                    : "0.4"                                                         # m/s2
-NAV_MAX_DECCEL                   : "1.0"                                                         # m/s2
+NAV_MAX_ACCEL                    : "0.5"                                                         # m/s2
+NAV_MAX_DECCEL                   : "1.1"                                                         # m/s2
 
 # ACTION/MISSION
 MISSION_MOTOR_BRAKE              : "TRUE"
