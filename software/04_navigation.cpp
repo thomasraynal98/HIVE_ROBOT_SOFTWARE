@@ -75,18 +75,17 @@ int main(int argc, char *argv[])
     vect_traj_80.push_back(Trajectory(  -20, 2.5, 0.80));
     vect_traj_80.push_back(Trajectory(  -30, 3.0, 0.80));
     vect_traj_80.push_back(Trajectory(  -40, 3.0, 0.80));
-    vect_traj_80.push_back(Trajectory(  -80, 3.0, 0.40));
     vect_traj_80.push_back(Trajectory(  -60, 3.0, 0.80));
+    vect_traj_80.push_back(Trajectory(  -80, 3.0, 0.40));
     vect_traj_80.push_back(Trajectory(  -80, 3.0, 0.80));
     vect_traj_80.push_back(Trajectory( -100, 3.0, 0.40));
     vect_traj_80.push_back(Trajectory( -100, 3.0, 0.80));
-    vect_traj_80.push_back(Trajectory(-1000, 3.0, 0.80));
-    vect_traj_80.push_back(Trajectory(-1000, 3.0, 0.80));
     vect_traj_80.push_back(Trajectory(-1000, 3.0, 0.40));
+    vect_traj_80.push_back(Trajectory(-1000, 3.0, 0.80));
     vect_traj_80.push_back(Trajectory( 1000, 3.0, 0.80));
     vect_traj_80.push_back(Trajectory( 1000, 3.0, 0.40));
-    vect_traj_80.push_back(Trajectory(  100, 3.0, 0.40));
     vect_traj_80.push_back(Trajectory(  100, 3.0, 0.80));
+    vect_traj_80.push_back(Trajectory(  100, 3.0, 0.40));
     vect_traj_80.push_back(Trajectory(   80, 3.0, 0.80));
     vect_traj_80.push_back(Trajectory(   80, 3.0, 0.40));
     vect_traj_80.push_back(Trajectory(   60, 3.0, 0.80));
@@ -1390,7 +1389,7 @@ int main(int argc, char *argv[])
                                 if(diff_angle < thresold_stop_realig) realig_process_start = false;
 
                                 //[!] Il faut faire demi tour vers la droite.
-                                double max_roat_speed = 0.4;
+                                double max_roat_speed = 0.2;
 
                                 motor_command_str = std::to_string(get_curr_timestamp()) + "|";
                                 if(compare_redis_var(&redis, "ROBOT_INFO_MODEL", "MK4"))
@@ -1460,10 +1459,10 @@ int main(int argc, char *argv[])
                                         if(new_speed > max_roat_speed) new_speed = max_roat_speed;
 
                                         motor_command_str += std::to_string(new_speed) + "|";
-                                        motor_command_str += std::to_string(new_speed/4) + "|";
+                                        motor_command_str += std::to_string(new_speed/2) + "|";
                                         motor_command_str += std::to_string(new_speed) + "|";
                                         motor_command_str += std::to_string(-(new_speed)) + "|";
-                                        motor_command_str += std::to_string(-(new_speed/4)) + "|";
+                                        motor_command_str += std::to_string(-(new_speed/2)) + "|";
                                         motor_command_str += std::to_string(-(new_speed)) + "|";
                                     }
                                     if(previous_mode == 2)
@@ -1550,7 +1549,7 @@ int main(int argc, char *argv[])
 
                                 //[!] Il faut faire demi tour vers la gauche.
                                 motor_command_str = std::to_string(get_curr_timestamp()) + "|";
-                                double max_roat_speed = 0.4;
+                                double max_roat_speed = 0.2;
                                 if(compare_redis_var(&redis, "ROBOT_INFO_MODEL", "MK4"))
                                 {
                                     double max_accel  = std::stod(get_redis_str(&redis,"NAV_MAX_ACCEL"));
@@ -1608,10 +1607,10 @@ int main(int argc, char *argv[])
                                         if(new_speed > max_roat_speed) new_speed = max_roat_speed;
 
                                         motor_command_str += std::to_string(-new_speed) + "|";
-                                        motor_command_str += std::to_string(-new_speed/4) + "|";
+                                        motor_command_str += std::to_string(-new_speed/2) + "|";
                                         motor_command_str += std::to_string(-new_speed) + "|";
                                         motor_command_str += std::to_string((new_speed)) + "|";
-                                        motor_command_str += std::to_string((new_speed/4)) + "|";
+                                        motor_command_str += std::to_string((new_speed/2)) + "|";
                                         motor_command_str += std::to_string((new_speed)) + "|";
                                     }
                                     if(previous_mode == 2)
@@ -2039,6 +2038,15 @@ int main(int argc, char *argv[])
                                         if(y == 1 && Final_traj.pt_M >= activation_dist_vect[y]) trajectory_found_in_bash = true;
                                         if(y == 2 && Final_traj.pt_M >= activation_dist_vect[y]) trajectory_found_in_bash = true;
                                         if(y == 3 && Final_traj.pt_M >= activation_dist_vect[y]) trajectory_found_in_bash = true;
+
+                                        /**
+                                         * NOTE: Rajout test.
+                                         * 
+                                         */
+
+                                        if(y == 0 && Final_traj.niv > 7) trajectory_found_in_bash = false;
+                                        if(y == 1 && Final_traj.niv > 8) trajectory_found_in_bash = false;
+                                        if(y == 2 && Final_traj.niv > 15) trajectory_found_in_bash = false;
                                     }
                                     // END ALGORYTHME.
                                 }
@@ -2307,13 +2315,13 @@ int main(int argc, char *argv[])
                                     }
                                     if(previous_mode == 2)
                                     {
+                                        std::cout << final_side << " r:" << Final_traj.r << " securi:" << Final_traj.security_dist <<  " index:" << Final_traj.niv << std::endl;
                                         if(final_side == -1)
                                         {
                                             /* Tout droit vers la gauche.*/
                                             double rapport_opti = optimal_command_vect[3] / optimal_command_vect[0];
                                             realig_rapport = rapport_opti;
                                             double rapport_reel = final_command_vector[3] / final_command_vector[0];
-                                            std::cout << final_side << " opti:" << rapport_opti << " reel:" << rapport_reel << " r:" << Final_traj.r << " securi:" << Final_traj.security_dist <<  std::endl;
                                             double threshold_rapport = 0.02;
 
                                             if(abs(rapport_opti - rapport_reel) > threshold_rapport)
@@ -2362,7 +2370,6 @@ int main(int argc, char *argv[])
                                             double rapport_opti = optimal_command_vect[0] / optimal_command_vect[3];
                                             realig_rapport = rapport_opti;
                                             double rapport_reel = final_command_vector[0] / final_command_vector[3];
-                                            std::cout << final_side << " opti:" << rapport_opti << " reel:" << rapport_reel << " r:" << Final_traj.r << " securi:" << Final_traj.security_dist <<  std::endl;
                                             double threshold_rapport = 0.02;
 
                                             if(rapport_opti > rapport_reel)
