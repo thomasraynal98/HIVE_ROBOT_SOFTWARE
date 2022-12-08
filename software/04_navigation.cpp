@@ -67,6 +67,7 @@ int main(int argc, char *argv[])
     std::vector<Trajectory> vect_traj_25;
     std::vector<Trajectory> vect_traj_10;
 
+    // vect_traj_80.push_back(Trajectory(   -4, 2.0, 1.40));
     vect_traj_80.push_back(Trajectory(   -6, 2.0, 1.20));
     vect_traj_80.push_back(Trajectory(   -8, 2.0, 1.20));
     vect_traj_80.push_back(Trajectory(  -10, 2.5, 0.80));
@@ -74,22 +75,29 @@ int main(int argc, char *argv[])
     vect_traj_80.push_back(Trajectory(  -20, 2.5, 0.80));
     vect_traj_80.push_back(Trajectory(  -30, 3.0, 0.80));
     vect_traj_80.push_back(Trajectory(  -40, 3.0, 0.80));
+    vect_traj_80.push_back(Trajectory(  -80, 3.0, 0.40));
     vect_traj_80.push_back(Trajectory(  -60, 3.0, 0.80));
     vect_traj_80.push_back(Trajectory(  -80, 3.0, 0.80));
+    vect_traj_80.push_back(Trajectory( -100, 3.0, 0.40));
     vect_traj_80.push_back(Trajectory( -100, 3.0, 0.80));
     vect_traj_80.push_back(Trajectory(-1000, 3.0, 0.80));
     vect_traj_80.push_back(Trajectory(-1000, 3.0, 0.80));
+    vect_traj_80.push_back(Trajectory(-1000, 3.0, 0.40));
     vect_traj_80.push_back(Trajectory( 1000, 3.0, 0.80));
+    vect_traj_80.push_back(Trajectory( 1000, 3.0, 0.40));
+    vect_traj_80.push_back(Trajectory(  100, 3.0, 0.40));
     vect_traj_80.push_back(Trajectory(  100, 3.0, 0.80));
     vect_traj_80.push_back(Trajectory(   80, 3.0, 0.80));
+    vect_traj_80.push_back(Trajectory(   80, 3.0, 0.40));
     vect_traj_80.push_back(Trajectory(   60, 3.0, 0.80));
     vect_traj_80.push_back(Trajectory(   40, 3.0, 0.80));
     vect_traj_80.push_back(Trajectory(   30, 3.0, 0.80));
     vect_traj_80.push_back(Trajectory(   20, 2.5, 0.80));
     vect_traj_80.push_back(Trajectory(   15, 2.5, 0.80));
     vect_traj_80.push_back(Trajectory(   10, 2.5, 0.80));
-    vect_traj_80.push_back(Trajectory(   -8, 2.0, 1.20));
-    vect_traj_80.push_back(Trajectory(   -6, 2.0, 1.20));
+    vect_traj_80.push_back(Trajectory(    8, 2.0, 1.20));
+    vect_traj_80.push_back(Trajectory(    6, 2.0, 1.20));
+    // vect_traj_80.push_back(Trajectory(    4, 2.0, 1.40));
 
     // vect_traj_50.push_back(Trajectory( -1.0, 1.0, 0.50));
     // vect_traj_50.push_back(Trajectory(-1.25, 1.0, 0.50));
@@ -101,7 +109,7 @@ int main(int argc, char *argv[])
     // vect_traj_50.push_back(Trajectory(   -4, 2.0, 0.50));
     // vect_traj_50.push_back(Trajectory(   -5, 2.0, 0.50));
     // vect_traj_50.push_back(Trajectory(   -6, 2.5, 0.50));
-    vect_traj_50.push_back(Trajectory(   -8, 2.5, 0.60));
+    vect_traj_50.push_back(Trajectory(   -8, 2.0, 0.60));
     vect_traj_50.push_back(Trajectory(  -10, 2.5, 0.60));
     vect_traj_50.push_back(Trajectory(  -15, 2.5, 0.60));
     vect_traj_50.push_back(Trajectory(  -20, 2.5, 0.60));
@@ -116,7 +124,7 @@ int main(int argc, char *argv[])
     vect_traj_50.push_back(Trajectory(   20, 2.5, 0.60));
     vect_traj_50.push_back(Trajectory(   15, 2.5, 0.60));
     vect_traj_50.push_back(Trajectory(   10, 2.5, 0.60));
-    vect_traj_50.push_back(Trajectory(    8, 2.5, 0.60));
+    vect_traj_50.push_back(Trajectory(    8, 2.0, 0.60));
     // vect_traj_50.push_back(Trajectory(    6, 2.5, 0.50));
     // vect_traj_50.push_back(Trajectory(    5, 2.0, 0.50));
     // vect_traj_50.push_back(Trajectory(    4, 2.0, 0.50));
@@ -165,28 +173,32 @@ int main(int argc, char *argv[])
     // vect_traj_25.push_back(Trajectory( 1.25, 1.0, 0.30));
     // vect_traj_25.push_back(Trajectory( 1.00, 1.0, 0.30));
 
-    vect_traj_10.push_back(Trajectory(-0.40, 0.2, 0.10));
-    vect_traj_10.push_back(Trajectory(-0.45, 0.2, 0.10));
-    vect_traj_10.push_back(Trajectory(-0.50, 0.2, 0.10));
-    vect_traj_10.push_back(Trajectory(-0.55, 0.5, 0.10));
-    vect_traj_10.push_back(Trajectory(-0.60, 0.5, 0.10));
-    vect_traj_10.push_back(Trajectory(-0.70, 0.5, 0.10));
-    vect_traj_10.push_back(Trajectory(-0.80, 0.5, 0.10));
-    vect_traj_10.push_back(Trajectory(-0.90, 0.8, 0.10));
-    vect_traj_10.push_back(Trajectory(-1.00, 0.8, 0.10));
-    vect_traj_10.push_back(Trajectory(-1.25, 0.8, 0.10));
-    vect_traj_10.push_back(Trajectory(-1.50, 0.8, 0.10));
-    vect_traj_10.push_back(Trajectory( 1.50, 0.8, 0.10));
-    vect_traj_10.push_back(Trajectory( 1.25, 0.8, 0.10));
-    vect_traj_10.push_back(Trajectory( 1.00, 0.8, 0.10));
-    vect_traj_10.push_back(Trajectory( 0.90, 0.8, 0.10));
-    vect_traj_10.push_back(Trajectory( 0.80, 0.5, 0.10));
-    vect_traj_10.push_back(Trajectory( 0.70, 0.5, 0.10));
-    vect_traj_10.push_back(Trajectory( 0.60, 0.5, 0.10));
-    vect_traj_10.push_back(Trajectory( 0.55, 0.5, 0.10));
-    vect_traj_10.push_back(Trajectory( 0.50, 0.2, 0.10));
-    vect_traj_10.push_back(Trajectory( 0.45, 0.2, 0.10));
-    vect_traj_10.push_back(Trajectory( 0.40, 0.2, 0.10));
+    vect_traj_10.push_back(Trajectory(  -0.40, 0.2, 0.10));
+    vect_traj_10.push_back(Trajectory(  -0.45, 0.2, 0.10));
+    vect_traj_10.push_back(Trajectory(  -0.50, 0.2, 0.10));
+    vect_traj_10.push_back(Trajectory(  -0.55, 0.5, 0.10));
+    vect_traj_10.push_back(Trajectory(  -0.60, 0.5, 0.10));
+    vect_traj_10.push_back(Trajectory(  -0.70, 0.5, 0.10));
+    vect_traj_10.push_back(Trajectory(  -0.80, 0.5, 0.10));
+    vect_traj_10.push_back(Trajectory(  -0.90, 0.8, 0.10));
+    vect_traj_10.push_back(Trajectory(  -1.00, 0.8, 0.10));
+    vect_traj_10.push_back(Trajectory(  -1.25, 0.8, 0.10));
+    vect_traj_10.push_back(Trajectory(  -1.50, 0.8, 0.10));
+    vect_traj_10.push_back(Trajectory( -100.0, 0.8, 0.10));
+    vect_traj_10.push_back(Trajectory( -600.0, 0.8, 0.10));
+    vect_traj_10.push_back(Trajectory(  600.0, 0.8, 0.10));
+    vect_traj_10.push_back(Trajectory(  100.0, 0.8, 0.10));
+    vect_traj_10.push_back(Trajectory(   1.50, 0.8, 0.10));
+    vect_traj_10.push_back(Trajectory(   1.25, 0.8, 0.10));
+    vect_traj_10.push_back(Trajectory(   1.00, 0.8, 0.10));
+    vect_traj_10.push_back(Trajectory(   0.90, 0.8, 0.10));
+    vect_traj_10.push_back(Trajectory(   0.80, 0.5, 0.10));
+    vect_traj_10.push_back(Trajectory(   0.70, 0.5, 0.10));
+    vect_traj_10.push_back(Trajectory(   0.60, 0.5, 0.10));
+    vect_traj_10.push_back(Trajectory(   0.55, 0.5, 0.10));
+    vect_traj_10.push_back(Trajectory(   0.50, 0.2, 0.10));
+    vect_traj_10.push_back(Trajectory(   0.45, 0.2, 0.10));
+    vect_traj_10.push_back(Trajectory(   0.40, 0.2, 0.10));
 
     std::vector<std::vector<Trajectory>> trajectory_registre;
     trajectory_registre.push_back(vect_traj_80);
@@ -1286,7 +1298,7 @@ int main(int argc, char *argv[])
                             std::vector<std::string> last_command_motor;
                             get_redis_multi_str(&redis, "HARD_MOTOR_COMMAND", last_command_motor);
                             double force = (std::stod(last_command_motor[1]) + std::stod(last_command_motor[3])) / 2;
-                            if(force < 1.0) force = 1.0;
+                            if(force < 3.0) force = 3.0;
                             xf   = force * cos(deg_to_rad(curr_position.g_hdg));
                             yf   = force * sin(deg_to_rad(curr_position.g_hdg));
 
@@ -2031,10 +2043,10 @@ int main(int argc, char *argv[])
                                     // END ALGORYTHME.
                                 }
 
-                                std::cout << "count traj tested: " << trajectory_tested << " total time : " << get_elapsed_time(get_curr_timestamp(), start_trajectory_selection_ts) << " " <<  Final_traj.niv << std::endl;
+                                // std::cout << "count traj tested: " << trajectory_tested << " total time : " << get_elapsed_time(get_curr_timestamp(), start_trajectory_selection_ts) << " " <<  Final_traj.niv << std::endl;
                                 if(trajectory_found_in_bash) 
                                 {
-                                    std::cout << Final_traj.r << " " << Final_traj.pt_M << " " << Final_traj.security_dist << std::endl;                                     
+                                    // std::cout << Final_traj.r << " " << Final_traj.pt_M << " " << Final_traj.security_dist << std::endl;                                     
                                     if(Final_traj.r >= 0) memo_side = 1;
                                     else{memo_side = -1;}
                                 }
@@ -2231,40 +2243,67 @@ int main(int argc, char *argv[])
                                     for(int i = 0; i < 6; i++) prop += std::to_string(final_command_vector[i]) + "|";
                                     //std::coutt << prop << std::endl;
 
-                                    if(previous_mode == 4)
+                                    // if(previous_mode == 4)
+                                    // {
+                                    //     /* Rotation vers la gauche. */
+
+                                    //     /* Moteur de droite doivent ralentir pour attendre. On compute leur vitesse. */
+                                    //     double transition_speed_ext = last_command_motor_double[3] - (max_accel/30);
+                                    //     if(transition_speed_ext < 0.01) transition_speed_ext = 0.01;
+
+                                    //     double transition_speed_central = last_command_motor_double[4] - (max_accel/30);
+                                    //     if(transition_speed_central < 0.01) transition_speed_central = 0.01;
+
+                                    //     if(final_command_vector[1] > 0) final_command_vector[1] = 0.0;
+
+                                    //     final_command_vector[3] = transition_speed_ext;
+                                    //     final_command_vector[4] = transition_speed_central;
+                                    //     final_command_vector[5] = transition_speed_ext;
+
+                                    // }
+                                    // if(previous_mode == 5)
+                                    // {
+                                    //     /* Rotation vers la droite. */
+
+                                    //     /* Moteur de gauche doivent ralentir pour attendre. On compute leur vitesse. */
+                                    //     double transition_speed_ext = last_command_motor_double[0] - (max_accel/30);
+                                    //     if(transition_speed_ext < 0.01) transition_speed_ext = 0.01;
+
+                                    //     double transition_speed_central = last_command_motor_double[1] - (max_accel/30);
+                                    //     if(transition_speed_central < 0.01) transition_speed_central = 0.01;
+
+                                    //     if(final_command_vector[4] > 0) final_command_vector[1] = 0.0;
+
+                                    //     final_command_vector[0] = transition_speed_ext;
+                                    //     final_command_vector[1] = transition_speed_central;
+                                    //     final_command_vector[2] = transition_speed_ext;
+                                    // }
+                                    if(previous_mode == 4 || previous_mode == 5)
                                     {
-                                        /* Rotation vers la gauche. */
+                                        std::cout << "Ralentir avant accélération." << std::endl;
+                                        for(int j = 0; j < 6; j++)
+                                        {
+                                            double diff = last_command_motor_double[j];
+                                            if(diff > 0)
+                                            {
+                                                /* Ce moteur doit ralentir.*/
+                                                final_command_vector[j] = last_command_motor_double[j] - (max_deccel/30);
 
-                                        /* Moteur de droite doivent ralentir pour attendre. On compute leur vitesse. */
-                                        double transition_speed_ext = last_command_motor_double[3] - (max_accel/30);
-                                        if(transition_speed_ext < 0.01) transition_speed_ext = 0.01;
+                                                if(final_command_vector[j] < 0) final_command_vector[j] = 0;
+                                            }
+                                            if(diff < 0)
+                                            {
+                                                /* Ce moteur doit accelerer.*/
+                                                final_command_vector[j] = last_command_motor_double[j] + (max_accel/30);
 
-                                        double transition_speed_central = last_command_motor_double[4] - (max_accel/30);
-                                        if(transition_speed_central < 0.01) transition_speed_central = 0.01;
-
-                                        if(final_command_vector[1] > 0) final_command_vector[1] = 0.0;
-
-                                        final_command_vector[3] = transition_speed_ext;
-                                        final_command_vector[4] = transition_speed_central;
-                                        final_command_vector[5] = transition_speed_ext;
-
-                                    }
-                                    if(previous_mode == 5)
-                                    {
-                                        /* Rotation vers la droite. */
-
-                                        /* Moteur de gauche doivent ralentir pour attendre. On compute leur vitesse. */
-                                        double transition_speed_ext = last_command_motor_double[0] - (max_accel/30);
-                                        if(transition_speed_ext < 0.01) transition_speed_ext = 0.01;
-
-                                        double transition_speed_central = last_command_motor_double[1] - (max_accel/30);
-                                        if(transition_speed_central < 0.01) transition_speed_central = 0.01;
-
-                                        if(final_command_vector[4] > 0) final_command_vector[1] = 0.0;
-
-                                        final_command_vector[0] = transition_speed_ext;
-                                        final_command_vector[1] = transition_speed_central;
-                                        final_command_vector[2] = transition_speed_ext;
+                                                if(final_command_vector[j] > 0) final_command_vector[j] = 0;
+                                            }
+                                            if(diff == 0)
+                                            {
+                                                /* Ce moteur doit maintenir.*/
+                                                final_command_vector[j] = 0.0;
+                                            }
+                                        }
                                     }
                                     if(previous_mode == 2)
                                     {
@@ -2274,26 +2313,47 @@ int main(int argc, char *argv[])
                                             double rapport_opti = optimal_command_vect[3] / optimal_command_vect[0];
                                             realig_rapport = rapport_opti;
                                             double rapport_reel = final_command_vector[3] / final_command_vector[0];
-                                            std::cout << final_side << " " << rapport_opti << " " << rapport_reel << std::endl;
+                                            std::cout << final_side << " opti:" << rapport_opti << " reel:" << rapport_reel << " r:" << Final_traj.r << " securi:" << Final_traj.security_dist <<  std::endl;
                                             double threshold_rapport = 0.02;
 
                                             if(abs(rapport_opti - rapport_reel) > threshold_rapport)
                                             {
-                                                double perfect_speed = final_command_vector[0] / rapport_opti;
-                                                double new_speed;
-                                                if(abs(final_command_vector[0] - perfect_speed) > max_deccel/30)
-                                                // if(abs(final_command_vector[0] - perfect_speed) > 0)
+                                                if(rapport_opti > rapport_reel)
                                                 {
-                                                    new_speed = final_command_vector[0] - (max_deccel/30);
-                                                }
-                                                else
-                                                {
-                                                    new_speed = perfect_speed;
-                                                }
+                                                    double perfect_speed = final_command_vector[0] / rapport_opti;
+                                                    double new_speed;
+                                                    if(abs(final_command_vector[0] - perfect_speed) > max_deccel/30)
+                                                    // if(abs(final_command_vector[0] - perfect_speed) > 0)
+                                                    {
+                                                        new_speed = final_command_vector[0] - (max_deccel/30);
+                                                    }
+                                                    else
+                                                    {
+                                                        new_speed = perfect_speed;
+                                                    }
 
-                                                final_command_vector[0] = new_speed;
-                                                final_command_vector[1] = new_speed;
-                                                final_command_vector[2] = new_speed;
+                                                    final_command_vector[0] = new_speed;
+                                                    final_command_vector[1] = new_speed;
+                                                    final_command_vector[2] = new_speed;
+                                                }
+                                                // else
+                                                // {
+                                                //     double perfect_speed = final_command_vector[0] * rapport_opti;
+                                                //     double new_speed;
+                                                //     if(abs(final_command_vector[3] - perfect_speed) > max_deccel/30)
+                                                //     // if(abs(final_command_vector[0] - perfect_speed) > 0)
+                                                //     {
+                                                //         new_speed = final_command_vector[3] + (max_deccel/30);
+                                                //     }
+                                                //     else
+                                                //     {
+                                                //         new_speed = perfect_speed;
+                                                //     }
+
+                                                //     final_command_vector[3] = new_speed;
+                                                //     final_command_vector[4] = new_speed;
+                                                //     final_command_vector[5] = new_speed;
+                                                // }
                                             }
                                         }
                                         else
@@ -2302,26 +2362,47 @@ int main(int argc, char *argv[])
                                             double rapport_opti = optimal_command_vect[0] / optimal_command_vect[3];
                                             realig_rapport = rapport_opti;
                                             double rapport_reel = final_command_vector[0] / final_command_vector[3];
-                                            std::cout << final_side << " " << rapport_opti << " " << rapport_reel << std::endl;
+                                            std::cout << final_side << " opti:" << rapport_opti << " reel:" << rapport_reel << " r:" << Final_traj.r << " securi:" << Final_traj.security_dist <<  std::endl;
                                             double threshold_rapport = 0.02;
 
-                                            if(abs(rapport_opti - rapport_reel) > threshold_rapport)
+                                            if(rapport_opti > rapport_reel)
                                             {
-                                                double perfect_speed = final_command_vector[0] / rapport_opti;
-                                                double new_speed;
-                                                if(abs(final_command_vector[3] - perfect_speed) > max_deccel/30)
-                                                // if(abs(final_command_vector[0] - perfect_speed) > 0)
+                                                if(abs(rapport_opti - rapport_reel) > threshold_rapport)
                                                 {
-                                                    new_speed = final_command_vector[3] - (max_deccel/30);
-                                                }
-                                                else
-                                                {
-                                                    new_speed = perfect_speed;
-                                                }
+                                                    double perfect_speed = final_command_vector[0] / rapport_opti;
+                                                    double new_speed;
+                                                    if(abs(final_command_vector[3] - perfect_speed) > max_deccel/30)
+                                                    // if(abs(final_command_vector[0] - perfect_speed) > 0)
+                                                    {
+                                                        new_speed = final_command_vector[3] - (max_deccel/30);
+                                                    }
+                                                    else
+                                                    {
+                                                        new_speed = perfect_speed;
+                                                    }
 
-                                                final_command_vector[3] = new_speed;
-                                                final_command_vector[4] = new_speed;
-                                                final_command_vector[5] = new_speed;
+                                                    final_command_vector[3] = new_speed;
+                                                    final_command_vector[4] = new_speed;
+                                                    final_command_vector[5] = new_speed;
+                                                }
+                                                // else
+                                                // {
+                                                //     double perfect_speed = final_command_vector[3] * rapport_opti;
+                                                //     double new_speed;
+                                                //     if(abs(final_command_vector[0] - perfect_speed) > max_deccel/30)
+                                                //     // if(abs(final_command_vector[0] - perfect_speed) > 0)
+                                                //     {
+                                                //         new_speed = final_command_vector[0] + (max_deccel/30);
+                                                //     }
+                                                //     else
+                                                //     {
+                                                //         new_speed = perfect_speed;
+                                                //     }
+
+                                                //     final_command_vector[0] = new_speed;
+                                                //     final_command_vector[1] = new_speed;
+                                                //     final_command_vector[2] = new_speed;
+                                                // }
                                             }
                                         }
                                     }
@@ -2405,7 +2486,7 @@ int main(int argc, char *argv[])
                                     if(trajectory_found_in_bash) final_radius = Final_traj.r;
                                     else
                                     {
-                                        final_radius = 0.1; 
+                                        final_radius = 0.32; 
                                     }
                                     Geographic_point center_circle = Geographic_point(0.0,0.0);
                                     if(final_side == -1)

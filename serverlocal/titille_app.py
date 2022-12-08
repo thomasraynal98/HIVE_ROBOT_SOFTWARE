@@ -14,16 +14,14 @@ def check_map2():
 def check_map2p():
     sio.emit('SEND_AUTONAV', data = {"OPT_DEST" : "PARKING", "LONGITUDE": "2.00254", "LATITUDE": "49.04779"})
 
-def check_map3():
-    sio.emit('SEND_AUTONAV', data = {"OPT_DEST" : "STANDARD", "LONGITUDE": "2.00203", "LATITUDE": "49.04758"})
-    # sio.emit('SEND_CMD_TO_REAL_ROBOT', data = cmd)
+def check_map1000():
+    sio.emit('SEND_AUTONAV', data = {"OPT_DEST" : "STANDARD", "LONGITUDE": "2.00244", "LATITUDE": "49.04776"})
 
-def check_map4():
-    sio.emit('SEND_AUTONAV', data = {"OPT_DEST" : "STANDARD", "LONGITUDE": "2.00315", "LATITUDE": "49.04821"})
-    # sio.emit('SEND_CMD_TO_REAL_ROBOT', data = cmd)    
+def check_map3():
+    sio.emit('SEND_AUTONAV', data = {"OPT_DEST" : "STANDARD", "LONGITUDE": "2.00351", "LATITUDE": "49.04739"})
 
 def check_map5():
-    sio.emit('SEND_AUTONAV', data = {"OPT_DEST" : "STANDARD", "LONGITUDE": "2.00310", "LATITUDE": "49.04850"})
+    sio.emit('SEND_AUTONAV', data = {"OPT_DEST" : "STANDARD", "LONGITUDE": "2.00344", "LATITUDE": "49.04842"})
 
 def check_map6():
     sio.emit('ORDER_HARDWARE', data = {"ID_BOX" : 1})
@@ -35,10 +33,10 @@ def check_map8():
     sio.emit('ORDER_HARDWARE', data = {"ID_BOX" : 3})
 
 def check_map9():
-    sio.emit('SEND_AUTONAV', data = {"OPT_DEST" : "STANDARD", "LONGITUDE": "2.00097", "LATITUDE": "49.04698"})
+    sio.emit('SEND_AUTONAV', data = {"OPT_DEST" : "STANDARD", "LONGITUDE": "2.00205", "LATITUDE": "49.04755"})
 
 def check_map10():
-    sio.emit('SEND_AUTONAV', data = {"OPT_DEST" : "STANDARD", "LONGITUDE": "2.00355", "LATITUDE": "49.04731"})
+    sio.emit('SEND_AUTONAV', data = {"OPT_DEST" : "STANDARD", "LONGITUDE": "2.00098", "LATITUDE": "49.04731"})
 
 def check_map14():
     sio.emit('SEND_AUTONAV', data = {"OPT_DEST" : "STANDARD", "LONGITUDE": "2.00106", "LATITUDE": "49.04774"})
@@ -91,8 +89,6 @@ if __name__ == '__main__':
                     check_map2()
                 if x == "b":
                     check_map3()
-                if x == "c":
-                    check_map4()
                 if x == "d":
                     check_map5()
                 if x == "A":
@@ -104,8 +100,8 @@ if __name__ == '__main__':
                     check_map8()
                 if x == "e":
                     check_map9()
-                if x == "f":
-                    check_map10()
+                # if x == "f":
+                #     check_map10()
                 if x == "g":
                     check_map14()
                 if x == "w":
@@ -116,3 +112,5 @@ if __name__ == '__main__':
                     check_map13()
                 if x == "ap":
                     check_map2p()
+                if x == "c":
+                    check_map1000()
