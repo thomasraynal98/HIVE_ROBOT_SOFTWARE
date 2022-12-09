@@ -76,18 +76,18 @@ int main(int argc, char *argv[])
     vect_traj_80.push_back(Trajectory(  -30, 3.0, 0.80));
     vect_traj_80.push_back(Trajectory(  -40, 3.0, 0.80));
     vect_traj_80.push_back(Trajectory(  -60, 3.0, 0.80));
-    vect_traj_80.push_back(Trajectory(  -80, 3.0, 0.40));
+    vect_traj_80.push_back(Trajectory(  -80, 3.0, 0.30));
     vect_traj_80.push_back(Trajectory(  -80, 3.0, 0.80));
-    vect_traj_80.push_back(Trajectory( -100, 3.0, 0.40));
+    vect_traj_80.push_back(Trajectory( -100, 3.0, 0.30));
     vect_traj_80.push_back(Trajectory( -100, 3.0, 0.80));
-    vect_traj_80.push_back(Trajectory(-1000, 3.0, 0.40));
+    vect_traj_80.push_back(Trajectory(-1000, 3.0, 0.30));
     vect_traj_80.push_back(Trajectory(-1000, 3.0, 0.80));
     vect_traj_80.push_back(Trajectory( 1000, 3.0, 0.80));
-    vect_traj_80.push_back(Trajectory( 1000, 3.0, 0.40));
+    vect_traj_80.push_back(Trajectory( 1000, 3.0, 0.30));
     vect_traj_80.push_back(Trajectory(  100, 3.0, 0.80));
-    vect_traj_80.push_back(Trajectory(  100, 3.0, 0.40));
+    vect_traj_80.push_back(Trajectory(  100, 3.0, 0.30));
     vect_traj_80.push_back(Trajectory(   80, 3.0, 0.80));
-    vect_traj_80.push_back(Trajectory(   80, 3.0, 0.40));
+    vect_traj_80.push_back(Trajectory(   80, 3.0, 0.30));
     vect_traj_80.push_back(Trajectory(   60, 3.0, 0.80));
     vect_traj_80.push_back(Trajectory(   40, 3.0, 0.80));
     vect_traj_80.push_back(Trajectory(   30, 3.0, 0.80));
@@ -205,7 +205,7 @@ int main(int argc, char *argv[])
     trajectory_registre.push_back(vect_traj_25);
     trajectory_registre.push_back(vect_traj_10);
 
-    double memory_dist = 0.8;
+    double memory_dist = 1.2;
 
     /* End TRAJECTORY new system ! */
 
@@ -235,6 +235,13 @@ int main(int argc, char *argv[])
     double thresold_stop_realig = 15; // +- 15 deg
     bool realig_process_start = false;
 
+    // variable de monitoring.
+    int64_t monitoring_ts = get_curr_timestamp();
+
+    // variable de detection de trotoires.
+    int64_t warning_incline_ts = get_curr_timestamp();
+    bool detect_warning_incline = false;
+
     //==================================================
     // MAIN LOOP :
     // Cette boucle contient l'unique thread du programme
@@ -245,7 +252,8 @@ int main(int argc, char *argv[])
         next += std::chrono::milliseconds((int)ms_for_loop);
         std::this_thread::sleep_until(next);
 
-        // std::cout << get_curr_timestamp() << std::endl;
+        // std::cout << get_elapsed_time(get_curr_timestamp(), monitoring_ts) << " FPS: " <<  1000/((double)get_elapsed_time(get_curr_timestamp(), monitoring_ts)) << std::endl;
+        // monitoring_ts = get_curr_timestamp();
 
         //==============================================
         // HMR : 
@@ -473,7 +481,7 @@ int main(int argc, char *argv[])
                         set_redis_var(&redis, "MISSION_ESTI_TIME_TO_TARGET", "0");
                         set_redis_var(&redis, "MISSION_ESTI_DIST_TO_TARGET", "0");
                         set_redis_var(&redis, "SIM_GLOBAL_PATH", "");
-                        pub_redis_var(&redis, "EVENT", get_event_str(4, "ERR", "COMPUTE_GLOBAL_PATH NO_PATH_POSSIBLE"));
+                        pub_redis_var(&redis, "EVENT", get_event_str(4, "ERR", "2_COMPUTE_GLOBAL_PATH NO_PATH_POSSIBLE"));
                     }
                 }
             }
@@ -481,7 +489,7 @@ int main(int argc, char *argv[])
             {
                 set_redis_var(&redis, "MISSION_ESTI_TIME_TO_TARGET", "0");
                 set_redis_var(&redis, "MISSION_ESTI_DIST_TO_TARGET", "0");
-                pub_redis_var(&redis, "EVENT", get_event_str(4, "ERR", "COMPUTE_GLOBAL_PATH NO_ROAD_ID"));
+                pub_redis_var(&redis, "EVENT", get_event_str(4, "ERR", "2_COMPUTE_GLOBAL_PATH NO_ROAD_ID"));
             }
             set_redis_var(&redis, "MISSION_UPDATE_GLOBAL_PATH", "FALSE");
         }
@@ -514,7 +522,16 @@ int main(int argc, char *argv[])
                 int min_observation = std::stoi(get_redis_str(&redis, "NAV_OBJ_MIN_OBSERVATION"));
                 double clear_dist   = std::stod(get_redis_str(&redis, "NAV_OBJ_CLEARING_DIST"));
                 int clear_time      = std::stod(get_redis_str(&redis, "NAV_OBJ_CLEARING_TIME_MS"));
-                //
+                
+                /**
+                 * NOTE: On va verifier si le robot se situe sur un dodane, dans ce cas, les valeurs
+                 * devant lui ne seront pas pris en compte. 
+                 * 
+                 */
+
+                if(time_is_over( get_curr_timestamp(), std::stoul(get_redis_str(&redis, "NAV_INCLINE_CHANGE")), 1000)) { detect_warning_incline = false;}
+                else{ detect_warning_incline = true;}
+
                 get_redis_multi_str(&redis, "ENV_CAM1_OBJECTS", vect_redis_str);
                 if(!is_same_time(timesptamp_cam1, std::stoul(vect_redis_str[0])))
                 {
@@ -527,7 +544,7 @@ int main(int argc, char *argv[])
                         vect_obj_brut.push_back(vect_redis_str[i+2]);
                         // vect_obj_brut.push_back(vect_redis_str[i+3]);
 
-                        process_brut_obj(curr_local_pos, vect_obj_brut, &vect_sensor_prm[0], &min_dist, &max_dist, vect_obj, &min_space, &min_observation);
+                        process_brut_obj(curr_local_pos, vect_obj_brut, &vect_sensor_prm[0], &min_dist, &max_dist, vect_obj, &min_space, &min_observation, detect_warning_incline);
                     }
                 }
 
@@ -543,7 +560,7 @@ int main(int argc, char *argv[])
                         vect_obj_brut.push_back(vect_redis_str[i+2]);
                         // vect_obj_brut.push_back(vect_redis_str[i+3]);
 
-                        process_brut_obj(curr_local_pos, vect_obj_brut, &vect_sensor_prm[1], &min_dist, &max_dist, vect_obj, &min_space, &min_observation);
+                        process_brut_obj(curr_local_pos, vect_obj_brut, &vect_sensor_prm[1], &min_dist, &max_dist, vect_obj, &min_space, &min_observation, detect_warning_incline);
                     }
                 }
 
@@ -559,7 +576,7 @@ int main(int argc, char *argv[])
                         vect_obj_brut.push_back(vect_redis_str[i+2]);
                         // vect_obj_brut.push_back(vect_redis_str[i+3]);
 
-                        process_brut_obj(curr_local_pos, vect_obj_brut, &vect_sensor_prm[2], &min_dist, &max_dist, vect_obj, &min_space, &min_observation);
+                        process_brut_obj(curr_local_pos, vect_obj_brut, &vect_sensor_prm[2], &min_dist, &max_dist, vect_obj, &min_space, &min_observation, detect_warning_incline);
                     }
                 }
 
@@ -575,7 +592,7 @@ int main(int argc, char *argv[])
                         vect_obj_brut.push_back(vect_redis_str[i+2]);
                         // vect_obj_brut.push_back(vect_redis_str[i+3]);
 
-                        process_brut_obj(curr_local_pos, vect_obj_brut, &vect_sensor_prm[3], &min_dist, &max_dist, vect_obj, &min_space, &min_observation);
+                        process_brut_obj(curr_local_pos, vect_obj_brut, &vect_sensor_prm[3], &min_dist, &max_dist, vect_obj, &min_space, &min_observation, detect_warning_incline);
                     }
                 }
                 
@@ -822,7 +839,7 @@ int main(int argc, char *argv[])
                         //                 // Il y a un probleme, notre deplacement n'ai pas assez grand, on previent l'opérateur
                         //                 // et on immobilise le robot.
 
-                        //                 pub_redis_var(&redis, "EVENT", get_event_str(4, "ERR", "ROBOT_BLOCKED"));
+                        //                 pub_redis_var(&redis, "EVENT", get_event_str(4, "ERR", "3|ROBOT_BLOCKED"));
                         //                 set_redis_var(&redis, "MISSION_MOTOR_BRAKE"   , "TRUE");
                         //                 set_redis_var(&redis, "MISSION_AUTO_STATE"    , "PAUSE");
                         //                 set_redis_var(&redis, "MISSION_MANUAL_STATE"  , "PAUSE");
@@ -1749,7 +1766,7 @@ int main(int argc, char *argv[])
                                 double x = 0.0; double y = 0.0; double angle = 0.0;
                                 double angle_diff2 = 0.0;
                                 double idx_col = 0.0; double idx_row = 0.0;
-                                memory_dist = 0.8;
+                                memory_dist = 1.2;
                                 double distance_m = std::stod(get_redis_str(&redis, "HARD_WHEEL_DISTANCE")) / 2 + memory_dist;
                                 double center_row = 0.0;
                                 bool first_trajectory_safe = true;
@@ -1847,8 +1864,6 @@ int main(int argc, char *argv[])
                                     }
                                 }
 
-                                // std::cout << vect_obj.size() << " CLEAN : " << DirectMap_obs.size() << std::endl;
-
                                 speed_with_obj = min_speed_detect;
 
                                 trajectory_tested++;
@@ -1887,7 +1902,7 @@ int main(int argc, char *argv[])
                                      */
 
                                     std::vector<double> activation_dist_vect;
-                                    activation_dist_vect.push_back(6.0);
+                                    activation_dist_vect.push_back(5.5);
                                     activation_dist_vect.push_back(4.0);
                                     activation_dist_vect.push_back(2.3);
                                     activation_dist_vect.push_back(0.6);
@@ -2044,14 +2059,14 @@ int main(int argc, char *argv[])
                                          * 
                                          */
 
-                                        if(y == 0 && Final_traj.niv > 7) trajectory_found_in_bash = false;
-                                        if(y == 1 && Final_traj.niv > 8) trajectory_found_in_bash = false;
-                                        if(y == 2 && Final_traj.niv > 15) trajectory_found_in_bash = false;
+                                        // if(y == 0 && Final_traj.niv > 7) trajectory_found_in_bash = false;
+                                        // if(y == 1 && Final_traj.niv > 8) trajectory_found_in_bash = false;
+                                        // if(y == 2 && Final_traj.niv > 15) trajectory_found_in_bash = false;
                                     }
                                     // END ALGORYTHME.
                                 }
 
-                                // std::cout << "count traj tested: " << trajectory_tested << " total time : " << get_elapsed_time(get_curr_timestamp(), start_trajectory_selection_ts) << " " <<  Final_traj.niv << std::endl;
+                                std::cout << "count traj tested: " << trajectory_tested << " total time : " << get_elapsed_time(get_curr_timestamp(), start_trajectory_selection_ts) << std::endl;
                                 if(trajectory_found_in_bash) 
                                 {
                                     // std::cout << Final_traj.r << " " << Final_traj.pt_M << " " << Final_traj.security_dist << std::endl;                                     
@@ -2060,7 +2075,7 @@ int main(int argc, char *argv[])
                                 }
                                 else
                                 {
-                                    std::cout << "[!] Aucune trajectoire trouver [!]" << std::endl;
+                                 //   std::cout << "[!] Aucune trajectoire trouver [!]" << std::endl;
                                 }
                                 // CHECK IF LE MEILLEUR A UNE TAILLE DE 20 PRENDRE LE PLUS PROCHE DE L4ORIGNIAL.
                                 // int best_dist_orig = Final_traj.niv;
@@ -2241,7 +2256,7 @@ int main(int argc, char *argv[])
                                     if(last_command_motor_double[0] <  0 && last_command_motor_double[3] >  0) previous_mode = 4;
                                     if(last_command_motor_double[0] >  0 && last_command_motor_double[3] <  0) previous_mode = 5;
 
-                                    std::cout << "MODE : " << previous_mode << std::endl;
+                                 //   std::cout << "MODE : " << previous_mode << std::endl;
 
                                     std::string opti;
                                     for(int i = 0; i < 6; i++) opti += std::to_string(optimal_command_vect[i]) + "|";
@@ -2288,7 +2303,7 @@ int main(int argc, char *argv[])
                                     // }
                                     if(previous_mode == 4 || previous_mode == 5)
                                     {
-                                        std::cout << "Ralentir avant accélération." << std::endl;
+                                     //   std::cout << "Ralentir avant accélération." << std::endl;
                                         for(int j = 0; j < 6; j++)
                                         {
                                             double diff = last_command_motor_double[j];
@@ -2315,7 +2330,7 @@ int main(int argc, char *argv[])
                                     }
                                     if(previous_mode == 2)
                                     {
-                                        std::cout << final_side << " r:" << Final_traj.r << " securi:" << Final_traj.security_dist <<  " index:" << Final_traj.niv << std::endl;
+                                     //   std::cout << final_side << " r:" << Final_traj.r << " securi:" << Final_traj.security_dist <<  " index:" << Final_traj.niv << std::endl;
                                         if(final_side == -1)
                                         {
                                             /* Tout droit vers la gauche.*/
@@ -2510,7 +2525,7 @@ int main(int argc, char *argv[])
                                 }
                                 else
                                 {
-                                    std::cout << "NE DOIT PAS ARRIVER " << get_curr_timestamp() << std::endl;
+                                 //   std::cout << "NE DOIT PAS ARRIVER " << get_curr_timestamp() << std::endl;
                                 }
 
                                 // ETAPE 8 : SECURITY
@@ -2621,7 +2636,7 @@ int main(int argc, char *argv[])
                                         }
                                     }
                                 }
-                                std::cout << motor_command_str << std::endl;
+                             //   std::cout << motor_command_str << std::endl;
 
                                 // ETAPE 9 : Pour ne pas faire crash le code.
                                 std::vector<std::string> vect_verif;
@@ -2629,7 +2644,7 @@ int main(int argc, char *argv[])
                                 if(vect_verif.size() <= 2)
                                 {
                                     double back_speed_max = -0.2;
-                                    std::cout << "BUG BUG BUG" << std::endl << std::endl << std::endl << std::endl;
+                                 //   std::cout << "BUG BUG BUG" << std::endl << std::endl << std::endl << std::endl;
                                     motor_command_str = std::to_string(get_curr_timestamp()) + "|";
                                     for(int j = 0; j < 6; j++)
                                     {
@@ -2811,8 +2826,7 @@ int main(int argc, char *argv[])
                 if(compteur_direction == 6)
                 {
                     set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "TRUE");
-                    pub_redis_var(&redis, "EVENT", get_event_str(4, "ERR", "COLISION_DETECTED_BEFORE_CRASH_FRONT"));
-                    set_redis_var(&redis, "MISSION_MOTOR_BRAKE"   , "TRUE");
+                    pub_redis_var(&redis, "EVENT", get_event_str(4, "ERR", "3_COLISION_DETECTED_BEFORE_CRASH_FRONT"));
                     set_redis_var(&redis, "MISSION_AUTO_STATE"    , "PAUSE");
                     set_redis_var(&redis, "MISSION_MANUAL_STATE"  , "PAUSE");
                 }
@@ -2833,8 +2847,8 @@ int main(int argc, char *argv[])
                 if(compteur_direction == 6)
                 {
                     set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "TRUE");
-                    pub_redis_var(&redis, "EVENT", get_event_str(4, "ERR", "COLISION_DETECTED_BEFORE_CRASH_BACK"));
-                    set_redis_var(&redis, "MISSION_MOTOR_BRAKE"   , "TRUE");
+                    pub_redis_var(&redis, "EVENT", get_event_str(4, "ERR", "3_COLISION_DETECTED_BEFORE_CRASH_BACK"));
+
                     set_redis_var(&redis, "MISSION_AUTO_STATE"    , "PAUSE");
                     set_redis_var(&redis, "MISSION_MANUAL_STATE"  , "PAUSE");
                 }
@@ -2967,7 +2981,7 @@ int main(int argc, char *argv[])
 
             if(vect_control.size() <= 2)
             {
-                std::cout << "[!][!] L'algorythme à commis une erreur que le code à pu corriger. [!][!]" << std::endl;
+             //   std::cout << "[!][!] L'algorythme à commis une erreur que le code à pu corriger. [!][!]" << std::endl;
                 std::vector<std::string> last_command_motor;
                 get_redis_multi_str(&redis, "HARD_MOTOR_COMMAND", last_command_motor);
                 motor_command_str = std::to_string(get_curr_timestamp()) + "|";

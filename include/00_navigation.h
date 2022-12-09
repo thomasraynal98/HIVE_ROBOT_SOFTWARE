@@ -277,7 +277,7 @@ int get_time_to_travel_s(double distance, double speed);
 double get_distance(double xa, double ya, double xb, double yb);
 Geographic_point get_new_position(Geographic_point* start_position, double bearing, double distance);
 void update_sensor_prm(sw::redis::Redis* redis, std::vector<Sensor_prm>& vect_sensor_prm);
-void process_brut_obj(std::vector<double> curr_local_pos, std::vector<std::string> brut_obj, Sensor_prm* sensor_prm, double* min_dist, double* max_dist, std::vector<Object_env>& vect_obj, double* min_separation, int *min_observation);
+void process_brut_obj(std::vector<double> curr_local_pos, std::vector<std::string> brut_obj, Sensor_prm* sensor_prm, double* min_dist, double* max_dist, std::vector<Object_env>& vect_obj, double* min_separation, int *min_observation, bool incline_warning);
 void clear_obj_vect(std::vector<double> curr_local_pos, std::vector<Object_env>& vect_obj, int clear_time_ms, double clear_dist_m);
 int get_filtred_road_ID(sw::redis::Redis* redis, std::vector<std::tuple<int64_t,int>>& vect_last_curr_road_ID, int max_time_threshold);
 int emergency_collision_detector(std::vector<double> curr_local_pos, std::vector<Object_env>& vect_obj);

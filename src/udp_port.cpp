@@ -612,7 +612,7 @@ start()
 	//   READ THREAD
 	// --------------------------------------------------------------------------
 
-	printf("START READ THREAD \n");
+	printf("START READ THREAD :) \n");
 
 	result = pthread_create( &read_tid, NULL, &start_autopilot_interface_read_thread, this );
 	if ( result ) throw result;
@@ -625,19 +625,22 @@ start()
 	//   CHECK FOR MESSAGES
 	// --------------------------------------------------------------------------
 
-	printf("CHECK FOR MESSAGES\n");
+	printf("CHECK FOR MESSAGES :)\n");
 
 	while ( not current_messages.sysid )
 	{
 		if ( time_to_exit )
+		{
+			printf("CHECK MSG THOMAS2\n");
 			return;
+		}
 		usleep(500000); // check at 2Hz
-		// printf("CHECK MSG THOMAS\n");
+		printf("CHECK MSG THOMAS\n");
 	}
 
-	printf("Found\n");
+	printf("Found A\n");
 
-	// now we know autopilot is sending messages
+	// now we know autopilot is sending messages //
 	printf("\n");
 
 

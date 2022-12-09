@@ -5,6 +5,7 @@ PROJECT(HIVE_ROBOT_SYSTEM VERSION 1.0)
 
 # include directories.
 INCLUDE_DIRECTORIES(include)
+INCLUDE_DIRECTORIES(pixhawk)
 INCLUDE_DIRECTORIES(pixhawk/mavlink/include/mavlink/v2.0)
 
 # set good gcc version.

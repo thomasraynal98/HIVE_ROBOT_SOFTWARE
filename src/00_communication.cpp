@@ -241,6 +241,15 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                         new_local_position += vect_redis_str[3] + "|";
             
                         set_redis_var(redis, "NAV_LOCAL_POSITION", new_local_position);
+
+                        // Estimer la vitesse actuelle en km/h.
+                        std::vector<std::string> last_value_vect;
+                        get_redis_multi_str(redis, "NAV_CURR_SPEED", last_value_vect);
+                        int64_t elasped_time = abs(get_elapsed_time(get_curr_timestamp(), std::stoul(last_value_vect[0])));
+                        double speed_kmh = ((dt_moy_m / (elasped_time / 1000)) / 1000) * 3600;
+                        std::string curr_speed_str = std::to_string(get_curr_timestamp()) + "|" + std::to_string(speed_kmh) + "|"; 
+                        set_redis_var(redis, "NAV_CURR_SPEED", curr_speed_str);
+
                     }
                 }
                 
@@ -437,19 +446,19 @@ float get_battery_level(float curr_voltage, float battery_voltage)
 {
     if(battery_voltage == 24.0)
     {
-        if(curr_voltage > 28.0) return 100.0;
+        if(curr_voltage > 29.5) return 100.0;
 
         std::vector<float> border_vect;
-        border_vect.push_back(28.00);
-        border_vect.push_back(27.3);
-        border_vect.push_back(26.6);
-        border_vect.push_back(25.9);
-        border_vect.push_back(25.2);
-        border_vect.push_back(24.5);
-        border_vect.push_back(23.8);
-        border_vect.push_back(23.0);
+        border_vect.push_back(29.5);
+        border_vect.push_back(29.0);
+        border_vect.push_back(28.5);
+        border_vect.push_back(28.0);
+        border_vect.push_back(27.5);
+        border_vect.push_back(27.0);
+        border_vect.push_back(25.5);
+        border_vect.push_back(23.5);
         border_vect.push_back(21.5);
-        border_vect.push_back(20.0);
+        border_vect.push_back(19.5);
 
         for(int i = 0; i < border_vect.size(); i++)
         {

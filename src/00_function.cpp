@@ -177,6 +177,20 @@ void init_redis_var(sw::redis::Redis* redis)
     read_yaml(redis, &fsSettings, "NAV_MAX_DECCEL");
 
     read_yaml(redis, &fsSettings, "HARD_WHEEL_SEPARATION");
+
+    read_yaml(redis, &fsSettings, "SOFT_PROCESS_ID_LIDAR_0");
+    read_yaml(redis, &fsSettings, "SOFT_PROCESS_ID_LIDAR_1");
+    read_yaml(redis, &fsSettings, "SOFT_PROCESS_ID_FRONT_CAMERA");
+    read_yaml(redis, &fsSettings, "SOFT_PROCESS_ID_BACK_CAMERA");
+
+    read_yaml(redis, &fsSettings, "SOFT_PROCESS_ID_LIDAR_0_STATUS");
+    read_yaml(redis, &fsSettings, "SOFT_PROCESS_ID_LIDAR_1_STATUS");
+    read_yaml(redis, &fsSettings, "SOFT_PROCESS_ID_FRONT_CAMERA_STATUS");
+    read_yaml(redis, &fsSettings, "SOFT_PROCESS_ID_BACK_CAMERA_STATUS");
+
+    read_yaml(redis, &fsSettings, "NAV_IMU_ACC");
+    read_yaml(redis, &fsSettings, "NAV_INCLINE_CHANGE");
+    read_yaml(redis, &fsSettings, "NAV_CURR_SPEED");
 }
 
 int64_t get_curr_timestamp()

@@ -227,12 +227,17 @@ void f_thread_telemetry()
             std::vector<std::string> vect_str;
             get_redis_multi_str(&redis, "NAV_GLOBAL_POSITION", vect_str);
 
+            /* Read curr speed. */
+            std::vector<std::string> vect_str2;
+            get_redis_multi_str(&redis, "NAV_CURR_SPEED", vect_str2);
+
             std::vector<Server_var> vect_telemetry_server;
             vect_telemetry_server.push_back(Server_var("d", "LONGITUDE"          ,                                       vect_str[1]));
             vect_telemetry_server.push_back(Server_var("d", "LATITUDE"           ,                                       vect_str[2]));
             vect_telemetry_server.push_back(Server_var("d", "HDG"                ,                                       vect_str[3]));
-            vect_telemetry_server.push_back(Server_var("d", "VOLTAGE"            ,                                           "100.0"));
-            vect_telemetry_server.push_back(Server_var("d", "SPEED"              ,                                             "0.0"));
+            vect_telemetry_server.push_back(Server_var("d", "VOLTAGE"            ,      get_redis_str(&redis, "NAV_BATTERY_VOLTAGE")));
+            vect_telemetry_server.push_back(Server_var("d", "VOLTAGE_PERCENTAGE" ,   get_redis_str(&redis, "NAV_BATTERY_PERCENTAGE")));
+            vect_telemetry_server.push_back(Server_var("d", "SPEED"              ,                                      vect_str2[1]));
             vect_telemetry_server.push_back(Server_var("s", "MODE"               ,               get_redis_str(&redis, "ROBOT_MODE")));
 
             if(get_redis_str(&redis, "ROBOT_MODE").compare("AUTO") == 0)

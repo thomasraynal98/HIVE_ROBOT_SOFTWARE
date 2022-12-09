@@ -205,7 +205,6 @@ void f_thread_readwrite_pixhawk()
     Autopilot_Interface* autopilot_interface;
 
     double ms_for_loop = frequency_to_ms(std::stoi(get_redis_str(&redis, "HARD_PIXHAWK_COM_HZ")));
-    ms_for_loop = 100;
     auto next = std::chrono::high_resolution_clock::now();
 
     // variable pour filtre local.
@@ -217,6 +216,19 @@ void f_thread_readwrite_pixhawk()
     std::vector<std::string> vect_redis_str;
     get_redis_multi_str(&redis, "ROBOT_INFO_HOME_POSITION", vect_redis_str);
     Geographic_point homeland = Geographic_point(std::stod(vect_redis_str[0]), std::stod(vect_redis_str[1]));
+
+    // variable pour detection d'angle.
+    double moy_acc_x = 0;
+    double moy_acc_y = 0;
+    double moy_acc_z = 0;
+    double filtred_moy_x = 0;
+    double filtred_moy_y = 0;
+    std::vector<double> last_data_x;
+    std::vector<double> last_data_y;
+    int memory_counter = 5;
+    double memory_value = 0;
+    int64_t warning_incline_ts = get_curr_timestamp();
+    int64_t l_warning_incline_ts = get_curr_timestamp();
 
     while(true)
     {
@@ -248,7 +260,9 @@ void f_thread_readwrite_pixhawk()
              * NOTE: Refaire ce code en filtrant les valeurs abérantes que peux renvoyer le
              * systême pixhawk.
              * [1] Local navigation.
-             * [2] global navigation.
+             * [2] Global navigation.
+             * [3] GPS information.
+             * [4] Imu data.
              */
 
             // [1] Local navigation.
@@ -257,12 +271,13 @@ void f_thread_readwrite_pixhawk()
             accept_value = true;
 
             int tempo_hdg = messages.local_heading.heading;
-            if(abs(tempo_hdg - std::stoi(vect_redis_str[3])) > 20)
+            // std::cout << get_curr_timestamp() << " " << tempo_hdg << std::endl;
+            if(abs(tempo_hdg - std::stoi(vect_redis_str[3])) > 20 && tempo_hdg != 0)
             {
                 counter_outlier++;
                 accept_value = false;
             }
-            if(counter_outlier > max_counter_outlier)
+            if(counter_outlier > max_counter_outlier && tempo_hdg != 0)
             {
                 counter_outlier = 0;
                 accept_value = true;
@@ -296,6 +311,70 @@ void f_thread_readwrite_pixhawk()
             // [3] gps reading.
             set_redis_var(&redis, "HARD_GPS_FIX_STATE", std::to_string(messages.gps_raw.fix_type));
             set_redis_var(&redis, "HARD_GPS_NUMBER", std::to_string(messages.gps_raw.satellites_visible));
+
+            // [4] Imu information.
+            std::vector<float> vect_imu;
+            if(abs(messages.highres_imu.xacc) < 200 && abs(messages.highres_imu.yacc) < 200 && abs(messages.highres_imu.zacc) < 200 && \
+            abs(messages.highres_imu.xacc) > 0.01 && abs(messages.highres_imu.yacc) > 0.01 && abs(messages.highres_imu.zacc) > 0.01)
+            {
+                vect_imu.push_back((float)(messages.highres_imu.xacc));
+                vect_imu.push_back((float)(messages.highres_imu.yacc));
+                vect_imu.push_back((float)(messages.highres_imu.zacc));
+
+                moy_acc_x = vect_imu[0];
+                moy_acc_y = vect_imu[1];
+                moy_acc_z = vect_imu[2];
+                // std::cout << get_curr_timestamp() << "    " << vect_imu[0] << " " << vect_imu[1] << " " << vect_imu[2] << std::endl;
+
+                last_data_x.push_back(moy_acc_x);     
+                last_data_y.push_back(moy_acc_y);        
+
+                filtred_moy_x = std::accumulate(last_data_x.begin(), last_data_x.end(), 0.0) / last_data_x.size();
+                filtred_moy_y = std::accumulate(last_data_y.begin(), last_data_y.end(), 0.0) / last_data_y.size();
+
+                if(last_data_x.size() > 8) last_data_x.erase(last_data_x.begin());
+                if(last_data_y.size() > 8) last_data_y.erase(last_data_y.begin());
+
+                if(memory_counter > 5)
+                {
+                    memory_counter = 0;
+                    memory_value = filtred_moy_x;
+                } else
+                {
+                    memory_counter ++;
+                }
+
+                if(abs(filtred_moy_x) > 7.5 || abs(filtred_moy_y) > 7.5)
+                {
+                    if(time_is_over(get_curr_timestamp(), l_warning_incline_ts, 3000))
+                    {
+                        pub_redis_var(&redis, "EVENT", get_event_str(2, "ERR", "3_WARNING_INCLINE"));
+                        set_redis_var(&redis, "MISSION_MOTOR_BRAKE"   , "TRUE");
+                        l_warning_incline_ts = get_curr_timestamp();
+                    }
+                    // std::cout << get_curr_timestamp() << " ALERT " << "[" << filtred_moy_x << "] " << moy_acc_x << " " << moy_acc_y << " " << moy_acc_z << std::endl;
+                }
+                else if(abs(filtred_moy_x) > 3.0)
+                {
+                    // std::cout << get_curr_timestamp() << " ANGLE " << "[" << filtred_moy_x << "] " << moy_acc_x << " " << moy_acc_y << " " << moy_acc_z << std::endl;
+                }
+                else
+                {
+                    // std::cout << get_curr_timestamp() << "       " << "[" << filtred_moy_x << "] " << moy_acc_x << " " << moy_acc_y << " " << moy_acc_z << std::endl;
+                }
+                if(abs(memory_value - filtred_moy_x) > 2.0) 
+                {
+                    set_redis_var(&redis, "NAV_INCLINE_CHANGE", std::to_string(get_curr_timestamp()));
+                    std::cout << "TROTOIRE?" << std::endl;
+                    // std::cout << get_curr_timestamp() << " WARNI " << "[" << filtred_moy_x << "] " << moy_acc_x << " " << moy_acc_y << " " << moy_acc_z << std::endl;
+                }
+
+                debug_str = std::to_string(get_curr_timestamp()) + "|";
+                debug_str += std::to_string(vect_imu[0]) + "|";
+                debug_str += std::to_string(vect_imu[1]) + "|";
+                debug_str += std::to_string(vect_imu[2]) + "|";
+                set_redis_var(&redis, "NAV_IMU_ACC", debug_str);
+            }
         }
 
         // OPENING PROCEDURE
@@ -310,6 +389,7 @@ void f_thread_readwrite_pixhawk()
 
             pixhawk_com_manager->start();
             autopilot_interface->start();
+            // autopilot_interface->update_setpoint();//
 
             if(pixhawk_com_manager->is_running())
             {

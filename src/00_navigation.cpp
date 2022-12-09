@@ -1864,12 +1864,18 @@ void update_sensor_prm(sw::redis::Redis* redis, std::vector<Sensor_prm>& vect_se
     vect_sensor_prm.push_back(lid2);
 }
 
-void process_brut_obj(std::vector<double> curr_local_pos, std::vector<std::string> brut_obj, Sensor_prm* sensor_prm, double* min_dist, double* max_dist, std::vector<Object_env>& vect_obj, double* min_separation, int *min_observation)
+void process_brut_obj(std::vector<double> curr_local_pos, std::vector<std::string> brut_obj, Sensor_prm* sensor_prm, double* min_dist, double* max_dist, std::vector<Object_env>& vect_obj, double* min_separation, int *min_observation, bool incline_warning)
 {
     /*
         Description: projeter l'object observer brute et le transformer en object
         net dans l'environnement local.
     */
+
+    if(incline_warning && abs(std::stod(brut_obj[2])) < 60.0)
+    {
+        /* Si on detect un inclinaison warning, on prend que les valeurs exterieur. */
+        return;
+    }
 
     if(std::stod(brut_obj[1]) > *min_dist && \
     std::stod(brut_obj[1]) < *max_dist)
