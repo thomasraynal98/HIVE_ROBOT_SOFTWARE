@@ -1794,6 +1794,7 @@ int main(int argc, char *argv[])
                                 std::vector<Vect_2D> DirectMap_obs;
                                 std::vector<double> DirectMap_obs_diff_angle;
                                 Trajectory Final_traj = Trajectory(0.0, 0.0, 0.0);
+                                Final_traj.niv = 200;
 
                                 // ETAPE 1 : TEST ORIGINAL TRAJECTORY
                                 for(auto obj : vect_obj)
@@ -1989,7 +1990,7 @@ int main(int argc, char *argv[])
 
                                             trajectory_registre[y][i].pt_M = min_dist_obj_robot;
 
-                                            if(Final_traj.pt_M < trajectory_registre[y][i].pt_M)
+                                            if(Final_traj.pt_M <= trajectory_registre[y][i].pt_M)
                                             {
                                                 Final_traj = trajectory_registre[y][i];
                                             }
@@ -2062,6 +2063,26 @@ int main(int argc, char *argv[])
                                         // if(y == 0 && Final_traj.niv > 7) trajectory_found_in_bash = false;
                                         // if(y == 1 && Final_traj.niv > 8) trajectory_found_in_bash = false;
                                         // if(y == 2 && Final_traj.niv > 15) trajectory_found_in_bash = false;
+
+                                        /**
+                                         * NOTE:
+                                         * On veut être sur que si plusieurs trajectoire on la même distance à un point, 
+                                         * de prendre celle la plus proche de l'index.
+                                         */
+
+                                        if(trajectory_found_in_bash)
+                                        {
+                                            for(int i = 0; i < trajectory_registre[y].size(); i++)
+                                            {
+                                                if(Final_traj.pt_M == trajectory_registre[y][i].pt_M)
+                                                {
+                                                    if(Final_traj.niv > trajectory_registre[y][i].niv)
+                                                    {
+                                                        Final_traj = trajectory_registre[y][i];
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                     // END ALGORYTHME.
                                 }

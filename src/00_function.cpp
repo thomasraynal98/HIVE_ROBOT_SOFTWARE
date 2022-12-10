@@ -191,6 +191,11 @@ void init_redis_var(sw::redis::Redis* redis)
     read_yaml(redis, &fsSettings, "NAV_IMU_ACC");
     read_yaml(redis, &fsSettings, "NAV_INCLINE_CHANGE");
     read_yaml(redis, &fsSettings, "NAV_CURR_SPEED");
+
+    read_yaml(redis, &fsSettings, "HARD_TEMPERATURE_INFO");
+
+    read_yaml(redis, &fsSettings, "HARD_ENCODER_STATE");
+    read_yaml(redis, &fsSettings, "HARD_MOTOR_STATE");
 }
 
 int64_t get_curr_timestamp()

@@ -284,6 +284,43 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                         set_redis_var(redis, "NAV_BATTERY_PERCENTAGE", std::to_string(get_battery_level(std::stod(vect_reponse_mcu_motor[2]),24.0)));
                     }
                 }
+
+                if(vect_reponse_mcu_motor.size() == 18 && compare_redis_var(redis, "ROBOT_INFO_MODEL", "MK4"))
+                {
+                    if(vect_reponse_mcu_motor[1].compare("4") == 0)
+                    {
+                        std::string msg_str = std::to_string(get_curr_timestamp()) + "|";
+                        msg_str += vect_reponse_mcu_motor[2]  + "|";
+                        msg_str += vect_reponse_mcu_motor[7]  + "|";
+                        msg_str += vect_reponse_mcu_motor[12] + "|";
+                        set_redis_var(redis, "HARD_TEMPERATURE_INFO", msg_str);      
+
+                        msg_str = std::to_string(get_curr_timestamp()) + "|";
+                        msg_str += std::string((vect_reponse_mcu_motor[2].compare("0")  != 0) ? "1" : "0") + "|";
+                        msg_str += std::string((vect_reponse_mcu_motor[7].compare("0")  != 0) ? "1" : "0") + "|";
+                        msg_str += std::string((vect_reponse_mcu_motor[12].compare("0") != 0) ? "1" : "0") + "|";
+                        set_redis_var(redis, "HARD_RCLAW_STATE", msg_str);  
+
+                        msg_str = std::to_string(get_curr_timestamp()) + "|";
+                        msg_str += vect_reponse_mcu_motor[5]  + "|";
+                        msg_str += vect_reponse_mcu_motor[10] + "|";
+                        msg_str += vect_reponse_mcu_motor[16] + "|";
+                        msg_str += vect_reponse_mcu_motor[6]  + "|";
+                        msg_str += vect_reponse_mcu_motor[11] + "|";
+                        msg_str += vect_reponse_mcu_motor[17] + "|";
+                        set_redis_var(redis, "HARD_ENCODER_STATE", msg_str);   
+
+                        msg_str = std::to_string(get_curr_timestamp()) + "|";
+                        msg_str += vect_reponse_mcu_motor[3]  + "|";
+                        msg_str += vect_reponse_mcu_motor[8]  + "|";
+                        msg_str += vect_reponse_mcu_motor[14] + "|";
+                        msg_str += vect_reponse_mcu_motor[4]  + "|";
+                        msg_str += vect_reponse_mcu_motor[9]  + "|";
+                        msg_str += vect_reponse_mcu_motor[13] + "|";
+                        set_redis_var(redis, "HARD_MOTOR_STATE", msg_str);     
+                    
+                    }
+                }
             }
         }
         catch(...)

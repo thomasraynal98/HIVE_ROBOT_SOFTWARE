@@ -62,7 +62,11 @@ HARD_LID2_DY                        : "0.0"
 HARD_LID2_ANGLE                     : "180.0"
 HARD_ENCODER_TIC_TO_M               : "0.0004"
 HARD_LOCAL_JS_COM_STATE             : "DISCONNECTED"
-  
+HARD_TEMPERATURE_INFO               : "0000000000000|0.0|0.0|0.0|"                                   # "0000000000000|TEMPRCLAW1|TEMPRCLAW2|TEMPRCLAW3|"
+HARD_ENCODER_STATE                  : "0000000000000|1|1|1|1|1|1|"                                   # "0000000000000|M1encState|M2encState|M3encState|M4encState|M5encState|M6encState|"
+HARD_MOTOR_STATE                    : "0000000000000|1|1|1|1|1|1|"                                   # "0000000000000|M1State|M2State|M3State|M4State|M5State|M6State|"
+HARD_RCLAW_STATE                    : "0000000000000|1|1|1|"                                         # "0000000000000|StateRCLAW1|StateRCLAW2|StateRCLAW3|"
+
 # NAVIGATION   
 NAV_HMR_MAP_UPDATE                  : "TRUE"
 NAV_HMR_DOWNLOAD_ADRESS             : "NO_VAL"
