@@ -288,10 +288,10 @@ void f_thread_telemetry()
             vect_telemetry_server.push_back(Server_var("s", "PROC_SERVER"        ,   get_redis_str(&redis,          "SOFT_PROCESS_ID_SERV_STATUS")));
             vect_telemetry_server.push_back(Server_var("s", "PROC_NAVIGATION"    ,    get_redis_str(&redis,          "SOFT_PROCESS_ID_NAV_STATUS")));
             vect_telemetry_server.push_back(Server_var("s", "PROC_PERCEPTION"    , get_redis_str(&redis,          "SOFT_PROCESS_ID_PERCEP_STATUS")));
-            vect_telemetry_server.push_back(Server_var("s", "PROC_HARWARE"       ,   get_redis_str(&redis,       "SOFT_PROCESS_ID_LIDAR_0_STATUS")));
-            vect_telemetry_server.push_back(Server_var("s", "PROC_SERVER"        ,   get_redis_str(&redis,       "SOFT_PROCESS_ID_LIDAR_1_STATUS")));
-            vect_telemetry_server.push_back(Server_var("s", "PROC_NAVIGATION"    ,    get_redis_str(&redis, "SOFT_PROCESS_ID_FRONT_CAMERA_STATUS")));
-            vect_telemetry_server.push_back(Server_var("s", "PROC_PERCEPTION"    , get_redis_str(&redis,     "SOFT_PROCESS_ID_BACK_CAMERA_STATUS")));
+            vect_telemetry_server.push_back(Server_var("s", "PROC_LIDAR_0"       ,               get_redis_str(&redis,       "SOFT_STATE_LIDAR_0")));
+            vect_telemetry_server.push_back(Server_var("s", "PROC_LIDAR_1"       ,               get_redis_str(&redis,       "SOFT_STATE_LIDAR_1")));
+            vect_telemetry_server.push_back(Server_var("s", "PROC_FRONT_CAMERA"  ,                get_redis_str(&redis, "SOFT_STATE_FRONT_CAMERA")));
+            vect_telemetry_server.push_back(Server_var("s", "PROC_BACK_CAMERA"   ,             get_redis_str(&redis,     "SOFT_STATE_BACK_CAMERA")));
 
             vect_telemetry_server.push_back(Server_var("s", "GPS_SAT_NUMBER"     ,          get_redis_str(&redis, "HARD_GPS_NUMBER")));
             vect_telemetry_server.push_back(Server_var("s", "GPS_STATE_FIX"      ,       get_redis_str(&redis, "HARD_GPS_FIX_STATE")));

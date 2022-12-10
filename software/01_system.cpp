@@ -226,6 +226,22 @@ void f_thread_debug()
             print_redis(&redis, "SOFT_PROCESS_ID_SERV");
             print_redis(&redis, "SOFT_PROCESS_ID_NAV");
             print_redis(&redis, "SOFT_PROCESS_ID_PERCEP");
+            print_redis(&redis, "SOFT_STATE_LIDAR_0");
+            print_redis(&redis, "SOFT_STATE_LIDAR_1");
+            print_redis(&redis, "SOFT_STATE_FRONT_CAMERA");
+            print_redis(&redis, "SOFT_STATE_BACK_CAMERA");
+            print_redis(&redis, "HARD_TEMPERATURE_INFO");
+            print_redis(&redis, "HARD_ENCODER_STATE");
+            print_redis(&redis, "HARD_MOTOR_STATE");
+            print_redis(&redis, "HARD_RCLAW_STATE");
+
+            std::cout << std::endl;
+
+            print_redis(&redis, "HARD_MCU_MOTOR_COM_STATE");
+            print_redis(&redis, "HARD_MCU_CARGO_COM_STATE");
+            print_redis(&redis, "HARD_MCU_INTER_COM_STATE");
+            print_redis(&redis, "HARD_PIXHAWK_COM_STATE");
+            print_redis(&redis, "SERVER_COM_STATE");
 
             std::cout << std::endl;
 

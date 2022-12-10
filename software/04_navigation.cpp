@@ -1398,7 +1398,7 @@ int main(int argc, char *argv[])
                             //====================
                             // ROTATION SUR PLACE
                             //====================
-                            double opt_treshold = 120;
+                            double opt_treshold = 130;
                             if(diff_angle > opt_treshold || (realig_process_start && diff_angle > 0))
                             {
                                 //[!] Verifier le process de realignement.
