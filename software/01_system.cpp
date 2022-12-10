@@ -288,7 +288,15 @@ void f_thread_process_check()
         if(file_exist("/proc/" + get_redis_str(&redis, "SOFT_PROCESS_ID_HARD") + "/status"))
         {
             set_redis_var(&redis, "SOFT_PROCESS_ID_HARD_STATUS", "CONNECTED");
-        } else { set_redis_var(&redis, "SOFT_PROCESS_ID_HARD_STATUS", "DISCONNECTED");}
+        } else 
+        { 
+            set_redis_var(&redis, "SOFT_PROCESS_ID_HARD_STATUS", "DISCONNECTED");
+            set_redis_var(&redis, "HARD_MCU_MOTOR_COM_STATE", "DISCONNECTED");
+            set_redis_var(&redis, "HARD_MCU_CARGO_COM_STATE", "DISCONNECTED");
+            set_redis_var(&redis, "HARD_MCU_INTER_COM_STATE", "DISCONNECTED");
+            set_redis_var(&redis, "HARD_PIXHAWK_COM_STATE", "DISCONNECTED");
+            set_redis_var(&redis, "HARD_LOCAL_JS_COM_STATE", "DISCONNECTED");
+        }
 
         if(file_exist("/proc/" + get_redis_str(&redis, "SOFT_PROCESS_ID_SERV") + "/status"))
         {
@@ -303,7 +311,13 @@ void f_thread_process_check()
         if(file_exist("/proc/" + get_redis_str(&redis, "SOFT_PROCESS_ID_PERCEP") + "/status"))
         {
             set_redis_var(&redis, "SOFT_PROCESS_ID_PERCEP_STATUS", "CONNECTED");
-        } else { set_redis_var(&redis, "SOFT_PROCESS_ID_PERCEP_STATUS", "DISCONNECTED");}
+        } else 
+        { 
+            set_redis_var(&redis, "SOFT_STATE_LIDAR_0", "DISCONNECTED");
+            set_redis_var(&redis, "SOFT_STATE_LIDAR_1", "DISCONNECTED");
+            set_redis_var(&redis, "SOFT_STATE_FRONT_CAMERA", "DISCONNECTED");
+            set_redis_var(&redis, "SOFT_STATE_BACK_CAMERA", "DISCONNECTED");
+        }
     }
 }
 
