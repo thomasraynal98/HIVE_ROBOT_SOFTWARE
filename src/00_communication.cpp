@@ -304,19 +304,19 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                         msg_str = std::to_string(get_curr_timestamp()) + "|";
                         msg_str += vect_reponse_mcu_motor[5]  + "|";
                         msg_str += vect_reponse_mcu_motor[10] + "|";
-                        msg_str += vect_reponse_mcu_motor[16] + "|";
+                        msg_str += vect_reponse_mcu_motor[15] + "|";
                         msg_str += vect_reponse_mcu_motor[6]  + "|";
                         msg_str += vect_reponse_mcu_motor[11] + "|";
-                        msg_str += vect_reponse_mcu_motor[17] + "|";
+                        msg_str += vect_reponse_mcu_motor[16] + "|";
                         set_redis_var(redis, "HARD_ENCODER_STATE", msg_str);   
 
                         msg_str = std::to_string(get_curr_timestamp()) + "|";
                         msg_str += vect_reponse_mcu_motor[3]  + "|";
                         msg_str += vect_reponse_mcu_motor[8]  + "|";
-                        msg_str += vect_reponse_mcu_motor[14] + "|";
+                        msg_str += vect_reponse_mcu_motor[13] + "|";
                         msg_str += vect_reponse_mcu_motor[4]  + "|";
                         msg_str += vect_reponse_mcu_motor[9]  + "|";
-                        msg_str += vect_reponse_mcu_motor[13] + "|";
+                        msg_str += vect_reponse_mcu_motor[14] + "|";
                         set_redis_var(redis, "HARD_MOTOR_STATE", msg_str);     
                     
                     }

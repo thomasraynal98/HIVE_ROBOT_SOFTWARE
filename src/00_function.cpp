@@ -191,6 +191,8 @@ void init_redis_var(sw::redis::Redis* redis)
 
     read_yaml(redis, &fsSettings, "HARD_ENCODER_STATE");
     read_yaml(redis, &fsSettings, "HARD_MOTOR_STATE");
+
+    read_yaml(redis, &fsSettings, "HARD_RCLAW_STATE");
 }
 
 int64_t get_curr_timestamp()
