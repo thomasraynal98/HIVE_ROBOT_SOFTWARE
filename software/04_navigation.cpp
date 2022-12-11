@@ -529,8 +529,8 @@ int main(int argc, char *argv[])
                  * 
                  */
 
-                if(time_is_over( get_curr_timestamp(), std::stoul(get_redis_str(&redis, "NAV_INCLINE_CHANGE")), 1000)) { detect_warning_incline = false;}
-                else{ detect_warning_incline = true;}
+                // if(time_is_over( get_curr_timestamp(), std::stoul(get_redis_str(&redis, "NAV_INCLINE_CHANGE")), 1000)) { detect_warning_incline = false;}
+                // else{ detect_warning_incline = true;}
 
                 get_redis_multi_str(&redis, "ENV_CAM1_OBJECTS", vect_redis_str);
                 if(!is_same_time(timesptamp_cam1, std::stoul(vect_redis_str[0])))

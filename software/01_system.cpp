@@ -296,6 +296,10 @@ void f_thread_process_check()
             set_redis_var(&redis, "HARD_MCU_INTER_COM_STATE", "DISCONNECTED");
             set_redis_var(&redis, "HARD_PIXHAWK_COM_STATE", "DISCONNECTED");
             set_redis_var(&redis, "HARD_LOCAL_JS_COM_STATE", "DISCONNECTED");
+
+            set_redis_var(&redis, "HARD_ENCODER_STATE", "0000000000000|0|0|0|0|0|0|");
+            set_redis_var(&redis, "HARD_MOTOR_STATE", "0000000000000|0|0|0|0|0|0|");
+            set_redis_var(&redis, "HARD_RCLAW_STATE", "0000000000000|0|0|0|");
         }
 
         if(file_exist("/proc/" + get_redis_str(&redis, "SOFT_PROCESS_ID_SERV") + "/status"))

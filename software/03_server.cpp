@@ -146,15 +146,15 @@ void f_thread_server()
                 usleep(10000);
                 
                 // UNCOMMENT FOR HTTPS
-                // std::vector<Server_var> vect_msg_server;
-                // vect_msg_server.push_back(Server_var("s", "NAME" , get_redis_str(&redis, "ROBOT_INFO_PSEUDO")));
-                // vect_msg_server.push_back(Server_var("i", "ID"   , get_redis_str(&redis, "ROBOT_INFO_ID"    )));
-                // vect_msg_server.push_back(Server_var("s", "MODEL", get_redis_str(&redis, "ROBOT_INFO_MODEL" )));
-                // send_msg_server(h.socket(), "ROBOT_ID", vect_msg_server);
+                std::vector<Server_var> vect_msg_server;
+                vect_msg_server.push_back(Server_var("s", "NAME" , get_redis_str(&redis, "ROBOT_INFO_PSEUDO")));
+                vect_msg_server.push_back(Server_var("i", "ID"   , get_redis_str(&redis, "ROBOT_INFO_ID"    )));
+                vect_msg_server.push_back(Server_var("s", "MODEL", get_redis_str(&redis, "ROBOT_INFO_MODEL" )));
+                send_msg_server(h.socket(), "ROBOT_ID", vect_msg_server);
 
                 // UNCOMMENT FOR HTTP
-                std::string robot_name = "Newt";
-                h.socket()->emit("ROBOT_ID", robot_name);
+                // std::string robot_name = "Newt";
+                // h.socket()->emit("ROBOT_ID", robot_name);
 
                 usleep(10000);
             }
@@ -256,7 +256,8 @@ void f_thread_telemetry()
             vect_telemetry_server.push_back(Server_var("d", "HDG"                ,                                       vect_str[3]));
             vect_telemetry_server.push_back(Server_var("d", "VOLTAGE"            ,      get_redis_str(&redis, "NAV_BATTERY_VOLTAGE")));
             vect_telemetry_server.push_back(Server_var("d", "VOLTAGE_PERCENTAGE" ,   get_redis_str(&redis, "NAV_BATTERY_PERCENTAGE")));
-            vect_telemetry_server.push_back(Server_var("d", "SPEED"              ,                                      vect_str2[1]));
+            // vect_telemetry_server.push_back(Server_var("d", "SPEED"              ,                                      vect_str2[1]));
+            vect_telemetry_server.push_back(Server_var("d", "SPEED"              ,                                             "0.0")); 
             vect_telemetry_server.push_back(Server_var("s", "MODE"               ,               get_redis_str(&redis, "ROBOT_MODE")));
 
             if(get_redis_str(&redis, "ROBOT_MODE").compare("AUTO") == 0)
@@ -284,7 +285,7 @@ void f_thread_telemetry()
             vect_telemetry_server.push_back(Server_var("s", "PIXHAWK_STATE"      ,   get_redis_str(&redis, "HARD_PIXHAWK_COM_STATE")));
 
             vect_telemetry_server.push_back(Server_var("s", "PROC_SYSTEM"        ,    get_redis_str(&redis,          "SOFT_PROCESS_ID_SYS_STATUS")));
-            vect_telemetry_server.push_back(Server_var("s", "PROC_HARWARE"       ,   get_redis_str(&redis,          "SOFT_PROCESS_ID_HARD_STATUS")));
+            vect_telemetry_server.push_back(Server_var("s", "PROC_HARDWARE"      ,   get_redis_str(&redis,          "SOFT_PROCESS_ID_HARD_STATUS")));
             vect_telemetry_server.push_back(Server_var("s", "PROC_SERVER"        ,   get_redis_str(&redis,          "SOFT_PROCESS_ID_SERV_STATUS")));
             vect_telemetry_server.push_back(Server_var("s", "PROC_NAVIGATION"    ,    get_redis_str(&redis,          "SOFT_PROCESS_ID_NAV_STATUS")));
             vect_telemetry_server.push_back(Server_var("s", "PROC_PERCEPTION"    , get_redis_str(&redis,          "SOFT_PROCESS_ID_PERCEP_STATUS")));
@@ -299,23 +300,23 @@ void f_thread_telemetry()
             vect_telemetry_server.push_back(Server_var("i", "TIME_TO_TARGET"     , get_redis_str(&redis, "MISSION_ESTI_TIME_TO_TARGET")));
             vect_telemetry_server.push_back(Server_var("i", "DIST_TO_TARGET"     , get_redis_str(&redis, "MISSION_ESTI_DIST_TO_TARGET")));
 
-            vect_telemetry_server.push_back(Server_var("s", "ENC1_STATE"         ,                                         vect_str4[0]));
-            vect_telemetry_server.push_back(Server_var("s", "ENC2_STATE"         ,                                         vect_str4[1]));
-            vect_telemetry_server.push_back(Server_var("s", "ENC3_STATE"         ,                                         vect_str4[2]));
-            vect_telemetry_server.push_back(Server_var("s", "ENC4_STATE"         ,                                         vect_str4[3]));
-            vect_telemetry_server.push_back(Server_var("s", "ENC5_STATE"         ,                                         vect_str4[4]));
-            vect_telemetry_server.push_back(Server_var("s", "ENC6_STATE"         ,                                         vect_str4[5]));
+            vect_telemetry_server.push_back(Server_var("s", "ENC1_STATE"         ,                                         vect_str4[1]));
+            vect_telemetry_server.push_back(Server_var("s", "ENC2_STATE"         ,                                         vect_str4[2]));
+            vect_telemetry_server.push_back(Server_var("s", "ENC3_STATE"         ,                                         vect_str4[3]));
+            vect_telemetry_server.push_back(Server_var("s", "ENC4_STATE"         ,                                         vect_str4[4]));
+            vect_telemetry_server.push_back(Server_var("s", "ENC5_STATE"         ,                                         vect_str4[5]));
+            vect_telemetry_server.push_back(Server_var("s", "ENC6_STATE"         ,                                         vect_str4[6]));
                                         
-            vect_telemetry_server.push_back(Server_var("s", "MOTOR1_STATE"       ,                                         vect_str5[0]));
-            vect_telemetry_server.push_back(Server_var("s", "MOTOR2_STATE"       ,                                         vect_str5[1]));
-            vect_telemetry_server.push_back(Server_var("s", "MOTOR3_STATE"       ,                                         vect_str5[2]));
-            vect_telemetry_server.push_back(Server_var("s", "MOTOR4_STATE"       ,                                         vect_str5[3]));
-            vect_telemetry_server.push_back(Server_var("s", "MOTOR5_STATE"       ,                                         vect_str5[4]));
-            vect_telemetry_server.push_back(Server_var("s", "MOTOR6_STATE"       ,                                         vect_str5[5]));
+            vect_telemetry_server.push_back(Server_var("s", "MOTOR1_STATE"       ,                                         vect_str5[1]));
+            vect_telemetry_server.push_back(Server_var("s", "MOTOR2_STATE"       ,                                         vect_str5[2]));
+            vect_telemetry_server.push_back(Server_var("s", "MOTOR3_STATE"       ,                                         vect_str5[3]));
+            vect_telemetry_server.push_back(Server_var("s", "MOTOR4_STATE"       ,                                         vect_str5[4]));
+            vect_telemetry_server.push_back(Server_var("s", "MOTOR5_STATE"       ,                                         vect_str5[5]));
+            vect_telemetry_server.push_back(Server_var("s", "MOTOR6_STATE"       ,                                         vect_str5[6]));
                                         
-            vect_telemetry_server.push_back(Server_var("s", "RCLAW1_STATE"       ,                                         vect_str6[0]));
-            vect_telemetry_server.push_back(Server_var("s", "RCLAW2_STATE"       ,                                         vect_str6[1]));
-            vect_telemetry_server.push_back(Server_var("s", "RCLAW3_STATE"       ,                                         vect_str6[2]));
+            vect_telemetry_server.push_back(Server_var("s", "RCLAW1_STATE"       ,                                         vect_str6[1]));
+            vect_telemetry_server.push_back(Server_var("s", "RCLAW2_STATE"       ,                                         vect_str6[2]));
+            vect_telemetry_server.push_back(Server_var("s", "RCLAW3_STATE"       ,                                         vect_str6[3]));
                                         
             vect_telemetry_server.push_back(Server_var("s", "WHEEL1_STATE"       ,                                          "CONNECTED"));
             vect_telemetry_server.push_back(Server_var("s", "WHEEL2_STATE"       ,                                          "CONNECTED"));
