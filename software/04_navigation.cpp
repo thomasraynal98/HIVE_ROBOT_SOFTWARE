@@ -636,8 +636,12 @@ int main(int argc, char *argv[])
                         {
                             if(!time_is_over(get_curr_timestamp(), std::stoul(vect_cmd_ctr[0]), 1000))
                             {
+                                std::string flag_manual_mode  = get_redis_str(&redis, "NAV_MANUAL_MODE");
                                 curr_max_speed    = get_max_speed(&redis, "MANUAL", flag_manual_mode, vect_road);
-                                motor_command_str = map_manual_command(&redis, std::stod(vect_cmd_ctr[1]), std::stod(vect_cmd_ctr[2]), std::stod(vect_cmd_ctr[3]), curr_max_speed);
+
+                                // motor_command_str = map_manual_command(&redis, std::stod(vect_cmd_ctr[1]), std::stod(vect_cmd_ctr[2]), std::stod(vect_cmd_ctr[3]), curr_max_speed);
+                                std::vector<std::string> inutil;
+                                motor_command_str = map_local_manual_command(&redis, curr_max_speed, inutil, 30, 0, std::stod(vect_cmd_ctr[2]), std::stod(vect_cmd_ctr[1]), std::stod(vect_cmd_ctr[3]));
                             }
                             else
                             {

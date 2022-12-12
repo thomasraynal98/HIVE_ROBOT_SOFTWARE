@@ -269,6 +269,7 @@ void f_thread_readwrite_pixhawk()
             std::vector<std::string> vect_redis_str;
             get_redis_multi_str(&redis, "NAV_LOCAL_POSITION", vect_redis_str);
             accept_value = true;
+            int t = messages.local_heading.heading;
 
             int tempo_hdg = messages.local_heading.heading;
             // std::cout << get_curr_timestamp() << " " << tempo_hdg << std::endl;
@@ -292,19 +293,40 @@ void f_thread_readwrite_pixhawk()
                 debug_str += vect_redis_str[1] + "|";
                 debug_str += vect_redis_str[2] + "|";
                 debug_str += std::to_string(tempo_hdg) + "|";
+                t = tempo_hdg;
                 set_redis_var(&redis, "NAV_LOCAL_POSITION", debug_str);
             }
+
 
             // [2] global navigation.
             Geographic_point tempo_pos = Geographic_point(((double)(messages.global_position_int.lon)/10000000), ((double)(messages.global_position_int.lat)/10000000));
             tempo_hdg = (double)(messages.global_position_int.hdg)/100;
 
+            bool o = true;
             if(get_angular_distance(&tempo_pos, &homeland) < 10000 && (tempo_hdg>0 && tempo_hdg<360))
             {
+                o = false;
                 debug_str = std::to_string(get_curr_timestamp()) + "|";
                 debug_str += std::to_string(tempo_pos.longitude) + "|";
                 debug_str += std::to_string(tempo_pos.latitude) + "|";
                 debug_str += std::to_string(tempo_hdg) + "|";
+
+                set_redis_var(&redis, "NAV_GLOBAL_POSITION", debug_str);
+            }
+
+            Geographic_point tempo_pos2 = Geographic_point(((double)(messages.gps_raw.lon)/10000000), ((double)(messages.gps_raw.lat)/10000000));
+
+            if(o && get_angular_distance(&tempo_pos2, &homeland) < 10000)
+            {
+                std::vector<std::string> vect_red;
+                get_redis_multi_str(&redis, "NAV_GLOBAL_POSITION", vect_red);
+                debug_str = std::to_string(get_curr_timestamp()) + "|";
+                debug_str += std::to_string((double)(messages.gps_raw.lon)/10000000) + "|";
+                debug_str += std::to_string((double)(messages.gps_raw.lat)/10000000) + "|";
+
+                if(accept_value) debug_str += std::to_string(t) + "|";
+                else{ debug_str += vect_red[3] + "|"; }
+
                 set_redis_var(&redis, "NAV_GLOBAL_POSITION", debug_str);
             }
 
@@ -349,7 +371,7 @@ void f_thread_readwrite_pixhawk()
                     if(time_is_over(get_curr_timestamp(), l_warning_incline_ts, 3000))
                     {
                         pub_redis_var(&redis, "EVENT", get_event_str(2, "ERR", "3_WARNING_INCLINE"));
-                        set_redis_var(&redis, "MISSION_MOTOR_BRAKE"   , "TRUE");
+                        // set_redis_var(&redis, "MISSION_MOTOR_BRAKE"   , "TRUE");
                         l_warning_incline_ts = get_curr_timestamp();
                     }
                     // std::cout << get_curr_timestamp() << " ALERT " << "[" << filtred_moy_x << "] " << moy_acc_x << " " << moy_acc_y << " " << moy_acc_z << std::endl;
