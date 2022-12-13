@@ -127,12 +127,31 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                 // Pour comparer avec l'ancienne lecture.
                 std::vector<std::string> new_sensor_vect;
 
+                // Comparer à la mémoire. (1 + 3 x 5)
+                std::vector<std::string> vect_memory;
+                get_redis_multi_str(redis, "HARD_CARGO_STATE_MEMORY", vect_memory);
+                // std::cout << "SIZE " << vect_memory.size() << std::endl;
+                std::vector<int> vect_sum_memory;
+                vect_sum_memory.push_back(0);
+                vect_sum_memory.push_back(0);
+                vect_sum_memory.push_back(0);
+                for(int i = 1; i < vect_memory.size()-3; i += 3) // On ne prend pas la dernière.
+                {
+                    if(vect_memory[i+0].compare("OPEN") == 0) vect_sum_memory[0] += 1;
+                    if(vect_memory[i+1].compare("OPEN") == 0) vect_sum_memory[1] += 1;
+                    if(vect_memory[i+2].compare("OPEN") == 0) vect_sum_memory[2] += 1;
+                }
+                if(vect_reponse_mcu_cargo[2].compare("1") == 0) vect_sum_memory[0] += 1;
+                if(vect_reponse_mcu_cargo[3].compare("1") == 0) vect_sum_memory[1] += 1;
+                if(vect_reponse_mcu_cargo[4].compare("1") == 0) vect_sum_memory[2] += 1;
+
                 if(vect_reponse_mcu_cargo.size() == 6) // '\n'
                 {
                     std::cout << "DATA FROM XXX : " << reponse << std::endl;
-                    for(int i = 2; i < 5; i++)
+                    for(int i = 0; i < vect_sum_memory.size(); i++)
                     {
-                        if(vect_reponse_mcu_cargo[i].compare("1") == 0)
+                        std::cout << "SUM " << i << " : " << vect_sum_memory[i] << std::endl;
+                        if(vect_sum_memory[i] > 3)
                         {
                             redis_sensor_str += "OPEN|";
                             new_sensor_vect.push_back("OPEN");
@@ -145,14 +164,28 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                     }
                 }
 
+                // Save memoire.
+                std::string str_memory = std::to_string(get_curr_timestamp()) + "|";
+                str_memory += (vect_reponse_mcu_cargo[2].compare("1") == 0) ? "OPEN|" : "CLOSE|";
+                str_memory += (vect_reponse_mcu_cargo[3].compare("1") == 0) ? "OPEN|" : "CLOSE|";
+                str_memory += (vect_reponse_mcu_cargo[4].compare("1") == 0) ? "OPEN|" : "CLOSE|";
+                for(int i = 1; i < vect_memory.size() - 3; i++)
+                {
+                    str_memory += vect_memory[i] + "|";
+                }
+                // std::cout << "MEMORY " << str_memory << std::endl;
+                set_redis_var(redis, "HARD_CARGO_STATE_MEMORY", str_memory);
+
                 std::vector<std::string> previous_vect_reponse_mcu_cargo;
                 get_redis_multi_str(redis, "HARD_CARGO_STATE", previous_vect_reponse_mcu_cargo);
 
                 // Comparer la nouvelle à l'ancienne.
                 for(int i = 0; i < new_sensor_vect.size(); i++)
                 {
+                    // std::cout << new_sensor_vect[i] << " " << previous_vect_reponse_mcu_cargo[i+1] << std::endl;
                     if(new_sensor_vect[i].compare(previous_vect_reponse_mcu_cargo[i+1]) != 0)
                     {
+
                         if(new_sensor_vect[i].compare("OPEN") == 0)
                         {
                             if(i == 0)
@@ -170,6 +203,7 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                                 pub_redis_var(redis, "EVENT", get_event_str(3, "BOX_OPEN", "3"));
                                 set_redis_var(redis, "EVENT_OPEN_BOX_C", std::to_string(get_curr_timestamp()) + "|OPEN|");
                             }
+                            std::cout << "CHANGEMENT OPEN" << std::endl;
                         }
                         if(new_sensor_vect[i].compare("CLOSE") == 0)
                         {
@@ -188,6 +222,8 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                                 pub_redis_var(redis, "EVENT", get_event_str(3, "BOX_CLOSE", "3"));
                                 set_redis_var(redis, "EVENT_OPEN_BOX_C", std::to_string(get_curr_timestamp()) + "|CLOSE|");
                             }
+
+                            std::cout << "CHANGEMENT CLOSE" << std::endl;
 
                             // Si on detect une fermeture on met à jour l'ordre de mission. MISSION_HARD_CARGO
                             std::vector<std::string> vect_mission_mcu_cargo;

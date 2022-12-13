@@ -66,6 +66,7 @@ HARD_TEMPERATURE_INFO               : "0000000000000|0.0|0.0|0.0|"              
 HARD_ENCODER_STATE                  : "0000000000000|1|1|1|1|1|1|"                                   # "0000000000000|M1encState|M2encState|M3encState|M4encState|M5encState|M6encState|"
 HARD_MOTOR_STATE                    : "0000000000000|1|1|1|1|1|1|"                                   # "0000000000000|M1State|M2State|M3State|M4State|M5State|M6State|"
 HARD_RCLAW_STATE                    : "0000000000000|1|1|1|"                                         # "0000000000000|StateRCLAW1|StateRCLAW2|StateRCLAW3|"
+HARD_CARGO_STATE_MEMORY             : "0000000000000|CLOSE|CLOSE|CLOSE|CLOSE|CLOSE|CLOSE|CLOSE|CLOSE|CLOSE|CLOSE|CLOSE|CLOSE|CLOSE|CLOSE|CLOSE|"
 
 # NAVIGATION   
 NAV_HMR_MAP_UPDATE                  : "TRUE"
