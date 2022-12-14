@@ -194,6 +194,11 @@ void init_redis_var(sw::redis::Redis* redis)
 
     read_yaml(redis, &fsSettings, "HARD_RCLAW_STATE");
     read_yaml(redis, &fsSettings, "HARD_CARGO_STATE_MEMORY");
+
+    read_yaml(redis, &fsSettings, "NAV_AUTO_NEXT_POINT_DIST_MEMORY");
+    read_yaml(redis, &fsSettings, "NAV_HDG_WITH_ENCODER");
+    read_yaml(redis, &fsSettings, "NAV_HDG_CURR_ROAD");
+    read_yaml(redis, &fsSettings, "NAV_DELTA_HDG_ENCODER");
 }
 
 int64_t get_curr_timestamp()

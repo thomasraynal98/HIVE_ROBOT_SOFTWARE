@@ -1297,11 +1297,16 @@ int main(int argc, char *argv[])
                             {
                                 // TODO: Avancer de x mètres le point projeter sur road.
                                 double bearing_start_target = get_bearing(curr_start_node, curr_target_node);
+                                
+                                set_redis_var(&redis, "NAV_HDG_CURR_ROAD", std::to_string(bearing_start_target));
+
                                 xt = XX + std::stod(get_redis_str(&redis, "NAV_AUTO_TARGET_EXTENSION")) * cos(deg_to_rad(bearing_start_target));
                                 yt = YY + std::stod(get_redis_str(&redis, "NAV_AUTO_TARGET_EXTENSION")) * sin(deg_to_rad(bearing_start_target));
                             }
                             else
                             {
+                                set_redis_var(&redis, "NAV_HDG_CURR_ROAD", std::to_string(get_bearing(curr_start_node, curr_target_node)));
+
                                 double bearing_start_target = get_bearing(curr_target_node, next_target_node);
                                 double road_extension = std::stod(get_redis_str(&redis, "NAV_AUTO_TARGET_EXTENSION")) - dist_proj_to_target;
                                 // road_extension = 5.0;
@@ -2158,6 +2163,7 @@ int main(int argc, char *argv[])
                                     
                                     if(speed_with_obj > Final_traj.max_speed) speed_with_obj = Final_traj.max_speed;
                                     if(speed_with_obj > curr_max_speed) speed_with_obj = curr_max_speed;
+                                    std::cout << speed_with_obj << " " << curr_max_speed << std::endl;
 
                                     /**
                                      * NOTE:

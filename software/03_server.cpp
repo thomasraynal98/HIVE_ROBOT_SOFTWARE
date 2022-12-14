@@ -591,7 +591,7 @@ void bind_events(sio::socket::ptr current_socket)
         std::vector<std::string> vect_cargo_mission;
         get_redis_multi_str(&redis, "MISSION_HARD_CARGO", vect_cargo_mission);
 
-        int index = data->get_map()["ID_BOX"]->get_int();
+        int index = data->get_map()["   &"]->get_int();
 
         if(vect_cargo_state[index].compare("OPEN") == 0)
         {

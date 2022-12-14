@@ -1039,7 +1039,7 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
     // int js_rt_id = 17;
     // int js_lt_id = 18;
 
-    double vect_js   = 10000;
+    double vect_js   = 1000000;
     double rt_value  = (val_a < 0.5) ? ((val_a * 2) * 32000) - 32000 : ((val_a * 2) - 1) * 32000;
     double lt_value  = (val_b < 0.5) ? ((val_b * 2) * 32000) - 32000 : ((val_b * 2) - 1) * 32000;
 
@@ -1851,6 +1851,7 @@ double get_max_speed(sw::redis::Redis* redis, std::string robot_mode, std::strin
                 if(road_vector[i].road_ID == curr_road_id)
                 {
                     return road_vector[i].max_speed;
+                    // return (road_vector[i].max_speed * 1000) / 3600;
                 }
             }
         }
@@ -1858,6 +1859,22 @@ double get_max_speed(sw::redis::Redis* redis, std::string robot_mode, std::strin
 
     /* Ne doit pas arriver mais au cas ou. */
     return 0.0;
+}
+
+double get_diff_angle_0_360(double angle_a, double angle_b)
+{
+    if(angle_a > angle_b)
+    {
+        if(angle_a - angle_b > 180) return (360 - angle_a) + angle_b;
+        else{ return angle_a - angle_b; }
+    }
+    else
+    {
+        if(angle_b - angle_a > 180) return (360 - angle_b) + angle_a;
+        else{ return angle_b - angle_a; }
+    }
+
+    return -1;
 }
 
 int get_road_ID_from_pos(sw::redis::Redis* redis, std::vector<Data_road>& vect_road, Geographic_point* curr_pos, std::vector<Roadmap_node>& vect_roadmap, int option)
@@ -1926,6 +1943,13 @@ int get_road_ID_from_pos(sw::redis::Redis* redis, std::vector<Data_road>& vect_r
         // }
         if(option == 1)
         {
+            std::cout << "PIO" << std::endl;
+            std::vector<std::string> vect_redis_memory;
+            get_redis_multi_str(redis, "NAV_AUTO_NEXT_POINT_DIST_MEMORY", vect_redis_memory);
+
+            std::vector<std::string> vect_redis;
+            get_redis_multi_str(redis, "NAV_ROAD_CURRENT_ID", vect_redis);
+
             double min_dist_m = 99999000;
             double dist_m     = 99999000;
             int road_ID       = -1;
@@ -1933,8 +1957,14 @@ int get_road_ID_from_pos(sw::redis::Redis* redis, std::vector<Data_road>& vect_r
             /* Heuristique 2. */
             if(vect_roadmap.size() > 0)
             {
+                double dist_to_current_dest = 0.0;
                 for(int i = 0; i < vect_roadmap.size(); i++)
                 {
+                    if(vect_roadmap[i].road->road_ID == std::stoi(vect_redis[1]))
+                    {
+                        dist_to_current_dest = get_angular_distance(curr_pos, vect_roadmap[i].node_target->point);
+                    }
+
                     dist_m = get_dist_from_pos_to_toad(vect_roadmap[i].node_start->point, vect_roadmap[i].node_target->point, curr_pos);
                     if(min_dist_m >= dist_m)
                     {
@@ -1942,7 +1972,45 @@ int get_road_ID_from_pos(sw::redis::Redis* redis, std::vector<Data_road>& vect_r
                         min_dist_m = dist_m;
                     }
                 }
-                return road_ID;
+
+                if(vect_redis[1].compare(std::to_string(road_ID)) == 0)
+                {
+                    std::string msg_memory = std::to_string(dist_to_current_dest) + "|";
+                    for(int i = 0; i < vect_redis_memory.size()-1; i++)
+                    {
+                        msg_memory += vect_redis_memory[i] + "|";
+                    }
+                    set_redis_var(redis, "NAV_AUTO_NEXT_POINT_DIST_MEMORY", msg_memory);
+
+                    return road_ID;
+                }
+                else
+                {
+                    // Changement de route valide ou non.
+                    double moyenne_dist_next_node = 0.0;
+
+                    for(int i = 0; i < vect_redis_memory.size(); i++)
+                    {
+                        moyenne_dist_next_node += std::stod(vect_redis_memory[i]);
+                    }
+                    moyenne_dist_next_node = moyenne_dist_next_node / 10.0;
+
+                    std::string msg_memory = std::to_string(dist_to_current_dest) + "|";
+                    for(int i = 0; i < vect_redis_memory.size()-1; i++)
+                    {
+                        msg_memory += vect_redis_memory[i] + "|";
+                    }
+                    set_redis_var(redis, "NAV_AUTO_NEXT_POINT_DIST_MEMORY", msg_memory);
+
+                    if(moyenne_dist_next_node <= 8.0)
+                    {
+                        return road_ID;
+                    }
+                    else
+                    {
+                        return std::stoi(vect_redis[1]);
+                    }
+                }
             }
             else
             {                                   

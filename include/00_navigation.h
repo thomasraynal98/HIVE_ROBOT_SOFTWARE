@@ -282,3 +282,4 @@ void clear_obj_vect(std::vector<double> curr_local_pos, std::vector<Object_env>&
 int get_filtred_road_ID(sw::redis::Redis* redis, std::vector<std::tuple<int64_t,int>>& vect_last_curr_road_ID, int max_time_threshold);
 int emergency_collision_detector(std::vector<double> curr_local_pos, std::vector<Object_env>& vect_obj);
 std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_Ms, std::vector<std::string>& vect_controller_data, int navigation_hz, int opt, double val_a, double val_b, double val_c);
+double get_diff_angle_0_360(double angle_a, double angle_b);

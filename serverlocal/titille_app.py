@@ -8,7 +8,7 @@ def check_map(cmd):
     sio.emit('SEND_CMD_TO_REAL_ROBOT', data = cmd)
 
 def check_map2():
-    sio.emit('SEND_AUTONAV', data = {"OPT_DEST" : "STANDARD", "LONGITUDE": "2.00253", "LATITUDE": "49.04644"})
+    sio.emit('SEND_AUTONAV', data = {"OPT_DEST" : "STANDARD", "LONGITUDE": "2.23709", "LATITUDE": "48.89576"})
     # sio.emit('SEND_CMD_TO_REAL_ROBOT', data = cmd)
 
 def check_map2p():
