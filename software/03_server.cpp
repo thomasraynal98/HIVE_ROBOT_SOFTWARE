@@ -325,6 +325,8 @@ void f_thread_telemetry()
             vect_telemetry_server.push_back(Server_var("s", "WHEEL5_STATE"       ,                                          "CONNECTED"));
             vect_telemetry_server.push_back(Server_var("s", "WHEEL6_STATE"       ,                                          "CONNECTED"));
 
+            vect_telemetry_server.push_back(Server_var("s", "CURRENT_ROAD_COOR"  ,        get_redis_str(&redis, "NAV_CURRENT_ROAD_COOR")));
+
             send_msg_server(h.socket(), "ROBOT_TELEM", vect_telemetry_server);
             // std::cout << "TELEM SEND" << std::endl;
         }

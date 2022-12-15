@@ -96,9 +96,9 @@ void function_thread_port_detection()
                             com_mcu_temp->Close();
                         }
                     } catch(LibSerial::AlreadyOpen ex) {
-                        std::cout << "SerialPort already open : " << prefix_port_temp << std::endl;
+                      // std::cout << "SerialPort already open : " << prefix_port_temp << std::endl;
                     } catch(LibSerial::OpenFailed ex) {
-                        std::cout << "Failed to open SerialPort : " << prefix_port_temp << std::endl;
+                      // std::cout << "Failed to open SerialPort : " << prefix_port_temp << std::endl;
                     }
                 }
             }
@@ -230,7 +230,7 @@ void f_thread_readwrite_pixhawk()
     int64_t warning_incline_ts = get_curr_timestamp();
     int64_t l_warning_incline_ts = get_curr_timestamp();
 
-    int last_global_hdg = 0;
+    double last_global_hdg = 0;
     bool first_time = true;
 
     while(true)
@@ -318,7 +318,7 @@ void f_thread_readwrite_pixhawk()
                     if((get_diff_angle_0_360((double)tempo_hdg, (double)last_global_hdg) > 35) && (get_diff_angle_0_360(angle_curr_road, (double)tempo_hdg) > 45))
                     {
                         set_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "ACTIVATE");
-                        std::cout << get_curr_timestamp() << " - ACTIVATE ENCODER HDG MODE." << std::endl;
+                      // std::cout << get_curr_timestamp() << " - ACTIVATE ENCODER HDG MODE." << std::endl;
                         pub_redis_var(&redis, "EVENT", get_event_str(2, "ACTIVATE ENCODER", std::to_string(get_diff_angle_0_360(angle_curr_road, (double)tempo_hdg))));
                     }
                 }
@@ -331,7 +331,7 @@ void f_thread_readwrite_pixhawk()
                     debug_str += std::to_string(tempo_pos.latitude) + "|";
                     debug_str += std::to_string(tempo_hdg) + "|";
 
-                    last_global_hdg = tempo_hdg;
+                    last_global_hdg = (double)tempo_hdg;
 
                     set_redis_var(&redis, "NAV_GLOBAL_POSITION", debug_str);
                 }
@@ -343,20 +343,26 @@ void f_thread_readwrite_pixhawk()
                     debug_str += std::to_string(tempo_pos.longitude) + "|";
                     debug_str += std::to_string(tempo_pos.latitude) + "|";
 
+                    double xoxo = last_global_hdg;
+
                     last_global_hdg = last_global_hdg - std::stod(get_redis_str(&redis, "NAV_DELTA_HDG_ENCODER"));
+
+
+
                     if(last_global_hdg > 360) last_global_hdg -= 360;
                     if(last_global_hdg < 0)   last_global_hdg += 360;
                     debug_str += std::to_string(last_global_hdg) + "|";
 
+                    std::cout << "SET HDG ENC - PREVIOUS : " << xoxo << " NEW ONE : " << last_global_hdg << " D>HDG : " << std::stod(get_redis_str(&redis, "NAV_DELTA_HDG_ENCODER")) << std::endl;
+                    
                     set_redis_var(&redis, "NAV_DELTA_HDG_ENCODER", "0.0");
-
                     set_redis_var(&redis, "NAV_GLOBAL_POSITION", debug_str);
                 }
 
-                if((get_diff_angle_0_360(angle_curr_road, (double)tempo_hdg) > 35) && compare_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "ACTIVATE"))
+                if((get_diff_angle_0_360(angle_curr_road, (double)tempo_hdg) <= 35) && compare_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "ACTIVATE"))
                 {
                     set_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "DEACTIVATE");
-                    std::cout << get_curr_timestamp() << " - DEACTIVATE ENCODER HDG MODE." << std::endl;
+                  // std::cout << get_curr_timestamp() << " - DEACTIVATE ENCODER HDG MODE." << std::endl;
                     pub_redis_var(&redis, "EVENT", get_event_str(2, "DEACIVATE ENCODER", std::to_string(get_diff_angle_0_360(angle_curr_road, (double)tempo_hdg))));
                 }
             }
@@ -434,7 +440,7 @@ void f_thread_readwrite_pixhawk()
                 if(abs(memory_value - filtred_moy_x) > 2.0) 
                 {
                     set_redis_var(&redis, "NAV_INCLINE_CHANGE", std::to_string(get_curr_timestamp()));
-                    std::cout << "TROTOIRE?" << std::endl;
+                  // std::cout << "TROTOIRE?" << std::endl;
                     // std::cout << get_curr_timestamp() << " WARNI " << "[" << filtred_moy_x << "] " << moy_acc_x << " " << moy_acc_y << " " << moy_acc_z << std::endl;
                 }
 

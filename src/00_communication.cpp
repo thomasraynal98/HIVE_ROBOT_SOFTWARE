@@ -112,7 +112,7 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
         try
         {
             com_manager->ReadLine(reponse, '\n', timeout_ms);
-            std::cout << "DATA FROM XXX : " << get_curr_timestamp() << reponse << std::endl;
+          //std::cout << "DATA FROM XXX : " << get_curr_timestamp() << reponse << std::endl;
             // ALL INFORMATION READING BY MCU ESP32.
 
             if(mcu_function_str.compare("CARGO") == 0)
@@ -149,10 +149,10 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
 
                     if(vect_reponse_mcu_cargo.size() == 6) // '\n'
                     {
-                        std::cout << "DATA FROM XXX : " << reponse << std::endl;
+                      //std::cout << "DATA FROM XXX : " << reponse << std::endl;
                         for(int i = 0; i < vect_sum_memory.size(); i++)
                         {
-                            std::cout << "SUM " << i << " : " << vect_sum_memory[i] << std::endl;
+                          //std::cout << "SUM " << i << " : " << vect_sum_memory[i] << std::endl;
                             if(vect_sum_memory[i] > 3)
                             {
                                 redis_sensor_str += "OPEN|";
@@ -205,7 +205,7 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                                     pub_redis_var(redis, "EVENT", get_event_str(3, "BOX_OPEN", "3"));
                                     set_redis_var(redis, "EVENT_OPEN_BOX_C", std::to_string(get_curr_timestamp()) + "|OPEN|");
                                 }
-                                std::cout << "CHANGEMENT OPEN" << std::endl;
+                              //std::cout << "CHANGEMENT OPEN" << std::endl;
                             }
                             if(new_sensor_vect[i].compare("CLOSE") == 0)
                             {
@@ -225,7 +225,7 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                                     set_redis_var(redis, "EVENT_OPEN_BOX_C", std::to_string(get_curr_timestamp()) + "|CLOSE|");
                                 }
 
-                                std::cout << "CHANGEMENT CLOSE" << std::endl;
+                              //std::cout << "CHANGEMENT CLOSE" << std::endl;
 
                                 // Si on detect une fermeture on met à jour l'ordre de mission. MISSION_HARD_CARGO
                                 std::vector<std::string> vect_mission_mcu_cargo;
@@ -274,6 +274,7 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                             double dt_angle   = (dt_right_m - dt_left_m) / std::stod(get_redis_str(redis, "HARD_WHEEL_DISTANCE"));
                             double m_dt_angle = std::stod(get_redis_str(redis, "NAV_DELTA_HDG_ENCODER"));
                             set_redis_var(redis, "NAV_DELTA_HDG_ENCODER", std::to_string(dt_angle+m_dt_angle));
+                            std::cout << "ADD " << dt_angle << " TOTAL " << dt_angle+m_dt_angle << std::endl;
                         }
                         else
                         {
@@ -455,7 +456,7 @@ void writing_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                 }
             }
 
-            std::cout << "SEND : " << msg_box_str << std::endl;
+          //std::cout << "SEND : " << msg_box_str << std::endl;
             com_manager->Write(msg_box_str+'\n'); 
         }
     }

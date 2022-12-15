@@ -79,7 +79,7 @@ NAV_AUTO_MODE                       : "OBSTACLE_AVOIDANCE_NIV1"
 NAV_AUTO_MODE_PARKING               : "NO_VAL"
 NAV_AUTO_MODE_PARKING_DIST_M        : "30"
 NAV_MANUAL_MODE                     : "STANDARD"
-NAV_MAX_SPEED                       : "1.0"                                                          # m/s
+NAV_MAX_SPEED                       : "0.3"                                                          # m/s
 NAV_GLOBAL_POSITION                 : "0000000000000|0.0|0.0|0.0|"                                   # "0000000000000|LONGITUDE|LATITUDE|ORIENTATION|"
 NAV_LOCAL_POSITION                  : "0000000000000|0.0|0.0|0.0|"                                   # "0000000000000|X|Y|ORIENTATION|"
 NAV_ROAD_CURRENT_ID                 : "0000000000000|-1|"
@@ -107,6 +107,7 @@ NAV_CURR_SPEED                      : "0000000000000|0.0"                       
 NAV_HDG_WITH_ENCODER                : "DEACTIVATE"
 NAV_HDG_CURR_ROAD                   : "-1"
 NAV_DELTA_HDG_ENCODER               : "0.0"
+NAV_CURRENT_ROAD_COOR               : "0.0|0.0|0.0|0.0|"
 
 # ACTION/MISSION   
 MISSION_MOTOR_BRAKE                 : "TRUE"
