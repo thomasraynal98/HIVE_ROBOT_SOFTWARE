@@ -1975,6 +1975,8 @@ int get_road_ID_from_pos(sw::redis::Redis* redis, std::vector<Data_road>& vect_r
                     }
                 }
 
+                std::cout << "CURR ROAD: " << road_ID << std::endl;
+
                 if(vect_redis[1].compare(std::to_string(road_ID)) == 0)
                 {
                     std::string msg_memory = std::to_string(dist_to_current_dest) + "|";
@@ -1984,16 +1986,21 @@ int get_road_ID_from_pos(sw::redis::Redis* redis, std::vector<Data_road>& vect_r
                     }
                     set_redis_var(redis, "NAV_AUTO_NEXT_POINT_DIST_MEMORY", msg_memory);
 
-                    std::string curr_road_coor = std::to_string(vect_road[idx2].A->point->longitude) + "|";
-                    curr_road_coor            += std::to_string(vect_road[idx2].A->point->latitude)  + "|";
-                    curr_road_coor            += std::to_string(vect_road[idx2].B->point->longitude) + "|";
-                    curr_road_coor            += std::to_string(vect_road[idx2].B->point->latitude)  + "|";
+                    std::string curr_road_coor = std::to_string(vect_roadmap[idx2].node_start->point->longitude) + "|";
+                    curr_road_coor            += std::to_string(vect_roadmap[idx2].node_start->point->latitude)  + "|";
+                    curr_road_coor            += std::to_string(vect_roadmap[idx2].node_target->point->longitude) + "|";
+                    curr_road_coor            += std::to_string(vect_roadmap[idx2].node_target->point->latitude)  + "|";
                     set_redis_var(redis, "NAV_CURRENT_ROAD_COOR", curr_road_coor);
 
                     return road_ID;
                 }
                 else
                 {
+                    /**
+                     * INFO: Se block de code doit être clean car maintenant
+                     * il n'utilise plus cela.
+                     * 
+                     */
                     // Changement de route valide ou non.
                     double moyenne_dist_next_node = 0.0;
 
@@ -2010,10 +2017,10 @@ int get_road_ID_from_pos(sw::redis::Redis* redis, std::vector<Data_road>& vect_r
                     }
                     set_redis_var(redis, "NAV_AUTO_NEXT_POINT_DIST_MEMORY", msg_memory);
 
-                    std::string curr_road_coor = std::to_string(vect_road[idx2].A->point->longitude) + "|";
-                    curr_road_coor            += std::to_string(vect_road[idx2].A->point->latitude)  + "|";
-                    curr_road_coor            += std::to_string(vect_road[idx2].B->point->longitude) + "|";
-                    curr_road_coor            += std::to_string(vect_road[idx2].B->point->latitude)  + "|";
+                    std::string curr_road_coor = std::to_string(vect_roadmap[idx2].node_start->point->longitude) + "|";
+                    curr_road_coor            += std::to_string(vect_roadmap[idx2].node_start->point->latitude)  + "|";
+                    curr_road_coor            += std::to_string(vect_roadmap[idx2].node_target->point->longitude) + "|";
+                    curr_road_coor            += std::to_string(vect_roadmap[idx2].node_target->point->latitude)  + "|";
                     set_redis_var(redis, "NAV_CURRENT_ROAD_COOR", curr_road_coor);
 
                     if(moyenne_dist_next_node <= 8.0)
@@ -2022,7 +2029,7 @@ int get_road_ID_from_pos(sw::redis::Redis* redis, std::vector<Data_road>& vect_r
                     }
                     else
                     {
-                        return std::stoi(vect_redis[1]);
+                        return road_ID;
                     }
                 }
             }

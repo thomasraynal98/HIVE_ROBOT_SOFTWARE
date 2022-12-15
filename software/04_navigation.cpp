@@ -658,7 +658,7 @@ int main(int argc, char *argv[])
                     {
                         // MANUAL FROM LOCAL JS.
                         get_redis_multi_str(&redis, "EVENT_LOCAL_JS_DATA", vect_cmd_ctr);
-                        if(!time_is_over(get_curr_timestamp(), std::stoul(vect_cmd_ctr[0]), 2000))
+                        if(!time_is_over(get_curr_timestamp(), std::stoul(vect_cmd_ctr[0]), 1000))
                         {
                             std::string flag_manual_mode  = get_redis_str(&redis, "NAV_MANUAL_MODE");
                             curr_max_speed    = get_max_speed(&redis, "MANUAL", flag_manual_mode, vect_road);
