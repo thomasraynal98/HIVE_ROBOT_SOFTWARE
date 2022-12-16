@@ -1484,10 +1484,10 @@ int main(int argc, char *argv[])
                                         if(new_speed > max_roat_speed) new_speed = max_roat_speed;
 
                                         motor_command_str += std::to_string(new_speed) + "|";
-                                        motor_command_str += std::to_string(new_speed/2) + "|";
+                                        motor_command_str += std::to_string(new_speed/1.5) + "|";
                                         motor_command_str += std::to_string(new_speed) + "|";
                                         motor_command_str += std::to_string(-(new_speed)) + "|";
-                                        motor_command_str += std::to_string(-(new_speed/2)) + "|";
+                                        motor_command_str += std::to_string(-(new_speed/1.5)) + "|";
                                         motor_command_str += std::to_string(-(new_speed)) + "|";
                                     }
                                     if(previous_mode == 2)
@@ -1632,10 +1632,10 @@ int main(int argc, char *argv[])
                                         if(new_speed > max_roat_speed) new_speed = max_roat_speed;
 
                                         motor_command_str += std::to_string(-new_speed) + "|";
-                                        motor_command_str += std::to_string(-new_speed/2) + "|";
+                                        motor_command_str += std::to_string(-new_speed/1.5) + "|";
                                         motor_command_str += std::to_string(-new_speed) + "|";
                                         motor_command_str += std::to_string((new_speed)) + "|";
-                                        motor_command_str += std::to_string((new_speed/2)) + "|";
+                                        motor_command_str += std::to_string((new_speed/1.5)) + "|";
                                         motor_command_str += std::to_string((new_speed)) + "|";
                                     }
                                     if(previous_mode == 2)

@@ -401,10 +401,10 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
                 {
                     // rotate right
                     command_motor_str += std::to_string(curr_speed) + "|";
-                    command_motor_str += std::to_string(curr_speed/4) + "|";
+                    command_motor_str += std::to_string(curr_speed/1.5) + "|";
                     command_motor_str += std::to_string(curr_speed) + "|";
                     command_motor_str += std::to_string(-1*curr_speed) + "|";
-                    command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+                    command_motor_str += std::to_string(-1*curr_speed/1.5) + "|";
                     command_motor_str += std::to_string(-1*curr_speed) + "|";
                     return command_motor_str;
                 }
@@ -412,10 +412,10 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
                 {
                     // rotate left
                     command_motor_str += std::to_string(-1*curr_speed) + "|";
-                    command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+                    command_motor_str += std::to_string(-1*curr_speed/1.5) + "|";
                     command_motor_str += std::to_string(-1*curr_speed) + "|";
                     command_motor_str += std::to_string(curr_speed) + "|";
-                    command_motor_str += std::to_string(curr_speed/4) + "|";
+                    command_motor_str += std::to_string(curr_speed/1.5) + "|";
                     command_motor_str += std::to_string(curr_speed) + "|";
                     return command_motor_str;
                 }
@@ -887,10 +887,10 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
                 {
                     double curr_speed = previous_speed;
                     command_motor_str += std::to_string(-1*curr_speed) + "|";
-                    command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+                    command_motor_str += std::to_string(-1*curr_speed/1.5) + "|";
                     command_motor_str += std::to_string(-1*curr_speed) + "|";
                     command_motor_str += std::to_string(curr_speed) + "|";
-                    command_motor_str += std::to_string(curr_speed/4) + "|";
+                    command_motor_str += std::to_string(curr_speed/1.5) + "|";
                     command_motor_str += std::to_string(curr_speed) + "|";
                     return command_motor_str;
                 }
@@ -900,10 +900,10 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
                     if(curr_speed > rot_max_speed_Ms) curr_speed = rot_max_speed_Ms;
 
                     command_motor_str += std::to_string(-1*curr_speed) + "|";
-                    command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+                    command_motor_str += std::to_string(-1*curr_speed/1.5) + "|";
                     command_motor_str += std::to_string(-1*curr_speed) + "|";
                     command_motor_str += std::to_string(curr_speed) + "|";
-                    command_motor_str += std::to_string(curr_speed/4) + "|";
+                    command_motor_str += std::to_string(curr_speed/1.5) + "|";
                     command_motor_str += std::to_string(curr_speed) + "|";
                     return command_motor_str;
                 }
@@ -914,10 +914,10 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
                 if(curr_speed < 0) curr_speed = 0;
 
                 command_motor_str += std::to_string(-1*curr_speed) + "|";
-                command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+                command_motor_str += std::to_string(-1*curr_speed/1.5) + "|";
                 command_motor_str += std::to_string(-1*curr_speed) + "|";
                 command_motor_str += std::to_string(curr_speed) + "|";
-                command_motor_str += std::to_string(curr_speed/4) + "|";
+                command_motor_str += std::to_string(curr_speed/1.5) + "|";
                 command_motor_str += std::to_string(curr_speed) + "|";
 
                 return command_motor_str;
@@ -931,10 +931,10 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
             if(curr_speed < 0) curr_speed = 0;
 
             command_motor_str += std::to_string(-1*curr_speed) + "|";
-            command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+            command_motor_str += std::to_string(-1*curr_speed/1.5) + "|";
             command_motor_str += std::to_string(-1*curr_speed) + "|";
             command_motor_str += std::to_string(curr_speed) + "|";
-            command_motor_str += std::to_string(curr_speed/4) + "|";
+            command_motor_str += std::to_string(curr_speed/1.5) + "|";
             command_motor_str += std::to_string(curr_speed) + "|";
 
             return command_motor_str;
@@ -955,10 +955,10 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
                 {
                     double curr_speed = previous_speed;
                     command_motor_str += std::to_string(curr_speed) + "|";
-                    command_motor_str += std::to_string(curr_speed/4) + "|";
+                    command_motor_str += std::to_string(curr_speed/1.5) + "|";
                     command_motor_str += std::to_string(curr_speed) + "|";
                     command_motor_str += std::to_string(-1*curr_speed) + "|";
-                    command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+                    command_motor_str += std::to_string(-1*curr_speed/1.5) + "|";
                     command_motor_str += std::to_string(-1*curr_speed) + "|";
                     return command_motor_str;
                 }
@@ -968,10 +968,10 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
                     if(curr_speed > rot_max_speed_Ms) curr_speed = rot_max_speed_Ms;
 
                     command_motor_str += std::to_string(curr_speed) + "|";
-                    command_motor_str += std::to_string(curr_speed/4) + "|";
+                    command_motor_str += std::to_string(curr_speed/1.5) + "|";
                     command_motor_str += std::to_string(curr_speed) + "|";
                     command_motor_str += std::to_string(-1*curr_speed) + "|";
-                    command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+                    command_motor_str += std::to_string(-1*curr_speed/1.5) + "|";
                     command_motor_str += std::to_string(-1*curr_speed) + "|";
                     return command_motor_str;
                 }
@@ -982,10 +982,10 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
                 if(curr_speed < 0) curr_speed = 0;
 
                 command_motor_str += std::to_string(curr_speed) + "|";
-                command_motor_str += std::to_string(curr_speed/4) + "|";
+                command_motor_str += std::to_string(curr_speed/1.5) + "|";
                 command_motor_str += std::to_string(curr_speed) + "|";
                 command_motor_str += std::to_string(-1*curr_speed) + "|";
-                command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+                command_motor_str += std::to_string(-1*curr_speed/1.5) + "|";
                 command_motor_str += std::to_string(-1*curr_speed) + "|";
 
                 return command_motor_str;
@@ -998,10 +998,10 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
             if(curr_speed < 0) curr_speed = 0;
 
             command_motor_str += std::to_string(curr_speed) + "|";
-            command_motor_str += std::to_string(curr_speed/4) + "|";
+            command_motor_str += std::to_string(curr_speed/1.5) + "|";
             command_motor_str += std::to_string(curr_speed) + "|";
             command_motor_str += std::to_string(-1*curr_speed) + "|";
-            command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+            command_motor_str += std::to_string(-1*curr_speed/1.5) + "|";
             command_motor_str += std::to_string(-1*curr_speed) + "|";
 
             return command_motor_str;
@@ -1143,10 +1143,10 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
                 {
                     // rotate right
                     command_motor_str += std::to_string(curr_speed) + "|";
-                    command_motor_str += std::to_string(curr_speed/4) + "|";
+                    command_motor_str += std::to_string(curr_speed/1.5) + "|";
                     command_motor_str += std::to_string(curr_speed) + "|";
                     command_motor_str += std::to_string(-1*curr_speed) + "|";
-                    command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+                    command_motor_str += std::to_string(-1*curr_speed/1.5) + "|";
                     command_motor_str += std::to_string(-1*curr_speed) + "|";
                     return command_motor_str;
                 }
@@ -1154,10 +1154,10 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
                 {
                     // rotate left
                     command_motor_str += std::to_string(-1*curr_speed) + "|";
-                    command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+                    command_motor_str += std::to_string(-1*curr_speed/1.5) + "|";
                     command_motor_str += std::to_string(-1*curr_speed) + "|";
                     command_motor_str += std::to_string(curr_speed) + "|";
-                    command_motor_str += std::to_string(curr_speed/4) + "|";
+                    command_motor_str += std::to_string(curr_speed/1.5) + "|";
                     command_motor_str += std::to_string(curr_speed) + "|";
                     return command_motor_str;
                 }
@@ -1629,10 +1629,10 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
                 {
                     double curr_speed = previous_speed;
                     command_motor_str += std::to_string(-1*curr_speed) + "|";
-                    command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+                    command_motor_str += std::to_string(-1*curr_speed/1.5) + "|";
                     command_motor_str += std::to_string(-1*curr_speed) + "|";
                     command_motor_str += std::to_string(curr_speed) + "|";
-                    command_motor_str += std::to_string(curr_speed/4) + "|";
+                    command_motor_str += std::to_string(curr_speed/1.5) + "|";
                     command_motor_str += std::to_string(curr_speed) + "|";
                     return command_motor_str;
                 }
@@ -1642,10 +1642,10 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
                     if(curr_speed > rot_max_speed_Ms) curr_speed = rot_max_speed_Ms;
 
                     command_motor_str += std::to_string(-1*curr_speed) + "|";
-                    command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+                    command_motor_str += std::to_string(-1*curr_speed/1.5) + "|";
                     command_motor_str += std::to_string(-1*curr_speed) + "|";
                     command_motor_str += std::to_string(curr_speed) + "|";
-                    command_motor_str += std::to_string(curr_speed/4) + "|";
+                    command_motor_str += std::to_string(curr_speed/1.5) + "|";
                     command_motor_str += std::to_string(curr_speed) + "|";
                     return command_motor_str;
                 }
@@ -1656,10 +1656,10 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
                 if(curr_speed < 0) curr_speed = 0;
 
                 command_motor_str += std::to_string(-1*curr_speed) + "|";
-                command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+                command_motor_str += std::to_string(-1*curr_speed/1.5) + "|";
                 command_motor_str += std::to_string(-1*curr_speed) + "|";
                 command_motor_str += std::to_string(curr_speed) + "|";
-                command_motor_str += std::to_string(curr_speed/4) + "|";
+                command_motor_str += std::to_string(curr_speed/1.5) + "|";
                 command_motor_str += std::to_string(curr_speed) + "|";
 
                 return command_motor_str;
@@ -1673,10 +1673,10 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
             if(curr_speed < 0) curr_speed = 0;
 
             command_motor_str += std::to_string(-1*curr_speed) + "|";
-            command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+            command_motor_str += std::to_string(-1*curr_speed/1.5) + "|";
             command_motor_str += std::to_string(-1*curr_speed) + "|";
             command_motor_str += std::to_string(curr_speed) + "|";
-            command_motor_str += std::to_string(curr_speed/4) + "|";
+            command_motor_str += std::to_string(curr_speed/1.5) + "|";
             command_motor_str += std::to_string(curr_speed) + "|";
 
             return command_motor_str;
@@ -1697,10 +1697,10 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
                 {
                     double curr_speed = previous_speed;
                     command_motor_str += std::to_string(curr_speed) + "|";
-                    command_motor_str += std::to_string(curr_speed/4) + "|";
+                    command_motor_str += std::to_string(curr_speed/1.5) + "|";
                     command_motor_str += std::to_string(curr_speed) + "|";
                     command_motor_str += std::to_string(-1*curr_speed) + "|";
-                    command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+                    command_motor_str += std::to_string(-1*curr_speed/1.5) + "|";
                     command_motor_str += std::to_string(-1*curr_speed) + "|";
                     return command_motor_str;
                 }
@@ -1710,10 +1710,10 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
                     if(curr_speed > rot_max_speed_Ms) curr_speed = rot_max_speed_Ms;
 
                     command_motor_str += std::to_string(curr_speed) + "|";
-                    command_motor_str += std::to_string(curr_speed/4) + "|";
+                    command_motor_str += std::to_string(curr_speed/1.5) + "|";
                     command_motor_str += std::to_string(curr_speed) + "|";
                     command_motor_str += std::to_string(-1*curr_speed) + "|";
-                    command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+                    command_motor_str += std::to_string(-1*curr_speed/1.5) + "|";
                     command_motor_str += std::to_string(-1*curr_speed) + "|";
                     return command_motor_str;
                 }
@@ -1724,10 +1724,10 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
                 if(curr_speed < 0) curr_speed = 0;
 
                 command_motor_str += std::to_string(curr_speed) + "|";
-                command_motor_str += std::to_string(curr_speed/4) + "|";
+                command_motor_str += std::to_string(curr_speed/1.5) + "|";
                 command_motor_str += std::to_string(curr_speed) + "|";
                 command_motor_str += std::to_string(-1*curr_speed) + "|";
-                command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+                command_motor_str += std::to_string(-1*curr_speed/1.5) + "|";
                 command_motor_str += std::to_string(-1*curr_speed) + "|";
 
                 return command_motor_str;
@@ -1740,10 +1740,10 @@ std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_M
             if(curr_speed < 0) curr_speed = 0;
 
             command_motor_str += std::to_string(curr_speed) + "|";
-            command_motor_str += std::to_string(curr_speed/4) + "|";
+            command_motor_str += std::to_string(curr_speed/1.5) + "|";
             command_motor_str += std::to_string(curr_speed) + "|";
             command_motor_str += std::to_string(-1*curr_speed) + "|";
-            command_motor_str += std::to_string(-1*curr_speed/4) + "|";
+            command_motor_str += std::to_string(-1*curr_speed/1.5) + "|";
             command_motor_str += std::to_string(-1*curr_speed) + "|";
 
             return command_motor_str;
