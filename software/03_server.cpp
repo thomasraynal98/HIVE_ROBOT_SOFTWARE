@@ -250,6 +250,10 @@ void f_thread_telemetry()
             get_redis_multi_str(&redis, "HARD_RCLAW_STATE", vect_str6);
             for(int i = 1; i < vect_str6.size(); i++) vect_str6[i] = (vect_str6[i].compare("1") == 0) ? "CONNECTED" : "DISCONNECTED";
 
+            /* Read box status. */
+            std::vector<std::string> vect_str7;
+            get_redis_multi_str(&redis, "HARD_CARGO_STATE", vect_str7);
+
             std::vector<Server_var> vect_telemetry_server;
             vect_telemetry_server.push_back(Server_var("d", "LONGITUDE"          ,                                       vect_str[1]));
             vect_telemetry_server.push_back(Server_var("d", "LATITUDE"           ,                                       vect_str[2]));
@@ -306,6 +310,10 @@ void f_thread_telemetry()
             vect_telemetry_server.push_back(Server_var("s", "ENC4_STATE"         ,                                         vect_str4[4]));
             vect_telemetry_server.push_back(Server_var("s", "ENC5_STATE"         ,                                         vect_str4[5]));
             vect_telemetry_server.push_back(Server_var("s", "ENC6_STATE"         ,                                         vect_str4[6]));
+
+            vect_telemetry_server.push_back(Server_var("s", "BOX1_STATE"         ,                                         vect_str4[1]));
+            vect_telemetry_server.push_back(Server_var("s", "BOX2_STATE"         ,                                         vect_str4[2]));
+            vect_telemetry_server.push_back(Server_var("s", "BOX3_STATE"         ,                                         vect_str4[3]));
                                         
             vect_telemetry_server.push_back(Server_var("s", "MOTOR1_STATE"       ,                                         vect_str5[1]));
             vect_telemetry_server.push_back(Server_var("s", "MOTOR2_STATE"       ,                                         vect_str5[2]));

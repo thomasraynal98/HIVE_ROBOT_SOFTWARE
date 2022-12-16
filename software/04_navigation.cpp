@@ -302,7 +302,6 @@ int main(int argc, char *argv[])
             std::string roadID_str = std::to_string(get_curr_timestamp()) + "|";
             roadID_str += std::to_string(curr_road_ID) + "|";
             set_redis_var(&redis, "NAV_ROAD_CURRENT_ID", roadID_str);
-
         }
 
         //==============================================

@@ -269,9 +269,12 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                         double dt_right_m = tic_to_meter * std::stoi(vect_reponse_mcu_motor[5]);
                         double dt_moy_m   = (dt_left_m + dt_right_m) / 2;
 
+                        double dt_central_left_m  = tic_to_meter * std::stoi(vect_reponse_mcu_motor[3]);
+                        double dt_central_right_m = tic_to_meter * std::stoi(vect_reponse_mcu_motor[6]);
+
                         if(compare_redis_var(redis, "NAV_HDG_WITH_ENCODER", "ACTIVATE"))
                         {
-                            double dt_angle   = (dt_right_m - dt_left_m) / std::stod(get_redis_str(redis, "HARD_WHEEL_DISTANCE"));
+                            double dt_angle   = (dt_central_right_m - dt_central_left_m) / std::stod(get_redis_str(redis, "HARD_WHEEL_DISTANCE"));
                             double m_dt_angle = std::stod(get_redis_str(redis, "NAV_DELTA_HDG_ENCODER"));
                             set_redis_var(redis, "NAV_DELTA_HDG_ENCODER", std::to_string(dt_angle+m_dt_angle));
                             std::cout << "ADD " << dt_angle << " TOTAL " << dt_angle+m_dt_angle << std::endl;
