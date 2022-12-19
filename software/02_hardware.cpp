@@ -412,6 +412,13 @@ void f_thread_readwrite_pixhawk()
                     else{ debug_str += vect_red[3] + "|"; last_global_hdg = std::stod(vect_red[3]);}
                     set_redis_var(&redis, "NAV_GLOBAL_POSITION", debug_str);
                 }
+
+                if(accept_value && (get_diff_angle_0_360(angle_curr_road, (double)tempo_hdg) <= 30) && compare_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "ACTIVATE"))
+                {
+                    set_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "DEACTIVATE");
+                  // std::cout << get_curr_timestamp() << " - DEACTIVATE ENCODER HDG MODE." << std::endl;
+                    pub_redis_var(&redis, "EVENT", get_event_str(2, "DEACIVATE ENCODER", std::to_string(get_diff_angle_0_360(angle_curr_road, (double)tempo_hdg))));
+                }
             }
 
             // DEBUG [COMMENT]
