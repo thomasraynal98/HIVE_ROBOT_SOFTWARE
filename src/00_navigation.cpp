@@ -1897,6 +1897,46 @@ int get_road_ID_from_pos(sw::redis::Redis* redis, std::vector<Data_road>& vect_r
     //     }
     // }
 
+    /**
+     * NOTE: On verifie si le server à demander un nouveau alignement des HDG.
+     * 
+     */
+
+    std::vector<std::string> vect_red_str;
+    get_redis_multi_str(redis, "MISSION_RESET_HDG", vect_red_str);
+    if(vect_red_str[0].compare("TRUE") == 0)
+    {
+        int value = std::stoi(vect_red_str[1]);
+        if(value <= 360 && value >= 0) 
+        {
+            std::vector<std::string> vect_glob_pos;
+            get_redis_multi_str(redis, "NAV_GLOBAL_POSITION", vect_glob_pos);
+            std::string red_str = std::to_string(get_curr_timestamp()) + "|" + vect_glob_pos[1] + "|" + vect_glob_pos[2] + "|";
+            red_str += std::to_string(value) + "|";
+            set_redis_var(redis, "NAV_GLOBAL_POSITION", red_str);
+        }
+        if(value >= 1000)
+        {
+            std::vector<std::string> vect_glob_pos;
+            get_redis_multi_str(redis, "NAV_GLOBAL_POSITION", vect_glob_pos);
+            std::string red_str = std::to_string(get_curr_timestamp()) + "|" + vect_glob_pos[1] + "|" + vect_glob_pos[2] + "|";
+            
+            int dir = (vect_red_str[2].compare("A") == 0) ? 1 : 2;
+            for(int i = 0; i < vect_road.size(); i++)
+            {
+                if(value == vect_road[i].road_ID)
+                {
+                    red_str += (dir == 1) ? std::to_string(vect_road[i].deg_to_A) + "|" : std::to_string(vect_road[i].deg_to_B) + "|";
+                    break;
+                }
+            }
+
+            set_redis_var(redis, "NAV_GLOBAL_POSITION", red_str);
+        }
+
+        set_redis_var(redis, "MISSION_RESET_HDG", "FALSE|0|" + vect_red_str[2] + "|");
+    }
+
     //==============================================
     // MODE AUTO
     //==============================================
@@ -1941,6 +1981,8 @@ int get_road_ID_from_pos(sw::redis::Redis* redis, std::vector<Data_road>& vect_r
         //     }
         //     return curr_road;
         // }
+
+
         if(option == 1)
         {
             // std::cout << "PIO" << std::endl;

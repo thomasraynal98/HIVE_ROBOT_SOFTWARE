@@ -120,7 +120,9 @@ MISSION_HARD_CARGO                  : "0000000000000|CLOSE|CLOSE|CLOSE|"        
 MISSION_BOX_MAX_OPEN_TIME           : "60000"
 MISSION_ESTI_TIME_TO_TARGET         : "0"
 MISSION_ESTI_DIST_TO_TARGET         : "0"
+MISSION_RESET_HDG                   : "TRUE|0|A|"                                                   # "BOOL|ANGLE ou ROUTE|Orientation du dernier angle|"
   
+
 # ENV   
 ENV_CAM1_OBJECTS                    : "0000000000000|o|0.0|0.0|"                                  # "0000000000000|TYPE|ANGLE|DISTANCE|" 
 ENV_CAM2_OBJECTS                    : "0000000000000|o|0.0|0.0|"                                  # "0000000000000|TYPE|ANGLE|DISTANCE|"

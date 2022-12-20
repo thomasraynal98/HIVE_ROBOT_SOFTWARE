@@ -650,4 +650,35 @@ void bind_events(sio::socket::ptr current_socket)
     // TODO: setup ORDER_RESET_SOFTWARE
     current_socket->on("ORDER_RESET_SOFTWARE", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
     {}));
+
+    // TODO: setup ORDER_RESET_SOFTWARE
+    current_socket->on("ORDER_ALIGN", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+    {
+        int road_id = data->get_map()["ROAD_ID"]->get_int();
+
+        if(road_id == -1)
+        {
+            std::string angle_road_id = get_redis_str(&redis, "NAV_HDG_CURR_ROAD");
+            std::vector<std::string> vect_global_str;
+            get_redis_multi_str(&redis, "NAV_GLOBAL_POSITION", vect_global_str);
+            std::string new_pos = std::to_string(get_curr_timestamp()) + "|" + vect_global_str[1] + "|" + vect_global_str[2] + "|";
+            new_pos += angle_road_id + "|";
+            set_redis_var(&redis, "NAV_GLOBAL_POSITION", new_pos);
+        }
+        else
+        {
+            /**
+             * NOTE: La variable road_id peux representer un angle bien précis (0-360), ou un numéro de route (if > 1000)
+             * 
+             */
+            
+            std::vector<std::string> vect_red;
+            get_redis_multi_str(&redis, "MISSION_RESET_HDG", vect_red);
+
+            std::string new_reset = "TRUE|" + std::to_string(road_id) + "|" + ((vect_red[2].compare("A") == 0) ? "B|" : "A|");
+            set_redis_var(&redis, "MISSION_RESET_HDG", new_reset);
+        }
+
+        set_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "ACTIVATE");
+    }));
 }
