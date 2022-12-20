@@ -536,6 +536,37 @@ void f_thread_readwrite_pixhawk()
                         }
 
                     }
+                
+                    if(compare_redis_var(&redis, "MISSION_TRUST_GPS", "TRUE"))
+                    {
+                        if(valid_data == 1)
+                        {
+                            use_gps_data_ts = get_curr_timestamp();
+
+                            str_new_pose  = std::to_string(get_curr_timestamp()) + "|";
+                            str_new_pose  += std::to_string(vect_acc_gps[0].longitude) + "|";
+                            str_new_pose  += std::to_string(vect_acc_gps[0].latitude) + "|";
+                            str_new_pose  += std::to_string(previous_hdg) + "|";
+                            set_redis_var(&redis, "NAV_GLOBAL_POSITION", str_new_pose);
+                            pub_redis_var(&redis, "EVENT", get_event_str(2, "GPS ACC CORRECTION", "MANUAL"));
+                        }
+                        if(valid_data == 2)
+                        {
+                             use_gps_data_ts = get_curr_timestamp();
+
+                            str_new_pose  = std::to_string(get_curr_timestamp()) + "|";
+                            str_new_pose  += std::to_string(vect_low_gps[0].longitude) + "|";
+                            str_new_pose  += std::to_string(vect_low_gps[0].latitude) + "|";
+                            str_new_pose  += std::to_string(previous_hdg) + "|";
+                            set_redis_var(&redis, "NAV_GLOBAL_POSITION", str_new_pose);
+                            pub_redis_var(&redis, "EVENT", get_event_str(2, "GPS LOW CORRECTION", "MANUAL"));
+                        }
+
+                        if(valid_data != 0)
+                        {
+                            set_redis_var(&redis, "MISSION_TRUST_GPS", "TRUE");
+                        }
+                    }
                 }
             }
 
