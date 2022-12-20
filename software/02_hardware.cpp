@@ -564,7 +564,7 @@ void f_thread_readwrite_pixhawk()
 
                         if(valid_data != 0)
                         {
-                            set_redis_var(&redis, "MISSION_TRUST_GPS", "TRUE");
+                            set_redis_var(&redis, "MISSION_TRUST_GPS", "FALSE");
                         }
                     }
                 }
