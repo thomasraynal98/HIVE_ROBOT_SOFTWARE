@@ -233,6 +233,12 @@ void f_thread_readwrite_pixhawk()
     double last_global_hdg = 0;
     bool first_time = true;
 
+    int64_t use_gps_data_ts = get_curr_timestamp();
+    int64_t use_hdg_data_ts = get_curr_timestamp(); 
+
+    std::vector<Geographic_point> vect_acc_gps;
+    std::vector<Geographic_point> vect_low_gps;
+
     while(true)
     {
         next += std::chrono::milliseconds((int)ms_for_loop);
@@ -269,13 +275,12 @@ void f_thread_readwrite_pixhawk()
              * [4] Imu data.
              */
 
-            // [1] Local navigation.
+            // [1] Orientation checking.
             std::vector<std::string> vect_redis_str;
             get_redis_multi_str(&redis, "NAV_LOCAL_POSITION", vect_redis_str);
             accept_value = true;
-            int t = messages.local_heading.heading;
-
             int tempo_hdg = messages.local_heading.heading;
+            int valid_tempo = 0;
 
             if(abs(tempo_hdg - std::stoi(vect_redis_str[3])) > 20 && tempo_hdg != 0)
             {
@@ -293,133 +298,365 @@ void f_thread_readwrite_pixhawk()
             if(accept_value)
             {
                 counter_outlier = 0;
-                debug_str = std::to_string(get_curr_timestamp()) + "|";
-                debug_str += vect_redis_str[1] + "|";
-                debug_str += vect_redis_str[2] + "|";
-                debug_str += std::to_string(tempo_hdg) + "|";
-                t = tempo_hdg;
-                set_redis_var(&redis, "NAV_LOCAL_POSITION", debug_str);
+                valid_tempo = tempo_hdg;
             }
 
+            /**
+             * NOTE: REFONTE DU SYSTEME DE NAVIGATION
+             * Pour bien mixer le GPS/Compass et les encodeurs.
+             */
+
+            if(true)
+            {
+                int nb_satellite = messages.gps_raw.satellites_visible;
+
+                std::vector<std::string> vect_redis_str;
+                get_redis_multi_str(&redis, "NAV_GLOBAL_POSITION", vect_redis_str);
+                Geographic_point curr_global    = Geographic_point(std::stod(vect_redis_str[1]), std::stod(vect_redis_str[2]));
+                double previous_hdg             = std::stod(vect_redis_str[3]);
+
+                double dist_to_home             = get_angular_distance(&curr_global, &homeland);
+
+                /* Get current pixhawk value. */
+                Geographic_point new_global_acc = Geographic_point(((double)(messages.global_position_int.lon)/10000000), ((double)(messages.global_position_int.lat)/10000000));
+                Geographic_point new_global_low = Geographic_point(((double)(messages.gps_raw.lon)/10000000),             ((double)(messages.gps_raw.lat)/10000000));
+                double new_global_acc_hdg       = (double)(messages.global_position_int.hdg)/100;
+                double new_global_acc_low       = (accept_value) ? valid_tempo : -1;
+
+                std::string str_new_pose;
+
+                if(dist_to_home > 10000)
+                {
+                    /* Far from home, à l'initialisation par exemple. */
+                    double dist_gps_to_home     = get_angular_distance(&new_global_acc, &homeland);
+                    bool acc_validate           = false;
+                    if(dist_gps_to_home < 10000 && (new_global_acc_hdg >= 0 && new_global_acc_hdg <= 360))
+                    {
+                        acc_validate  = true;
+                        str_new_pose  = std::to_string(get_curr_timestamp()) + "|";
+                        str_new_pose  += std::to_string(new_global_acc.longitude) + "|";
+                        str_new_pose  += std::to_string(new_global_acc.latitude) + "|";
+                        str_new_pose  += std::to_string(new_global_acc_hdg) + "|";
+                        set_redis_var(&redis, "NAV_GLOBAL_POSITION", str_new_pose);
+
+                        vect_acc_gps.push_back(new_global_acc);
+                        use_gps_data_ts = get_curr_timestamp();
+                        use_hdg_data_ts = get_curr_timestamp();
+                    }
+
+                    double dist_rawgps_to_home  = get_angular_distance(&new_global_low, &homeland);
+                    if(!acc_validate && dist_rawgps_to_home < 10000)
+                    {
+                        str_new_pose =  std::to_string(get_curr_timestamp()) + "|";
+                        str_new_pose += std::to_string(new_global_low.longitude) + "|";
+                        str_new_pose += std::to_string(new_global_low.latitude) + "|";
+                        str_new_pose += (accept_value) ? std::to_string(valid_tempo) + "|" : "0.0|";
+                        set_redis_var(&redis, "NAV_GLOBAL_POSITION", str_new_pose);
+
+                        vect_low_gps.push_back(new_global_low);
+                        use_gps_data_ts = get_curr_timestamp();
+                        use_hdg_data_ts = get_curr_timestamp();
+                    }
+                }
+                else
+                {
+                    /**
+                     * NOTE: Apres l'initialisation le controle de position est données en majorité du temps
+                     * au encoder, l'objectif et faire appel au gps lorsqu'on pense pouvoir leur faire confiance.
+                     * On essaye de les utilisers uniquement tout les 5 à 10 secondes comme correction.
+                     * 
+                     * Le probleme va être de jongler entre les valeurs de GPS brute et celle améliorer.
+                     */
+
+                    /* Etape 1 : récuperer les variables GPS après un premier filtrage simple. */
+                    Geographic_point new_global_acc = Geographic_point(((double)(messages.global_position_int.lon)/10000000), ((double)(messages.global_position_int.lat)/10000000));
+                    double new_global_acc_hdg       = (double)(messages.global_position_int.hdg)/100;
+                    Geographic_point new_global_low = Geographic_point(((double)(messages.gps_raw.lon)/10000000),             ((double)(messages.gps_raw.lat)/10000000));
+                    double dist_gps_to_home         = get_angular_distance(&new_global_acc, &homeland);
+                    double dist_rawgps_to_home      = get_angular_distance(&new_global_low, &homeland);
+
+                    int valid_data = 0;
+
+                    Geographic_point final_new_gps  = Geographic_point(0.0, 0.0);
+
+                    if(dist_gps_to_home < 10000 && (new_global_acc_hdg >= 0 && new_global_acc_hdg <= 360)) valid_data = 1;
+                    if(valid_data != 1 && dist_rawgps_to_home < 10000) valid_data = 2;
+
+                    if(valid_data == 1)  
+                    {
+                        if(vect_acc_gps.size() > 9) vect_acc_gps.pop_back();
+                        vect_acc_gps.insert(vect_acc_gps.begin(), new_global_acc);
+                        final_new_gps = new_global_acc;
+                    }
+                    if(valid_data == 2)  
+                    {
+                        if(vect_low_gps.size() > 9) vect_low_gps.pop_back();
+                        vect_low_gps.insert(vect_low_gps.begin(), new_global_low);
+                        final_new_gps = new_global_low;
+                    }
+
+                    /* Etape 2 : choisir ou non si on introduit cette valeur par dessus le positionnement encoder. */
+                    if(time_is_over(get_curr_timestamp(), use_gps_data_ts, 5000) && valid_data != 0)
+                    {
+                        // Permet de connaitre l'état de la qualité du gps system.
+                        double stable_long          = 1000.0;
+                        double stable_short         = 1000.0;
+
+                        if(valid_data == 1 && vect_acc_gps.size() > 2)
+                        {
+                            stable_short = get_angular_distance(&vect_acc_gps[vect_acc_gps.size()], &vect_acc_gps[vect_acc_gps.size()-1]);
+
+                            for(int i = 0; i < vect_acc_gps.size()-1; i++)
+                            {
+                                stable_long += get_angular_distance(&vect_acc_gps[vect_acc_gps.size()-i], &vect_acc_gps[vect_acc_gps.size()-i-1]);
+                            }
+                            stable_long /= vect_acc_gps.size()-1;
+                        }
+
+                        if(valid_data == 2 && vect_low_gps.size() > 2)
+                        {
+                            stable_short = get_angular_distance(&vect_low_gps[vect_low_gps.size()], &vect_low_gps[vect_low_gps.size()-1]);
+
+                            for(int i = 0; i < vect_low_gps.size()-1; i++)
+                            {
+                                stable_long += get_angular_distance(&vect_low_gps[vect_low_gps.size()-i], &vect_low_gps[vect_low_gps.size()-i-1]);
+                            }
+                            stable_long /= vect_low_gps.size()-1;
+                        }
+
+                        // Il faut bien faire une séparation entre la position long, lat et la valeur de hdg.
+
+                        // On va faire long, lat en premier.
+                        if(stable_short < 2.5 && stable_long < 5.0) // Sachant qu'on reçoit 3 à 4 valeurs par secondes.
+                        {
+                            if(valid_data == 1 && nb_satellite > 10)
+                            {
+                                // Environ 1.3m toute les 5000 ms.
+                                double max_separation = get_elapsed_time(get_curr_timestamp(), use_gps_data_ts) / 5000 * 1.3;
+
+                                if(get_angular_distance(&vect_acc_gps[0], &curr_global) < max_separation)
+                                {
+                                    // Elle est valider mon frero.
+                                    use_gps_data_ts = get_curr_timestamp();
+
+                                    str_new_pose  = std::to_string(get_curr_timestamp()) + "|";
+                                    str_new_pose  += std::to_string(vect_acc_gps[0].longitude) + "|";
+                                    str_new_pose  += std::to_string(vect_acc_gps[0].latitude) + "|";
+                                    str_new_pose  += std::to_string(previous_hdg) + "|";
+                                    set_redis_var(&redis, "NAV_GLOBAL_POSITION", str_new_pose);
+                                    pub_redis_var(&redis, "EVENT", get_event_str(2, "GPS ACC CORRECTION", std::to_string(get_angular_distance(&vect_acc_gps[0], &curr_global)) + " / " + std::to_string(max_separation)));
+                                }
+
+                                if(max_separation > 26.0) // Environ
+                                {
+                                    // Elle est valider mon frero.
+                                    use_gps_data_ts = get_curr_timestamp();
+
+                                    str_new_pose  = std::to_string(get_curr_timestamp()) + "|";
+                                    str_new_pose  += std::to_string(vect_acc_gps[0].longitude) + "|";
+                                    str_new_pose  += std::to_string(vect_acc_gps[0].latitude) + "|";
+                                    str_new_pose  += std::to_string(previous_hdg) + "|";
+                                    set_redis_var(&redis, "NAV_GLOBAL_POSITION", str_new_pose);
+                                    pub_redis_var(&redis, "EVENT", get_event_str(2, "GPS ACC CORRECTION 100 secondes... ", std::to_string(get_angular_distance(&vect_acc_gps[0], &curr_global)) + " / " + std::to_string(max_separation)));
+                                }
+                            }
+
+                            if(valid_data == 2 && nb_satellite > 10)
+                            {
+                                // Environ 1.6m toute les 5000 ms.
+                                double max_separation = get_elapsed_time(get_curr_timestamp(), use_gps_data_ts) / 5000 * 1.6;
+
+                                if(get_angular_distance(&vect_low_gps[0], &curr_global) < max_separation)
+                                {
+                                    // Elle est valider mon frero.
+                                    use_gps_data_ts = get_curr_timestamp();
+
+                                    str_new_pose  = std::to_string(get_curr_timestamp()) + "|";
+                                    str_new_pose  += std::to_string(vect_low_gps[0].longitude) + "|";
+                                    str_new_pose  += std::to_string(vect_low_gps[0].latitude) + "|";
+                                    str_new_pose  += std::to_string(previous_hdg) + "|";
+                                    set_redis_var(&redis, "NAV_GLOBAL_POSITION", str_new_pose);
+                                    pub_redis_var(&redis, "EVENT", get_event_str(2, "GPS LOW CORRECTION", std::to_string(get_angular_distance(&vect_low_gps[0], &curr_global)) + " / " + std::to_string(max_separation)));
+                                }
+
+                                if(max_separation > 36.0)
+                                {
+                                    // Elle est valider mon frero.
+                                    use_gps_data_ts = get_curr_timestamp();
+
+                                    str_new_pose  = std::to_string(get_curr_timestamp()) + "|";
+                                    str_new_pose  += std::to_string(vect_low_gps[0].longitude) + "|";
+                                    str_new_pose  += std::to_string(vect_low_gps[0].latitude) + "|";
+                                    str_new_pose  += std::to_string(previous_hdg) + "|";
+                                    set_redis_var(&redis, "NAV_GLOBAL_POSITION", str_new_pose);
+                                    pub_redis_var(&redis, "EVENT", get_event_str(2, "GPS LOW CORRECTION 100 secondes...", std::to_string(get_angular_distance(&vect_low_gps[0], &curr_global)) + " / " + std::to_string(max_separation)));
+                                }
+                            }
+                        }
+                    }
+                
+                    if(time_is_over(get_curr_timestamp(), use_hdg_data_ts, 5000) && valid_data != 0)
+                    {
+                        std::vector<std::string> vect_redis_str2;
+                        get_redis_multi_str(&redis, "NAV_GLOBAL_POSITION", vect_redis_str2);
+                        double angle_estimation = std::stod(vect_redis_str2[3]);
+
+                        double angle_curr_road  = std::stod(get_redis_str(&redis, "NAV_HDG_CURR_ROAD"));
+
+                        double angle_gps        = (accept_value) ? valid_tempo : ((valid_data == 1) ? new_global_acc_hdg : -1);
+
+                        if(angle_gps != -1)
+                        {
+                            if(get_diff_angle_0_360((double)angle_gps, (double)angle_estimation) < 15)
+                            {
+                                if(get_diff_angle_0_360((double)angle_gps, (double)angle_curr_road) < 65)
+                                {
+                                    use_hdg_data_ts = get_curr_timestamp();
+                                    std::string new_pos_str = std::to_string(get_curr_timestamp()) + "|";
+                                    new_pos_str += vect_redis_str2[1] + "|";
+                                    new_pos_str += vect_redis_str2[2] + "|";
+                                    new_pos_str += std::to_string(angle_gps) + "|";
+                                    set_redis_var(&redis, "NAV_GLOBAL_POSITION", new_pos_str);
+
+                                    pub_redis_var(&redis, "EVENT", get_event_str(2, "COMPASS CORRECTION NORMAL", std::to_string(angle_gps) + " / " + std::to_string(angle_estimation)));
+                                }
+                            }
+
+                            if(get_diff_angle_0_360((double)angle_gps, (double)angle_curr_road) < 30)
+                            {
+                                use_hdg_data_ts = get_curr_timestamp();
+                                std::string new_pos_str = std::to_string(get_curr_timestamp()) + "|";
+                                new_pos_str += vect_redis_str2[1] + "|";
+                                new_pos_str += vect_redis_str2[2] + "|";
+                                new_pos_str += std::to_string(angle_gps) + "|";
+                                set_redis_var(&redis, "NAV_GLOBAL_POSITION", new_pos_str);
+
+                                pub_redis_var(&redis, "EVENT", get_event_str(2, "COMPASS CORRECTION PUR STREET", std::to_string(angle_gps) + " / " + std::to_string(angle_estimation)));
+                            }
+                        }
+
+                    }
+                }
+            }
 
             // [2] global navigation.
-            Geographic_point tempo_pos = Geographic_point(((double)(messages.global_position_int.lon)/10000000), ((double)(messages.global_position_int.lat)/10000000));
-            tempo_hdg = (double)(messages.global_position_int.hdg)/100;
+            // Geographic_point tempo_pos = Geographic_point(((double)(messages.global_position_int.lon)/10000000), ((double)(messages.global_position_int.lat)/10000000));
+            // tempo_hdg = (double)(messages.global_position_int.hdg)/100;
 
-            bool o = true;
-            // [UNCOMMENT]
-            if(get_angular_distance(&tempo_pos, &homeland) < 10000 && (tempo_hdg>0 && tempo_hdg<360))
-            {
-                o = false;
+            // bool o = true;
+            // // [UNCOMMENT]
+            // if(get_angular_distance(&tempo_pos, &homeland) < 10000 && (tempo_hdg>0 && tempo_hdg<360))
+            // {
+            //     o = false;
 
-                double angle_curr_road = std::stod(get_redis_str(&redis, "NAV_HDG_CURR_ROAD"));
+            //     double angle_curr_road = std::stod(get_redis_str(&redis, "NAV_HDG_CURR_ROAD"));
 
-                if(!first_time)
-                {   
-                    if((get_diff_angle_0_360((double)tempo_hdg, (double)last_global_hdg) > 30) && (get_diff_angle_0_360(angle_curr_road, (double)tempo_hdg) > 45))
-                    {
-                        set_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "ACTIVATE");
-                      // std::cout << get_curr_timestamp() << " - ACTIVATE ENCODER HDG MODE." << std::endl;
-                        pub_redis_var(&redis, "EVENT", get_event_str(2, "ACTIVATE ENCODER", std::to_string(get_diff_angle_0_360(angle_curr_road, (double)tempo_hdg))));
-                    }
-                }
+            //     if(!first_time)
+            //     {   
+            //         if((get_diff_angle_0_360((double)tempo_hdg, (double)last_global_hdg) > 30) && (get_diff_angle_0_360(angle_curr_road, (double)tempo_hdg) > 45))
+            //         {
+            //             set_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "ACTIVATE");
+            //           // std::cout << get_curr_timestamp() << " - ACTIVATE ENCODER HDG MODE." << std::endl;
+            //             pub_redis_var(&redis, "EVENT", get_event_str(2, "ACTIVATE ENCODER", std::to_string(get_diff_angle_0_360(angle_curr_road, (double)tempo_hdg))));
+            //         }
+            //     }
 
-                if(first_time || compare_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "DEACTIVATE"))
-                {
-                    first_time = false;
-                    debug_str  = std::to_string(get_curr_timestamp()) + "|";
-                    debug_str += std::to_string(tempo_pos.longitude) + "|";
-                    debug_str += std::to_string(tempo_pos.latitude) + "|";
-                    debug_str += std::to_string(tempo_hdg) + "|";
+            //     if(first_time || compare_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "DEACTIVATE"))
+            //     {
+            //         first_time = false;
+            //         debug_str  = std::to_string(get_curr_timestamp()) + "|";
+            //         debug_str += std::to_string(tempo_pos.longitude) + "|";
+            //         debug_str += std::to_string(tempo_pos.latitude) + "|";
+            //         debug_str += std::to_string(tempo_hdg) + "|";
 
-                    last_global_hdg = (double)tempo_hdg;
+            //         last_global_hdg = (double)tempo_hdg;
 
-                    set_redis_var(&redis, "NAV_GLOBAL_POSITION", debug_str);
-                }
+            //         set_redis_var(&redis, "NAV_GLOBAL_POSITION", debug_str);
+            //     }
 
-                if(first_time || compare_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "ACTIVATE"))
-                {
-                    first_time  = false;
-                    debug_str   = std::to_string(get_curr_timestamp()) + "|";
-                    debug_str  += std::to_string(tempo_pos.longitude)  + "|";
-                    debug_str  += std::to_string(tempo_pos.latitude)   + "|";
+            //     if(first_time || compare_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "ACTIVATE"))
+            //     {
+            //         first_time  = false;
+            //         debug_str   = std::to_string(get_curr_timestamp()) + "|";
+            //         debug_str  += std::to_string(tempo_pos.longitude)  + "|";
+            //         debug_str  += std::to_string(tempo_pos.latitude)   + "|";
 
-                    double xoxo = last_global_hdg;
+            //         double xoxo = last_global_hdg;
                     
-                    last_global_hdg = last_global_hdg - rad_to_deg(std::stod(get_redis_str(&redis, "NAV_DELTA_HDG_ENCODER")));
+            //         last_global_hdg = last_global_hdg - rad_to_deg(std::stod(get_redis_str(&redis, "NAV_DELTA_HDG_ENCODER")));
 
-                    if(last_global_hdg > 360) last_global_hdg -= 360;
-                    if(last_global_hdg < 0)   last_global_hdg += 360;
-                    debug_str += std::to_string(last_global_hdg) + "|";
+            //         if(last_global_hdg > 360) last_global_hdg -= 360;
+            //         if(last_global_hdg < 0)   last_global_hdg += 360;
+            //         debug_str += std::to_string(last_global_hdg) + "|";
 
-                    std::cout << "SET HDG ENC - PREVIOUS : " << xoxo << " NEW ONE : " << last_global_hdg << " D>HDG : " << std::stod(get_redis_str(&redis, "NAV_DELTA_HDG_ENCODER")) << std::endl;
+            //         std::cout << "SET HDG ENC - PREVIOUS : " << xoxo << " NEW ONE : " << last_global_hdg << " D>HDG : " << std::stod(get_redis_str(&redis, "NAV_DELTA_HDG_ENCODER")) << std::endl;
                     
-                    set_redis_var(&redis, "NAV_DELTA_HDG_ENCODER", "0.0");
-                    set_redis_var(&redis, "NAV_GLOBAL_POSITION", debug_str);
-                }
+            //         set_redis_var(&redis, "NAV_DELTA_HDG_ENCODER", "0.0");
+            //         set_redis_var(&redis, "NAV_GLOBAL_POSITION", debug_str);
+            //     }
 
-                if((get_diff_angle_0_360(angle_curr_road, (double)tempo_hdg) <= 45) && compare_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "ACTIVATE"))
-                {
-                    set_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "DEACTIVATE");
-                  // std::cout << get_curr_timestamp() << " - DEACTIVATE ENCODER HDG MODE." << std::endl;
-                    pub_redis_var(&redis, "EVENT", get_event_str(2, "DEACIVATE ENCODER", std::to_string(get_diff_angle_0_360(angle_curr_road, (double)tempo_hdg))));
-                }
-            }
+            //     if((get_diff_angle_0_360(angle_curr_road, (double)tempo_hdg) <= 45) && compare_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "ACTIVATE"))
+            //     {
+            //         set_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "DEACTIVATE");
+            //       // std::cout << get_curr_timestamp() << " - DEACTIVATE ENCODER HDG MODE." << std::endl;
+            //         pub_redis_var(&redis, "EVENT", get_event_str(2, "DEACIVATE ENCODER", std::to_string(get_diff_angle_0_360(angle_curr_road, (double)tempo_hdg))));
+            //     }
+            // }
 
-            // [UNCOMMENT]
-            Geographic_point tempo_pos2 = Geographic_point(((double)(messages.gps_raw.lon)/10000000), ((double)(messages.gps_raw.lat)/10000000));
+            // // [UNCOMMENT]
+            // Geographic_point tempo_pos2 = Geographic_point(((double)(messages.gps_raw.lon)/10000000), ((double)(messages.gps_raw.lat)/10000000));
 
-            if(o && get_angular_distance(&tempo_pos2, &homeland) < 10000)
-            {
-                std::vector<std::string> vect_red;
-                get_redis_multi_str(&redis, "NAV_GLOBAL_POSITION", vect_red);
-                debug_str = std::to_string(get_curr_timestamp()) + "|";
-                debug_str += std::to_string((double)(messages.gps_raw.lon)/10000000) + "|";
-                debug_str += std::to_string((double)(messages.gps_raw.lat)/10000000) + "|";
+            // if(o && get_angular_distance(&tempo_pos2, &homeland) < 10000)
+            // {
+            //     std::vector<std::string> vect_red;
+            //     get_redis_multi_str(&redis, "NAV_GLOBAL_POSITION", vect_red);
+            //     debug_str = std::to_string(get_curr_timestamp()) + "|";
+            //     debug_str += std::to_string((double)(messages.gps_raw.lon)/10000000) + "|";
+            //     debug_str += std::to_string((double)(messages.gps_raw.lat)/10000000) + "|";
 
-                tempo_hdg = (accept_value) ? t : std::stoi(vect_red[3]);
+            //     tempo_hdg = (accept_value) ? t : std::stoi(vect_red[3]);
 
-                double angle_curr_road = std::stod(get_redis_str(&redis, "NAV_HDG_CURR_ROAD"));
-                if(!first_time)
-                {   
-                    if((get_diff_angle_0_360((double)tempo_hdg, (double)last_global_hdg) > 30) && (get_diff_angle_0_360(angle_curr_road, (double)tempo_hdg) > 45))
-                    {
-                        set_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "ACTIVATE");
-                      // std::cout << get_curr_timestamp() << " - ACTIVATE ENCODER HDG MODE." << std::endl;
-                        pub_redis_var(&redis, "EVENT", get_event_str(2, "ACTIVATE ENCODER", std::to_string(get_diff_angle_0_360(angle_curr_road, (double)tempo_hdg))));
-                    }
-                }
+            //     double angle_curr_road = std::stod(get_redis_str(&redis, "NAV_HDG_CURR_ROAD"));
+            //     if(!first_time)
+            //     {   
+            //         if((get_diff_angle_0_360((double)tempo_hdg, (double)last_global_hdg) > 30) && (get_diff_angle_0_360(angle_curr_road, (double)tempo_hdg) > 45))
+            //         {
+            //             set_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "ACTIVATE");
+            //           // std::cout << get_curr_timestamp() << " - ACTIVATE ENCODER HDG MODE." << std::endl;
+            //             pub_redis_var(&redis, "EVENT", get_event_str(2, "ACTIVATE ENCODER", std::to_string(get_diff_angle_0_360(angle_curr_road, (double)tempo_hdg))));
+            //         }
+            //     }
 
-                if(first_time || compare_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "ACTIVATE"))
-                {
-                    first_time = false;
+            //     if(first_time || compare_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "ACTIVATE"))
+            //     {
+            //         first_time = false;
 
-                    double xoxo = last_global_hdg;
-                    last_global_hdg = last_global_hdg - rad_to_deg(std::stod(get_redis_str(&redis, "NAV_DELTA_HDG_ENCODER")));
+            //         double xoxo = last_global_hdg;
+            //         last_global_hdg = last_global_hdg - rad_to_deg(std::stod(get_redis_str(&redis, "NAV_DELTA_HDG_ENCODER")));
 
-                    if(last_global_hdg > 360) last_global_hdg -= 360;
-                    if(last_global_hdg < 0)   last_global_hdg += 360;
-                    debug_str += std::to_string(last_global_hdg) + "|";
+            //         if(last_global_hdg > 360) last_global_hdg -= 360;
+            //         if(last_global_hdg < 0)   last_global_hdg += 360;
+            //         debug_str += std::to_string(last_global_hdg) + "|";
 
-                    set_redis_var(&redis, "NAV_DELTA_HDG_ENCODER", "0.0");
-                    set_redis_var(&redis, "NAV_GLOBAL_POSITION", debug_str);
-                }
+            //         set_redis_var(&redis, "NAV_DELTA_HDG_ENCODER", "0.0");
+            //         set_redis_var(&redis, "NAV_GLOBAL_POSITION", debug_str);
+            //     }
 
-                if(first_time || compare_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "DEACTIVATE"))
-                {
-                    first_time = false;
-                    if(accept_value) {debug_str += std::to_string(t) + "|"; last_global_hdg = (double)t;}
-                    else{ debug_str += vect_red[3] + "|"; last_global_hdg = std::stod(vect_red[3]);}
-                    set_redis_var(&redis, "NAV_GLOBAL_POSITION", debug_str);
-                }
+            //     if(first_time || compare_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "DEACTIVATE"))
+            //     {
+            //         first_time = false;
+            //         if(accept_value) {debug_str += std::to_string(t) + "|"; last_global_hdg = (double)t;}
+            //         else{ debug_str += vect_red[3] + "|"; last_global_hdg = std::stod(vect_red[3]);}
+            //         set_redis_var(&redis, "NAV_GLOBAL_POSITION", debug_str);
+            //     }
 
-                if(accept_value && (get_diff_angle_0_360(angle_curr_road, (double)tempo_hdg) <= 30) && compare_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "ACTIVATE"))
-                {
-                    set_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "DEACTIVATE");
-                  // std::cout << get_curr_timestamp() << " - DEACTIVATE ENCODER HDG MODE." << std::endl;
-                    pub_redis_var(&redis, "EVENT", get_event_str(2, "DEACIVATE ENCODER", std::to_string(get_diff_angle_0_360(angle_curr_road, (double)tempo_hdg))));
-                }
-            }
+            //     if(accept_value && (get_diff_angle_0_360(angle_curr_road, (double)tempo_hdg) <= 30) && compare_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "ACTIVATE"))
+            //     {
+            //         set_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "DEACTIVATE");
+            //       // std::cout << get_curr_timestamp() << " - DEACTIVATE ENCODER HDG MODE." << std::endl;
+            //         pub_redis_var(&redis, "EVENT", get_event_str(2, "DEACIVATE ENCODER", std::to_string(get_diff_angle_0_360(angle_curr_road, (double)tempo_hdg))));
+            //     }
+            // }
 
             // DEBUG [COMMENT]
             // set_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "ACTIVATE");

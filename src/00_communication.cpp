@@ -1,4 +1,5 @@
 #include "00_communication.h"
+#include "00_navigation.h"
 
 bool port_already_taken(sw::redis::Redis* redis, std::string curr_port_name)
 {
@@ -271,39 +272,59 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
 
                         double dt_central_left_m  = tic_to_meter * std::stoi(vect_reponse_mcu_motor[3]);
                         double dt_central_right_m = tic_to_meter * std::stoi(vect_reponse_mcu_motor[6]);
+                        double dt_central_moy_m   = (dt_central_left_m + dt_central_right_m) / 2;
 
-                        if(compare_redis_var(redis, "NAV_HDG_WITH_ENCODER", "ACTIVATE"))
+                        // if(compare_redis_var(redis, "NAV_HDG_WITH_ENCODER", "ACTIVATE"))
+                        // {
+                        //     double dt_angle   = (dt_central_right_m - dt_central_left_m) / std::stod(get_redis_str(redis, "HARD_WHEEL_DISTANCE"));
+                        //     double m_dt_angle = std::stod(get_redis_str(redis, "NAV_DELTA_HDG_ENCODER"));
+                        //     set_redis_var(redis, "NAV_DELTA_HDG_ENCODER", std::to_string(dt_angle+m_dt_angle));
+                        //     std::cout << "ADD " << dt_angle << " TOTAL " << dt_angle+m_dt_angle << std::endl;
+                        // }
+                        // else
+                        // {
+                        //     set_redis_var(redis, "NAV_DELTA_HDG_ENCODER", "0.0");
+                        // }
+
+                        if(dt_central_left_m < 1.0 && dt_central_right_m < 1.0)
                         {
-                            double dt_angle   = (dt_central_right_m - dt_central_left_m) / std::stod(get_redis_str(redis, "HARD_WHEEL_DISTANCE"));
-                            double m_dt_angle = std::stod(get_redis_str(redis, "NAV_DELTA_HDG_ENCODER"));
-                            set_redis_var(redis, "NAV_DELTA_HDG_ENCODER", std::to_string(dt_angle+m_dt_angle));
-                            std::cout << "ADD " << dt_angle << " TOTAL " << dt_angle+m_dt_angle << std::endl;
+                            // NEW ANGLE.
+                            std::vector<std::string> vect_redis_str;
+                            get_redis_multi_str(redis, "NAV_LOCAL_POSITION", vect_redis_str);
+
+                            double dt_angle    = (dt_central_right_m - dt_central_left_m) / std::stod(get_redis_str(redis, "HARD_WHEEL_DISTANCE"));
+                            double prev_angle  = std::stod(vect_redis_str[3]) - rad_to_deg(dt_angle);
+                            if(prev_angle > 360) prev_angle -= 360;
+                            if(prev_angle <   0) prev_angle += 360;
+
+                            // [A] GLOBAL PART.
+                            std::vector<std::string> vect_previous_global_pos;
+                            get_redis_multi_str(redis, "NAV_GLOBAL_POSITION", vect_previous_global_pos);
+
+                            Geographic_point last_pos = Geographic_point(std::stod(vect_previous_global_pos[1]), std::stod(vect_previous_global_pos[2]));
+                            Geographic_point new_pos  = get_new_position(&last_pos, prev_angle, dt_central_moy_m);
+
+                            std::string new_pos_str   = std::to_string(get_curr_timestamp()) + "|";
+                            new_pos_str               += std::to_string(new_pos.longitude) + "|";
+                            new_pos_str               += std::to_string(new_pos.latitude)  + "|";
+                            new_pos_str               += std::to_string(prev_angle) + "|";
+                            set_redis_var(redis, "NAV_GLOBAL_POSITION", new_pos_str);
+
+                            // [B] LOCAL PART.
+                            std::string new_local_position = std::to_string(get_curr_timestamp()) + "|";
+                            new_local_position += std::to_string(std::stod(vect_redis_str[1]) + dt_moy_m * cos(deg_to_rad(prev_angle))) + "|";
+                            new_local_position += std::to_string(std::stod(vect_redis_str[2]) + dt_moy_m * sin(deg_to_rad(prev_angle))) + "|";
+                            new_local_position += std::to_string(prev_angle) + "|";
+                            set_redis_var(redis, "NAV_LOCAL_POSITION", new_local_position);
+
+                            // Estimer la vitesse actuelle en km/h.
+                            std::vector<std::string> last_value_vect;
+                            get_redis_multi_str(redis, "NAV_CURR_SPEED", last_value_vect);
+                            int64_t elasped_time = abs(get_elapsed_time(get_curr_timestamp(), std::stoul(last_value_vect[0])));
+                            double speed_kmh = ((dt_moy_m / (elasped_time / 1000)) / 1000) * 3600;
+                            std::string curr_speed_str = std::to_string(get_curr_timestamp()) + "|" + std::to_string(speed_kmh) + "|"; 
+                            set_redis_var(redis, "NAV_CURR_SPEED", curr_speed_str);
                         }
-                        else
-                        {
-                            set_redis_var(redis, "NAV_DELTA_HDG_ENCODER", "0.0");
-                        }
-
-                        // Lire la position actuelle.
-                        std::vector<std::string> vect_redis_str;
-                        get_redis_multi_str(redis, "NAV_LOCAL_POSITION", vect_redis_str);
-                        
-                        // Calculer la nouvelle position.
-                        std::string new_local_position = std::to_string(get_curr_timestamp()) + "|";
-                        new_local_position += std::to_string(std::stod(vect_redis_str[1]) + dt_moy_m * cos(deg_to_rad(std::stod(vect_redis_str[3])))) + "|";
-                        new_local_position += std::to_string(std::stod(vect_redis_str[2]) + dt_moy_m * sin(deg_to_rad(std::stod(vect_redis_str[3])))) + "|";
-                        new_local_position += vect_redis_str[3] + "|";
-            
-                        set_redis_var(redis, "NAV_LOCAL_POSITION", new_local_position);
-
-                        // Estimer la vitesse actuelle en km/h.
-                        std::vector<std::string> last_value_vect;
-                        get_redis_multi_str(redis, "NAV_CURR_SPEED", last_value_vect);
-                        int64_t elasped_time = abs(get_elapsed_time(get_curr_timestamp(), std::stoul(last_value_vect[0])));
-                        double speed_kmh = ((dt_moy_m / (elasped_time / 1000)) / 1000) * 3600;
-                        std::string curr_speed_str = std::to_string(get_curr_timestamp()) + "|" + std::to_string(speed_kmh) + "|"; 
-                        set_redis_var(redis, "NAV_CURR_SPEED", curr_speed_str);
-
                     }
                 }
                 
