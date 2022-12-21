@@ -601,7 +601,7 @@ void bind_events(sio::socket::ptr current_socket)
         std::vector<std::string> vect_cargo_mission;
         get_redis_multi_str(&redis, "MISSION_HARD_CARGO", vect_cargo_mission);
 
-        int index = data->get_map()["   &"]->get_int();
+        int index = data->get_map()["ID_BOX"]->get_int();
 
         if(vect_cargo_state[index].compare("OPEN") == 0)
         {
@@ -680,5 +680,17 @@ void bind_events(sio::socket::ptr current_socket)
         }
 
         set_redis_var(&redis, "NAV_HDG_WITH_ENCODER", "ACTIVATE");
+    }));
+
+    current_socket->on("ORDER_TRUST_GPS", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+    {
+        set_redis_var(&redis, "MISSION_TRUST_GPS", "TRUE");
+    }));
+
+    current_socket->on("ORDER_REDIS", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+    {
+        std::string channel = data->get_map()["CHANNEL"]->get_string();
+        std::string value   = data->get_map()["VALUE"]->get_string();
+        set_redis_var(&redis, channel, value);
     }));
 }
