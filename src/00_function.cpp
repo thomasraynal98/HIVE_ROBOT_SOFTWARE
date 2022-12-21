@@ -354,3 +354,11 @@ bool file_exist(std::string file_path)
     if(stat(file_path.c_str(), &buffer) == 0) return true;
     return false;
 }
+
+void Write_TXT_file(std::string path, std::string file_data)
+{
+    std::ofstream myfile;
+    myfile.open(path);
+    myfile << file_data;
+    myfile.close();
+}

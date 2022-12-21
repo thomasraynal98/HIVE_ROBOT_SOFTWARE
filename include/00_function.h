@@ -42,4 +42,4 @@ bool compare_redis_var(sw::redis::Redis* redis, std::string channel, std::string
 double rad_to_deg(double rad);
 double deg_to_rad(double deg);
 bool file_exist(std::string file_path);
-
+void Write_TXT_file(std::string path, std::string file_data);

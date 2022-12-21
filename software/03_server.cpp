@@ -465,11 +465,13 @@ int main(int argc, char *argv[])
 void bind_events(sio::socket::ptr current_socket)
 {
     // TODO: setup ORDER_GET_HMR
-    current_socket->on("ORDER_GET_HMR"       , sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+    current_socket->on("ORDER_GET_HMD"       , sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
     {
         // Recuperer le fichier txt en base64 sur la variable 'HMR'
         // set_redis_var(&redis, "NAV_HMR_DOWNLOAD_ADRESS", data->get_map()["HMR_LINK"]->get_string());
-        // set_redis_var(&redis, "NAV_HMR_MAP_UPDATE",      "TRUE");
+        Write_TXT_file("../data/HMD_TEST_VESINET.txt", data->get_map()["FILE_DATA"]->get_string());
+        set_redis_var(&redis, "NAV_HMR_MAP_UPDATE",      "TRUE");
+        pub_redis_var(&redis, "EVENT", get_event_str(3, "NEW HMD DOWLOAD", "COMPLETED"));
     }));
 
     current_socket->on("ORDER_WAITING"       , sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
