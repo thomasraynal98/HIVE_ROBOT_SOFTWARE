@@ -400,7 +400,7 @@ void f_thread_readwrite_pixhawk()
                     {
                         // Permet de connaitre l'état de la qualité du gps system.
                         double stable_long          = 0.0;
-                        double stable_short         = 1000.0;
+                        double stable_short         = 0.0;
 
                         if(valid_data == 1 && vect_acc_gps.size() > 2)
                         {
@@ -425,14 +425,16 @@ void f_thread_readwrite_pixhawk()
                         }
 
                         // Il faut bien faire une séparation entre la position long, lat et la valeur de hdg.
-
+			std::cout << valid_data << " " <<  stable_short << " " << stable_long << " " << get_elapsed_time(get_curr_timestamp(), use_gps_data_ts) / 5000 * 1.3 << " " << get_angular_distance(&vect_acc_gps[0], &curr_global) << std::endl;
                         // On va faire long, lat en premier.
-                        if(stable_short < 2.5 && stable_long < 5.0) // Sachant qu'on reçoit 3 à 4 valeurs par secondes.
+                        if(stable_short > 2.5 && stable_long > 5.0) // Sachant qu'on reçoit 3 à 4 valeurs par secondes.
                         {
                             if(valid_data == 1 && nb_satellite > 10)
                             {
                                 // Environ 1.3m toute les 5000 ms.
-                                double max_separation = get_elapsed_time(get_curr_timestamp(), use_gps_data_ts) / 5000 * 1.3;
+                                double max_separation = get_elapsed_time(get_curr_timestamp(), use_gps_data_ts) / 5000 * 0.7;
+				if(nb_satellite >= 20 && nb_satellite <= 25) max_separation *= 1.5;
+				if(nb_satellite > 25) max_separation *= 1.8;
 
                                 if(get_angular_distance(&vect_acc_gps[0], &curr_global) < max_separation)
                                 {
@@ -464,7 +466,10 @@ void f_thread_readwrite_pixhawk()
                             if(valid_data == 2 && nb_satellite > 10)
                             {
                                 // Environ 1.6m toute les 5000 ms.
-                                double max_separation = get_elapsed_time(get_curr_timestamp(), use_gps_data_ts) / 5000 * 1.6;
+                                double max_separation = get_elapsed_time(get_curr_timestamp(), use_gps_data_ts) / 5000 * 0.9;
+
+				if(nb_satellite >= 20 && nb_satellite <= 25) max_separation *= 1.5;
+                                if(nb_satellite > 25) max_separation *= 1.8;
 
                                 if(get_angular_distance(&vect_low_gps[0], &curr_global) < max_separation)
                                 {
@@ -507,7 +512,7 @@ void f_thread_readwrite_pixhawk()
 
                         if(angle_gps != -1)
                         {
-                            if(get_diff_angle_0_360((double)angle_gps, (double)angle_estimation) < 15)
+                            if(get_diff_angle_0_360((double)angle_gps, (double)angle_estimation) < 10)
                             {
                                 if(get_diff_angle_0_360((double)angle_gps, (double)angle_curr_road) < 65)
                                 {
@@ -523,7 +528,8 @@ void f_thread_readwrite_pixhawk()
                             }
 
                             if(get_diff_angle_0_360((double)angle_gps, (double)angle_curr_road) < 30)
-                            {
+                            //if(false)
+			    {
                                 use_hdg_data_ts = get_curr_timestamp();
                                 std::string new_pos_str = std::to_string(get_curr_timestamp()) + "|";
                                 new_pos_str += vect_redis_str2[1] + "|";

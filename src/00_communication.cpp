@@ -300,6 +300,9 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                             // [A] GLOBAL PART.
                             std::vector<std::string> vect_previous_global_pos;
                             get_redis_multi_str(redis, "NAV_GLOBAL_POSITION", vect_previous_global_pos);
+			    prev_angle  = std::stod(vect_previous_global_pos[3]) - rad_to_deg(dt_angle);
+			    if(prev_angle > 360) prev_angle -= 360;
+                            if(prev_angle <   0) prev_angle += 360;
 
                             Geographic_point last_pos = Geographic_point(std::stod(vect_previous_global_pos[1]), std::stod(vect_previous_global_pos[2]));
                             Geographic_point new_pos  = get_new_position(&last_pos, prev_angle, dt_central_moy_m);
