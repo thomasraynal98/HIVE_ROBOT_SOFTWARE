@@ -399,7 +399,7 @@ void f_thread_readwrite_pixhawk()
                     if(time_is_over(get_curr_timestamp(), use_gps_data_ts, 5000) && valid_data != 0)
                     {
                         // Permet de connaitre l'état de la qualité du gps system.
-                        double stable_long          = 1000.0;
+                        double stable_long          = 0.0;
                         double stable_short         = 1000.0;
 
                         if(valid_data == 1 && vect_acc_gps.size() > 2)
@@ -546,7 +546,7 @@ void f_thread_readwrite_pixhawk()
                             str_new_pose  = std::to_string(get_curr_timestamp()) + "|";
                             str_new_pose  += std::to_string(vect_acc_gps[0].longitude) + "|";
                             str_new_pose  += std::to_string(vect_acc_gps[0].latitude) + "|";
-                            str_new_pose  += std::to_string(previous_hdg) + "|";
+                            str_new_pose  += (accept_value) ?  std::to_string(valid_tempo) : std::to_string(previous_hdg) + "|";
                             set_redis_var(&redis, "NAV_GLOBAL_POSITION", str_new_pose);
                             pub_redis_var(&redis, "EVENT", get_event_str(2, "GPS ACC CORRECTION", "MANUAL"));
                         }
@@ -557,7 +557,7 @@ void f_thread_readwrite_pixhawk()
                             str_new_pose  = std::to_string(get_curr_timestamp()) + "|";
                             str_new_pose  += std::to_string(vect_low_gps[0].longitude) + "|";
                             str_new_pose  += std::to_string(vect_low_gps[0].latitude) + "|";
-                            str_new_pose  += std::to_string(previous_hdg) + "|";
+                            str_new_pose  += (accept_value) ?  std::to_string(valid_tempo) : std::to_string(previous_hdg) + "|";
                             set_redis_var(&redis, "NAV_GLOBAL_POSITION", str_new_pose);
                             pub_redis_var(&redis, "EVENT", get_event_str(2, "GPS LOW CORRECTION", "MANUAL"));
                         }
