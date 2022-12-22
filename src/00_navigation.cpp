@@ -2065,14 +2065,25 @@ int get_road_ID_from_pos(sw::redis::Redis* redis, std::vector<Data_road>& vect_r
                     curr_road_coor            += std::to_string(vect_roadmap[idx2].node_target->point->latitude)  + "|";
                     set_redis_var(redis, "NAV_CURRENT_ROAD_COOR", curr_road_coor);
 
-                    if(moyenne_dist_next_node <= 8.0)
-                    {
-                        return road_ID;
-                    }
-                    else
-                    {
-                        return road_ID;
-                    }
+                    // if(moyenne_dist_next_node <= 8.0)
+                    // {
+                    //     return road_ID;
+                    // }
+                    // else
+                    // {
+                    //     return road_ID;
+                    // }
+                    
+                    /**
+                     * TODO: Faire attention changement de Map.
+                     */
+                    
+                    int road_id = std::stoi(vect_redis[1]);
+                    if(road_id == 1003 && (road_ID == 1006 || road_ID == 1011)) return road_id;
+                    if(road_id == 1011 && (road_ID == 1003)) return road_id;
+                    if(road_id == 1006 && (road_ID == 1003)) return road_id;
+
+                    return road_ID;
                 }
             }
             else

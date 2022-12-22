@@ -1768,6 +1768,7 @@ int main(int argc, char *argv[])
                                 }
                                 double max_accel  = std::stod(get_redis_str(&redis,"NAV_MAX_ACCEL"));
                                 double max_deccel = std::stod(get_redis_str(&redis,"NAV_MAX_DECCEL"));
+                                double dbg_curr_speed = (previous_speed + previous_lspeed) / 2;
 
                                 // ETAPE 00: INIT VAR FOR PERFORMANCE.
                                 double dist = 0.0;
@@ -1805,6 +1806,7 @@ int main(int argc, char *argv[])
                                 Final_traj.niv = 200;
 
                                 // ETAPE 1 : TEST ORIGINAL TRAJECTORY
+                                double dbg_min_dist_obj = 99999;
                                 for(auto obj : vect_obj)
                                 {
                                     if(obj.available)
@@ -1859,21 +1861,49 @@ int main(int argc, char *argv[])
 
                                             // ETAPE 1E : VERIFIER SI ILS SONT DANS TRAJECTOIRE
                                             if(abs(sqrt(pow(100-idx_col,2)+pow(center_row-idx_row,2))/10 - radius_circle) < distance_m && \
-                                            dist < 5.0)
+                                            dist < 6.0)
                                             {
                                                 first_trajectory_safe = false;
                                             }
 
                                             // ETAPE 1F : SETUP LA VITESSE MAX EN FONCTION DES OBTACLES.
-                                            double temp = 8888;
-                                            if(dist < 1.5) temp = speed_with_obj * pow(dist / 1.5, 1);
-                                            if(temp < min_speed_detect) min_speed_detect = temp;
-                                            if(min_speed_detect < 0.3) min_speed_detect = 0.3;
+                                            // double temp = 8888;
+                                            // if(dist < 1.5) temp = speed_with_obj * pow(dist / 1.5, 1);
+                                            // if(temp < min_speed_detect) min_speed_detect = temp;
+                                            // if(min_speed_detect < 0.3) min_speed_detect = 0.3;
+
+                                            // TODO NEW: SETUP SPEED EN FONCTION DE LA DISTANCE AVEC L'AVANT DU ROBOT.
+                                            if(abs(angle_diff2) < 65)
+                                            {
+                                                double dist_from_front = abs(sqrt(pow(103-idx_col,2)+pow(100-idx_row,2)))/10;
+
+                                                if(dist_from_front < dbg_min_dist_obj)
+                                                {
+                                                    dbg_min_dist_obj = dist_from_front;
+                                                    /**
+                                                     * NOTE: Plusieurs traitement différent.
+                                                     * [1] - dist_from_front < 1.0 => La vitesse max est de 0.27 m/s (1km/h)
+                                                     * [2] - dist_from_front > 1.3 x Current speed => La vitesse max ne change pas.
+                                                     * [3] - Entre les deux, la vitesse max evolue
+                                                     */
+
+                                                    double max_dist = dbg_curr_speed * 2.0;
+                                                    
+                                                    if(dist_from_front < 1.0) min_speed_detect = 0.27;
+                                                    if(dist_from_front >= 1.0 && dist_from_front < max_dist)
+                                                    {
+                                                        min_speed_detect = ((dist_from_front-1.0)/((dbg_curr_speed*2.0)-1)) + 0.27;
+                                                        if(min_speed_detect > dbg_curr_speed) min_speed_detect = dbg_curr_speed;
+                                                    }
+                                                }
+                                                
+                                            }
                                         }
                                     }
                                 }
 
-                                speed_with_obj = min_speed_detect;
+                                
+                                speed_with_obj = (min_speed_detect < speed_with_obj) ? min_speed_detect : speed_with_obj;
 
                                 trajectory_tested++;
 

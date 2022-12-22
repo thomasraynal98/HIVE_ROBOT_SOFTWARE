@@ -333,7 +333,9 @@ void f_thread_telemetry()
             vect_telemetry_server.push_back(Server_var("s", "WHEEL5_STATE"       ,                                          "CONNECTED"));
             vect_telemetry_server.push_back(Server_var("s", "WHEEL6_STATE"       ,                                          "CONNECTED"));
 
-            vect_telemetry_server.push_back(Server_var("s", "CURRENT_ROAD_COORD"  ,        get_redis_str(&redis, "NAV_CURRENT_ROAD_COOR")));
+            vect_telemetry_server.push_back(Server_var("s", "CURRENT_ROAD_COORD" ,       get_redis_str(&redis, "NAV_CURRENT_ROAD_COOR")));
+
+            vect_telemetry_server.push_back(Server_var("s", "GOOGLE_MEET_ID"     ,       get_redis_str(&redis, "SERVER_GOOGLE_MEET_ID")));
 
             send_msg_server(h.socket(), "ROBOT_TELEM", vect_telemetry_server);
             // std::cout << "TELEM SEND" << std::endl;
@@ -694,5 +696,20 @@ void bind_events(sio::socket::ptr current_socket)
         std::string channel = data->get_map()["CHANNEL"]->get_string();
         std::string value   = data->get_map()["VALUE"]->get_string();
         set_redis_var(&redis, channel, value);
+    }));
+
+    current_socket->on("ORDER_ID_GOOGLE_MEET", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+    {
+        set_redis_var(&redis, "SERVER_GOOGLE_MEET_ID", data->get_map()["GOOGLE_MEET_ID"]->get_string());
+    }));
+
+    current_socket->on("ORDER_START_GOOGLE_MEET", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+    {
+        set_redis_var(&redis, "SERVER_GOOGLE_MEET_MODE", "ACTIVATE");
+    }));
+
+    current_socket->on("ORDER_STOP_GOOGLE_MEET", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+    {
+        set_redis_var(&redis, "SERVER_GOOGLE_MEET_MODE", "DEACTIVATE");
     }));
 }

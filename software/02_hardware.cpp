@@ -325,6 +325,8 @@ void f_thread_readwrite_pixhawk()
 
                 std::string str_new_pose;
 
+                // std::cout << "Yes" << std::endl;
+
                 if(dist_to_home > 10000)
                 {
                     /* Far from home, à l'initialisation par exemple. */
@@ -384,13 +386,16 @@ void f_thread_readwrite_pixhawk()
 
                     if(valid_data == 1)  
                     {
-                        if(vect_acc_gps.size() > 9) vect_acc_gps.pop_back();
+                        // On recupére que les bonnes données
+                        if(vect_acc_gps.size() > 10) vect_acc_gps.pop_back();
                         vect_acc_gps.insert(vect_acc_gps.begin(), new_global_acc);
                         final_new_gps = new_global_acc;
                     }
-                    if(valid_data == 2)  
-                    {
-                        if(vect_low_gps.size() > 9) vect_low_gps.pop_back();
+                    // if(valid_data == 2)  
+                    if(dist_rawgps_to_home < 10000)
+                    {   
+                        // On récupère l'ensemble des données pour monitoré la stabilité du GPS.
+                        if(vect_low_gps.size() > 10) vect_low_gps.pop_back();
                         vect_low_gps.insert(vect_low_gps.begin(), new_global_low);
                         final_new_gps = new_global_low;
                     }
@@ -402,32 +407,43 @@ void f_thread_readwrite_pixhawk()
                         double stable_long          = 0.0;
                         double stable_short         = 0.0;
 
-                        if(valid_data == 1 && vect_acc_gps.size() > 2)
-                        {
-                            stable_short = get_angular_distance(&vect_acc_gps[vect_acc_gps.size()], &vect_acc_gps[vect_acc_gps.size()-1]);
+                        /* Pas vraiment d'interet à cause des corrections de l'iMu. */
+                        // if(valid_data == 1 && vect_acc_gps.size() > 2)
+                        // {
+                        //     stable_short = get_angular_distance(&vect_acc_gps[vect_acc_gps.size()-1], &vect_acc_gps[vect_acc_gps.size()-2]);
 
-                            for(int i = 0; i < vect_acc_gps.size()-1; i++)
-                            {
-                                stable_long += get_angular_distance(&vect_acc_gps[vect_acc_gps.size()-i], &vect_acc_gps[vect_acc_gps.size()-i-1]);
-                            }
-                            stable_long = stable_long / vect_acc_gps.size()-1;
-                        }
+                        //     for(int i = 0; i < vect_acc_gps.size()-1; i++)
+                        //     {
+                        //         stable_long += get_angular_distance(&vect_acc_gps[vect_acc_gps.size()-i-1], &vect_acc_gps[vect_acc_gps.size()-i-2]);
+                        //     }
+                        //     stable_long = stable_long / (vect_acc_gps.size()-1);
+                        // }
 
-                        if(valid_data == 2 && vect_low_gps.size() > 2)
+
+                        // if(valid_data == 2 && vect_low_gps.size() > 2)
+                        if(true)
                         {
-                            stable_short = get_angular_distance(&vect_low_gps[vect_low_gps.size()], &vect_low_gps[vect_low_gps.size()-1]);
+                            stable_short = get_angular_distance(&vect_low_gps[vect_low_gps.size()-1], &vect_low_gps[vect_low_gps.size()-2]);
 
                             for(int i = 0; i < vect_low_gps.size()-1; i++)
                             {
-                                stable_long += get_angular_distance(&vect_low_gps[vect_low_gps.size()-i], &vect_low_gps[vect_low_gps.size()-i-1]);
+                                stable_long += get_angular_distance(&vect_low_gps[vect_low_gps.size()-i-1], &vect_low_gps[vect_low_gps.size()-i-2]);
                             }
-                            stable_long = stable_long / vect_low_gps.size()-1;
+                            stable_long = stable_long / (vect_low_gps.size()-1);
+                            std::cout << "GPS RAW SHORT: " << stable_short << " GPS_RAW_LONG: " << stable_long << std::endl;
                         }
 
+                        // for(int i = 0; i < vect_acc_gps.size(); i++)
+                        // {
+                        //     std::cout << vect_acc_gps[i].show() << std::endl;
+                        // }
+                        // std::cout << std::endl;
+
+                        // std::cout << "CURR: " << vect_acc_gps[vect_acc_gps.size()-1].show() << " T-1: " << vect_acc_gps[vect_acc_gps.size()-2].show() << std::endl << std::endl;
                         // Il faut bien faire une séparation entre la position long, lat et la valeur de hdg.
-			            std::cout << valid_data << " SHORT:" <<  stable_short << " LONG:" << stable_long << " " << (double)get_elapsed_time(get_curr_timestamp(), use_gps_data_ts) / 5000 * 0.7 << " " << get_angular_distance(&vect_acc_gps[0], &curr_global) << std::endl;
+			            // std::cout << valid_data << " SAT: " << nb_satellite << " SHORT:" <<  stable_short << " LONG:" << stable_long << std::endl;// " " << (double)get_elapsed_time(get_curr_timestamp(), use_gps_data_ts) / 5000 * 0.7 << " " << get_angular_distance(&vect_acc_gps[0], &curr_global) << std::endl;
                         // On va faire long, lat en premier.
-                        if(stable_short > 2.5 && stable_long > 5.0) // Sachant qu'on reçoit 3 à 4 valeurs par secondes.
+                        if(stable_short < 0.45 && stable_long < 0.35) // Sachant qu'on reçoit 3 à 4 valeurs par secondes.
                         {
                             if(valid_data == 1 && nb_satellite > 10)
                             {
@@ -449,7 +465,7 @@ void f_thread_readwrite_pixhawk()
                                     pub_redis_var(&redis, "EVENT", get_event_str(2, "GPS ACC CORRECTION", std::to_string(get_angular_distance(&vect_acc_gps[0], &curr_global)) + " / " + std::to_string(max_separation)));
                                 }
 
-                                if(max_separation > 26.0) // Environ
+                                if(max_separation > 22.0) // Environ
                                 {
                                     // Elle est valider mon frero.
                                     use_gps_data_ts = get_curr_timestamp();
@@ -512,7 +528,7 @@ void f_thread_readwrite_pixhawk()
 
                         if(angle_gps != -1)
                         {
-                            if(get_diff_angle_0_360((double)angle_gps, (double)angle_estimation) < 10)
+                            if(get_diff_angle_0_360((double)angle_gps, (double)angle_estimation) < 8)
                             {
                                 if(get_diff_angle_0_360((double)angle_gps, (double)angle_curr_road) < 65)
                                 {

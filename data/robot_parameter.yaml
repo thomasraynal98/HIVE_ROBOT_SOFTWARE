@@ -17,6 +17,8 @@ ROBOT_MODE                          : "INIT"
 SERVER_COM_STATE                    : "DISCONNECTED"
 SERVER_MAX_TIME                     : "300000"
 SERVER_MAX_STREAM_VIDEO_HZ          : "5"
+SERVER_GOOGLE_MEET_ID               : "0"
+SERVER_GOOGLE_MEET_MODE             : "DEACTIVATE"
   
 # EVENT   
 EVENT                               : "0000000000000|0|NO_EVENT_TITLE|NO_EVENT_INFO|"

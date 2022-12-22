@@ -203,6 +203,9 @@ void init_redis_var(sw::redis::Redis* redis)
 
     read_yaml(redis, &fsSettings, "MISSION_RESET_HDG");
     read_yaml(redis, &fsSettings, "MISSION_TRUST_GPS");
+
+    read_yaml(redis, &fsSettings, "SERVER_GOOGLE_MEET_ID");
+    read_yaml(redis, &fsSettings, "SERVER_GOOGLE_MEET_MODE");
 }
 
 int64_t get_curr_timestamp()
