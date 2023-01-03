@@ -206,6 +206,10 @@ void init_redis_var(sw::redis::Redis* redis)
 
     read_yaml(redis, &fsSettings, "SERVER_GOOGLE_MEET_ID");
     read_yaml(redis, &fsSettings, "SERVER_GOOGLE_MEET_MODE");
+
+    read_yaml(redis, &fsSettings, "ROBOT_SESSION_KILOMETRAGE");
+    read_yaml(redis, &fsSettings, "ROBOT_TOTAL_KILOMETRAGE");
+    read_yaml(redis, &fsSettings, "ROBOT_TODAY_KILOMETRAGE");
 }
 
 int64_t get_curr_timestamp()
@@ -364,4 +368,116 @@ void Write_TXT_file(std::string path, std::string file_data)
     myfile.open(path);
     myfile << file_data;
     myfile.close();
+}
+
+std::string get_date_of_today()
+{
+    time_t now = time(0);
+    tm *ltm = localtime(&now);
+    return std::to_string(ltm->tm_mday) + "/" + std::to_string(ltm->tm_mon + 1) + "/" + std::to_string(ltm->tm_year + 1900);
+}
+
+double read_all_kilometrage(sw::redis::Redis* redis, std::string path)
+{
+    std::ifstream file(path);
+    std::string str; 
+
+    int data_type = 0;
+
+    std::string date_of_today = get_date_of_today();
+
+    double total_kilometrage = 0.0;
+
+    while (std::getline(file, str))
+    {
+        std::vector<std::string> vect_str;
+        get_multi_str(str, vect_str);
+
+        bool data_available = true;
+
+        // std::cout << str << " " << vect_str.size() << std::endl;
+
+        if(vect_str.size() != 0)
+        {
+            if(vect_str[0].compare("KILOMETRAGE") == 0){data_type = 1; data_available = false;}
+
+            if(data_available)
+            {
+                if(data_type == 1 && vect_str.size() == 2)
+                {
+                    // KILOMETRAGE DAY PER DAY.
+                    if(vect_str[0].compare(date_of_today) == 0)
+                    {
+                        set_redis_var(redis, "ROBOT_TODAY_KILOMETRAGE", vect_str[1]);
+                    }
+                    total_kilometrage += std::stod(vect_str[1]);
+                }
+            }
+        }
+    }
+
+    set_redis_var(redis, "ROBOT_TOTAL_KILOMETRAGE", std::to_string(total_kilometrage));
+}
+
+double save_kilometrage(sw::redis::Redis* redis, std::string path)
+{
+    std::ifstream file(path);
+    std::string str; 
+
+    int data_type = 0;
+
+    bool detect_current_day = false;
+
+    std::string date_of_today = get_date_of_today();
+
+    std::vector<std::string> all_data;
+
+    while (std::getline(file, str))
+    {
+        std::vector<std::string> vect_str;
+        get_multi_str(str, vect_str);
+
+        bool data_available = true;
+
+        if(vect_str.size() != 0)
+        {
+            if(vect_str[0].compare("KILOMETRAGE") == 0){data_type = 1; data_available = false; all_data.push_back(str);}
+
+            if(data_available)
+            {
+                // std::cout << str << " " << vect_str.size() << std::endl;
+                if(data_type == 1 && vect_str.size() == 2)
+                {
+                    // KILOMETRAGE DAY PER DAY.
+                    if(vect_str[0].compare(date_of_today) == 0)
+                    {
+                        double today_km = std::stod(vect_str[1]) + std::stod(get_redis_str(redis, "ROBOT_SESSION_KILOMETRAGE"));
+                        set_redis_var(redis, "ROBOT_TODAY_KILOMETRAGE", std::to_string(today_km));
+                        set_redis_var(redis, "ROBOT_SESSION_KILOMETRAGE", "0.0");
+                        all_data.push_back(get_date_of_today() + "|" + std::to_string(today_km));
+                        detect_current_day = true;
+                    }
+                    else
+                    {
+                        all_data.push_back(str);
+                    }
+                }
+            }
+        }
+    }
+
+    if(!detect_current_day)
+    {
+        std::string new_day = date_of_today + "|" + get_redis_str(redis, "ROBOT_SESSION_KILOMETRAGE");
+        all_data.push_back(new_day);
+    }
+
+    file.close();
+
+    std::string new_all_data = "";
+    for(int i = 0; i < all_data.size(); i++)
+    {
+        new_all_data += all_data[i] + "\n";
+    }
+    Write_TXT_file("../data/statistique_utilisation.txt", new_all_data);
 }

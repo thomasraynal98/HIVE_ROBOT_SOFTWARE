@@ -337,6 +337,9 @@ void f_thread_telemetry()
 
             vect_telemetry_server.push_back(Server_var("s", "GOOGLE_MEET_ID"     ,       get_redis_str(&redis, "SERVER_GOOGLE_MEET_ID")));
 
+            vect_telemetry_server.push_back(Server_var("s", "KILOMETRAGE_TOTAL"  ,     get_redis_str(&redis, "ROBOT_TOTAL_KILOMETRAGE")));
+            vect_telemetry_server.push_back(Server_var("s", "KILOMETRAGE_DAY"    ,     get_redis_str(&redis, "ROBOT_TODAY_KILOMETRAGE")));
+
             send_msg_server(h.socket(), "ROBOT_TELEM", vect_telemetry_server);
             // std::cout << "TELEM SEND" << std::endl;
         }

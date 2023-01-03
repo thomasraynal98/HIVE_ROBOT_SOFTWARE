@@ -12,7 +12,10 @@ ROBOT_INFO_SERVER_ADRESS            : "https://api.hiverobotics.fr"
 # ROBOT_INFO_SERVER_ADRESS            : "https://0.0.0.0:5000"
 ROBOT_INFO_HOME_POSITION            : "2.23715|48.89670|"                                            # "LONGITUDE|LATITUDE|"
 ROBOT_MODE                          : "INIT"
-  
+ROBOT_SESSION_KILOMETRAGE           : "0.0"                                                          # KM parcouru depuis dernière sauvegarde.
+ROBOT_TOTAL_KILOMETRAGE             : "0.0"  
+ROBOT_TODAY_KILOMETRAGE             : "0.0"
+
 # SERVER   
 SERVER_COM_STATE                    : "DISCONNECTED"
 SERVER_MAX_TIME                     : "300000"

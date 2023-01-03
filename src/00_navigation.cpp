@@ -2077,7 +2077,7 @@ int get_road_ID_from_pos(sw::redis::Redis* redis, std::vector<Data_road>& vect_r
                     /**
                      * TODO: Faire attention changement de Map.
                      */
-                    
+
                     int road_id = std::stoi(vect_redis[1]);
                     if(road_id == 1003 && (road_ID == 1006 || road_ID == 1011)) return road_id;
                     if(road_id == 1011 && (road_ID == 1003)) return road_id;

@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <stdio.h>
+#include <ctime>
 
 #include <sys/stat.h>
 #include <cstring>
@@ -43,3 +44,6 @@ double rad_to_deg(double rad);
 double deg_to_rad(double deg);
 bool file_exist(std::string file_path);
 void Write_TXT_file(std::string path, std::string file_data);
+std::string get_date_of_today();
+double read_all_kilometrage(sw::redis::Redis* redis, std::string path);
+double save_kilometrage(sw::redis::Redis* redis, std::string path);

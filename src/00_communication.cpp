@@ -269,6 +269,21 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                         double dt_left_m  = tic_to_meter * std::stoi(vect_reponse_mcu_motor[2]);
                         double dt_right_m = tic_to_meter * std::stoi(vect_reponse_mcu_motor[5]);
                         double dt_moy_m   = (dt_left_m + dt_right_m) / 2;
+                        if(abs(dt_moy_m) < 1.0)
+                        {
+                            /* Pour éviter les bugs. */
+                            double kilometrage = std::stod(get_redis_str(redis, "ROBOT_SESSION_KILOMETRAGE"));
+                            kilometrage += abs(dt_moy_m)/1000;
+                            set_redis_var(redis, "ROBOT_SESSION_KILOMETRAGE", std::to_string(kilometrage));
+
+                            kilometrage = std::stod(get_redis_str(redis, "ROBOT_TOTAL_KILOMETRAGE"));
+                            kilometrage += abs(dt_moy_m)/1000;
+                            set_redis_var(redis, "ROBOT_TOTAL_KILOMETRAGE", std::to_string(kilometrage));
+
+                            kilometrage = std::stod(get_redis_str(redis, "ROBOT_TODAY_KILOMETRAGE"));
+                            kilometrage += abs(dt_moy_m)/1000;
+                            set_redis_var(redis, "ROBOT_TODAY_KILOMETRAGE", std::to_string(kilometrage));
+                        }
 
                         double dt_central_left_m  = tic_to_meter * std::stoi(vect_reponse_mcu_motor[3]);
                         double dt_central_right_m = tic_to_meter * std::stoi(vect_reponse_mcu_motor[6]);
@@ -286,7 +301,7 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                         //     set_redis_var(redis, "NAV_DELTA_HDG_ENCODER", "0.0");
                         // }
 
-                        if(dt_central_left_m < 1.0 && dt_central_right_m < 1.0)
+                        if(abs(dt_central_left_m) < 1.0 && abs(dt_central_right_m) < 1.0)
                         {
                             // NEW ANGLE.
                             std::vector<std::string> vect_redis_str;

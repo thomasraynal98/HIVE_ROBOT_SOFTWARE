@@ -5,6 +5,7 @@ auto redis = Redis("tcp://127.0.0.1:6379");
 
 std::thread thread_debug;
 std::thread thread_process_check;
+std::thread thread_save_stats;
 
 //===================================================================
 // DEBUG : Affichage des informations pour un opérateur console.
@@ -325,6 +326,20 @@ void f_thread_process_check()
     }
 }
 
+void f_thread_save_stats()
+{
+    double ms_for_loop = 5000;
+    auto next = std::chrono::high_resolution_clock::now();
+
+    while(true)
+    {
+        next += std::chrono::milliseconds((int)ms_for_loop);
+        std::this_thread::sleep_until(next);
+
+        save_kilometrage(&redis, "../data/statistique_utilisation.txt");
+    }
+}
+
 int main(int argc, char *argv[])
 {
     set_redis_var(&redis, "SOFT_PROCESS_ID_SYS", std::to_string(getpid()));
@@ -338,10 +353,14 @@ int main(int argc, char *argv[])
         
         set_redis_var(&redis, "SOFT_PROCESS_ID_SYS", std::to_string(getpid()));
 
+        read_all_kilometrage(&redis, "../data/statistique_utilisation.txt");
+
         thread_debug         = std::thread(&f_thread_debug);
         thread_process_check = std::thread(&f_thread_process_check);
+        thread_save_stats    = std::thread(&f_thread_save_stats);
 
         thread_debug.join();
         thread_process_check.join();
+        thread_save_stats.join();
     }
 }
