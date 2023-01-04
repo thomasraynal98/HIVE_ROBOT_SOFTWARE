@@ -2,6 +2,9 @@
 #include "00_communication.h"
 #include "00_navigation.h"
 
+#include <signal.h>
+#include <cstdlib>
+
 //[!!] OPTION FOR HTTP SERVER.
 // #include <sio_client.h>
 
@@ -718,5 +721,117 @@ void bind_events(sio::socket::ptr current_socket)
     current_socket->on("ORDER_STOP_GOOGLE_MEET", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
     {
         set_redis_var(&redis, "SERVER_GOOGLE_MEET_MODE", "DEACTIVATE");
+    }));
+
+    current_socket->on("ORDER_MANAGE_THREAD", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+    {
+        std::string thread_str = data->get_map()["THREAD"]->get_string();
+        int mode_str           = data->get_map()["MODE"]->get_int();
+        int process_id;
+
+        if(thread_str.compare("01_MODE") == 0)
+        {
+            std::string state = get_redis_str(&redis, "SOFT_PROCESS_ID_SYS_STATUS");
+            if(state.compare("CONNECTED") == 0)
+            {
+                process_id = std::stoi(get_redis_str(&redis, "SOFT_PROCESS_ID_SYS"));
+
+                if(mode_str == 0)
+                {
+                    // Eteindre.
+                    kill(process_id, SIGSTOP);
+                }
+            }
+            if(state.compare("DISCONNECTED") == 0)
+            {
+                if(mode_str == 1)
+                {
+                    // Allumer.
+                    system("./01_SYSTEM_MANAGER");
+                }
+            }
+        }
+        if(thread_str.compare("02_HARDWARE") == 0)
+        {
+            std::string state = get_redis_str(&redis, "SOFT_PROCESS_ID_HARD_STATUS");
+            if(state.compare("CONNECTED") == 0)
+            {
+                process_id = std::stoi(get_redis_str(&redis, "SOFT_PROCESS_ID_HARD"));
+
+                if(mode_str == 0)
+                {
+                    // Eteindre.
+                    kill(process_id, SIGSTOP);
+                }
+            }
+            if(state.compare("DISCONNECTED") == 0)
+            {
+                if(mode_str == 1)
+                {
+                    // Allumer.
+                    system("./02_HARDWARE");
+                }
+            }   
+        }
+        if(thread_str.compare("03_SERVER") == 0)
+        {
+            process_id = std::stoi(get_redis_str(&redis, "SOFT_PROCESS_ID_SERV"));
+            kill(process_id, SIGSTOP);
+            system("./03_SERVER");
+        }
+        if(thread_str.compare("04_NAVIGATION") == 0)
+        {
+            std::string state = get_redis_str(&redis, "SOFT_PROCESS_ID_NAV_STATUS");
+            if(state.compare("CONNECTED") == 0)
+            {
+                process_id = std::stoi(get_redis_str(&redis, "SOFT_PROCESS_ID_NAV"));
+
+                if(mode_str == 0)
+                {
+                    // Eteindre.
+                    kill(process_id, SIGSTOP);
+                }
+            }
+            if(state.compare("DISCONNECTED") == 0)
+            {
+                if(mode_str == 1)
+                {
+                    // Allumer.
+                    system("./04_NAVIGATION");
+                }
+            }   
+        }
+        if(thread_str.compare("PERCEPTION") == 0)
+        {
+            std::string state = get_redis_str(&redis, "SOFT_PROCESS_ID_PERCEP_STATUS");
+            if(state.compare("CONNECTED") == 0)
+            {
+                process_id = std::stoi(get_redis_str(&redis, "SOFT_PROCESS_ID_PERCEP"));
+
+                if(mode_str == 0)
+                {
+                    // Eteindre.
+                    kill(process_id, SIGSTOP);
+                }
+            }
+            if(state.compare("DISCONNECTED") == 0)
+            {
+                if(mode_str == 1)
+                {
+                    // Allumer.
+                    system("python3 -m ~/Dev/HIVE_PERCEPTION/perception");
+                }
+            }   
+        }
+    }));
+
+    current_socket->on("ORDER_NEW_LOCATION", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+    {
+        std::string new_position = std::to_string(get_curr_timestamp()) + "|";
+        new_position             += (data->get_map()["LONGITUDE"]->get_string()).substr(0, 9) + "|";
+        new_position             += (data->get_map()["LATITUDE"]->get_string()).substr(0, 9) + "|";
+        new_position             += data->get_map()["HDG"]->get_string() + "|";
+
+        set_redis_var(&redis, "NAV_GLOBAL_POSITION", new_position);
     }));
 }
