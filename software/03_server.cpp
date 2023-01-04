@@ -240,6 +240,10 @@ void f_thread_telemetry()
             get_redis_multi_str(&redis, "HARD_ENCODER_STATE", vect_str4);
             for(int i = 1; i < vect_str4.size(); i++) vect_str4[i] = (vect_str4[i].compare("1") == 0) ? "CONNECTED" : "DISCONNECTED";
 
+            /* Read curr box state status. */
+            std::vector<std::string> vect_str45;
+            get_redis_multi_str(&redis, "HARD_CARGO_STATE", vect_str45);
+
             /* Read curr motor status. */
             std::vector<std::string> vect_str5;
             get_redis_multi_str(&redis, "HARD_MOTOR_STATE", vect_str5);
@@ -311,9 +315,9 @@ void f_thread_telemetry()
             vect_telemetry_server.push_back(Server_var("s", "ENC5_STATE"         ,                                         vect_str4[5]));
             vect_telemetry_server.push_back(Server_var("s", "ENC6_STATE"         ,                                         vect_str4[6]));
 
-            vect_telemetry_server.push_back(Server_var("s", "BOX1_STATE"         ,                                         vect_str4[1]));
-            vect_telemetry_server.push_back(Server_var("s", "BOX2_STATE"         ,                                         vect_str4[2]));
-            vect_telemetry_server.push_back(Server_var("s", "BOX3_STATE"         ,                                         vect_str4[3]));
+            vect_telemetry_server.push_back(Server_var("s", "BOX1_STATE"         ,                                        vect_str45[1]));
+            vect_telemetry_server.push_back(Server_var("s", "BOX2_STATE"         ,                                        vect_str45[2]));
+            vect_telemetry_server.push_back(Server_var("s", "BOX3_STATE"         ,                                        vect_str45[3]));
                                         
             vect_telemetry_server.push_back(Server_var("s", "MOTOR1_STATE"       ,                                         vect_str5[1]));
             vect_telemetry_server.push_back(Server_var("s", "MOTOR2_STATE"       ,                                         vect_str5[2]));
