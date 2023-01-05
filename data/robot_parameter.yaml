@@ -113,6 +113,7 @@ NAV_HDG_WITH_ENCODER                : "DEACTIVATE"
 NAV_HDG_CURR_ROAD                   : "-1"
 NAV_DELTA_HDG_ENCODER               : "0.0"
 NAV_CURRENT_ROAD_COOR               : "0.0|0.0|0.0|0.0|"
+NAV_FIXE_ROAD                       : "FALSE"
 
 # ACTION/MISSION   
 MISSION_MOTOR_BRAKE                 : "TRUE"

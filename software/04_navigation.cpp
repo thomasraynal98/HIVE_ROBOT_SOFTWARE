@@ -302,6 +302,25 @@ int main(int argc, char *argv[])
             std::string roadID_str = std::to_string(get_curr_timestamp()) + "|";
             roadID_str += std::to_string(curr_road_ID) + "|";
             set_redis_var(&redis, "NAV_ROAD_CURRENT_ID", roadID_str);
+
+            if(get_redis_str(&redis, "NAV_FIXE_ROAD").compare("TRUE") == 0)
+            {
+                for(int i = 0; i < vect_roadmap.size(); i++)
+                {
+                    if(std::stoi(roadID_str) == vect_roadmap[i].road->road_ID)
+                    {
+                        Geographic_point pt = get_projected_point(vect_roadmap[i].node_start->point, vect_roadmap[i].node_target->point, curr_position.point);
+                        curr_position.point->longitude = pt.longitude;
+                        curr_position.point->latitude  = pt.latitude;
+
+                        std::vector<std::string> vect_red;
+                        get_redis_multi_str(&redis, "NAV_GLOBAL_POSITION", vect_red);
+
+                        std::string str = vect_red[0] + "|" + std::to_string(curr_position.point->longitude) + "|" + std::to_string(curr_position.point->latitude) + "|" + vect_red[3] + "|";
+                        set_redis_var(&redis, "NAV_GLOBAL_POSITION", str);
+                    }
+                }
+            }
         }
 
         //==============================================

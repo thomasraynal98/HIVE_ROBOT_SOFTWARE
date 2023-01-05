@@ -210,6 +210,8 @@ void init_redis_var(sw::redis::Redis* redis)
     read_yaml(redis, &fsSettings, "ROBOT_SESSION_KILOMETRAGE");
     read_yaml(redis, &fsSettings, "ROBOT_TOTAL_KILOMETRAGE");
     read_yaml(redis, &fsSettings, "ROBOT_TODAY_KILOMETRAGE");
+
+    read_yaml(redis, &fsSettings, "NAV_FIXE_ROAD");
 }
 
 int64_t get_curr_timestamp()

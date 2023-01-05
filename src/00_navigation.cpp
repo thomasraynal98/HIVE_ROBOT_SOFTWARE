@@ -2311,6 +2311,7 @@ Geographic_point get_projected_point(Geographic_point* pointA, Geographic_point*
     double len_sq = C * C + D * D;
     double param = -1;
     if(len_sq != 0) param = dot / len_sq;
+    else{param = dot / 0.00001;}
 
     double XX, YY;
 
