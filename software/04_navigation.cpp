@@ -1309,7 +1309,7 @@ int main(int argc, char *argv[])
                                 std::vector<std::string> vect_redis; 
                                 get_redis_multi_str(&redis, "NAV_GLOBAL_POSITION", vect_redis);
                                 std::string str_global = std::to_string(get_curr_timestamp()) + "|";
-                                str_global += std::to_string(new_position2.longitude+0.000001) + "|" + std::to_string(new_position2.latitude+0.000001) + "|"; 
+                                str_global += std::to_string(new_position2.longitude+0.0000001) + "|" + std::to_string(new_position2.latitude) + "|"; 
                                 str_global += vect_redis[3] + "|";
                                 std::cout << str_global << std::endl;
 
