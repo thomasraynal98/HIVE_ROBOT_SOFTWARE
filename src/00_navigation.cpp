@@ -2310,8 +2310,10 @@ Geographic_point get_projected_point(Geographic_point* pointA, Geographic_point*
     double dot = A * C + B * D;
     double len_sq = C * C + D * D;
     double param = -1;
+
+    Geographic_point geo(-1, -1);
+
     if(len_sq != 0) param = dot / len_sq;
-    else{param = dot / 0.00001;}
 
     double XX, YY;
 
@@ -2330,6 +2332,12 @@ Geographic_point get_projected_point(Geographic_point* pointA, Geographic_point*
         XX = xa + param * C;
         YY = ya + param * D;
     }
+
+    // double dx = 0 - XX;
+    // double dy = 0 - YY;
+    // double dist_m = sqrt(pow(dx,2)+pow(dy,2));
+    
+    // if(dist_m < 2)
 
     Geographic_point project_pt = Geographic_point(XX, YY);
 

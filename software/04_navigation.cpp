@@ -303,24 +303,26 @@ int main(int argc, char *argv[])
             roadID_str += std::to_string(curr_road_ID) + "|";
             set_redis_var(&redis, "NAV_ROAD_CURRENT_ID", roadID_str);
 
-            if(get_redis_str(&redis, "NAV_FIXE_ROAD").compare("TRUE") == 0)
-            {
-                for(int i = 0; i < vect_roadmap.size(); i++)
-                {
-                    if(std::stoi(roadID_str) == vect_roadmap[i].road->road_ID)
-                    {
-                        Geographic_point pt = get_projected_point(vect_roadmap[i].node_start->point, vect_roadmap[i].node_target->point, curr_position.point);
-                        curr_position.point->longitude = pt.longitude;
-                        curr_position.point->latitude  = pt.latitude;
+            // if(get_redis_str(&redis, "NAV_FIXE_ROAD").compare("TRUE") == 0)
+            // {
+            //     for(int i = 0; i < vect_roadmap.size(); i++)
+            //     {
+            //         if(curr_road_ID == vect_roadmap[i].road->road_ID)
+            //         {
+            //             curr_position.point->longitude += 0.000002;
+            //             curr_position.point->latitude += 0.000002;
+            //             Geographic_point pt = get_projected_point(vect_roadmap[i].node_start->point, vect_roadmap[i].node_target->point, curr_position.point);
+            //             curr_position.point->longitude = pt.longitude + 0.000002;
+            //             curr_position.point->latitude  = pt.latitude + 0.000002;;
 
-                        std::vector<std::string> vect_red;
-                        get_redis_multi_str(&redis, "NAV_GLOBAL_POSITION", vect_red);
+            //             std::vector<std::string> vect_red;
+            //             get_redis_multi_str(&redis, "NAV_GLOBAL_POSITION", vect_red);
 
-                        std::string str = vect_red[0] + "|" + std::to_string(curr_position.point->longitude) + "|" + std::to_string(curr_position.point->latitude) + "|" + vect_red[3] + "|";
-                        set_redis_var(&redis, "NAV_GLOBAL_POSITION", str);
-                    }
-                }
-            }
+            //             std::string str = vect_red[0] + "|" + std::to_string(curr_position.point->longitude) + "|" + std::to_string(curr_position.point->latitude) + "|" + vect_red[3] + "|";
+            //             set_redis_var(&redis, "NAV_GLOBAL_POSITION", str);
+            //         }
+            //     }
+            // }
         }
 
         //==============================================
@@ -1297,6 +1299,25 @@ int main(int argc, char *argv[])
                             double bearing_to_pf  = rad_to_deg(2 * atan(YY / (XX + sqrt(pow(XX, 2) + pow(YY, 2)))));
                             Geographic_point new_position2 = get_new_position(curr_position.point, bearing_to_pf, distance_to_pf);
                             set_redis_var(&redis, "SIM_AUTO_PROJECT_PT_FUTUR", std::to_string(new_position2.longitude) + "|" + std::to_string(new_position2.latitude) + "|");
+                            
+                            // std::string str_global = std::to_string(get_curr_timestamp()) + "|";
+                            // str_global += std::to_string(new_position2.longitude) + "|" + std::to_string(new_position2.latitude) + "|"; 
+                            // std::cout << str_global << std::endl;
+
+                            if(get_redis_str(&redis, "NAV_FIXE_ROAD").compare("TRUE") == 0)
+                            {
+                                std::vector<std::string> vect_redis; 
+                                get_redis_multi_str(&redis, "NAV_GLOBAL_POSITION", vect_redis);
+                                std::string str_global = std::to_string(get_curr_timestamp()) + "|";
+                                str_global += std::to_string(new_position2.longitude+0.000001) + "|" + std::to_string(new_position2.latitude+0.000001) + "|"; 
+                                str_global += vect_redis[3] + "|";
+                                std::cout << str_global << std::endl;
+
+                                if(!std::isnan(new_position2.longitude) && new_position2.longitude != -1)
+                                {
+                                    set_redis_var(&redis, "NAV_GLOBAL_POSITION", str_global);
+                                }
+                            }
                             // [ENDSIM]
 
                             double dx             = xf - XX;
