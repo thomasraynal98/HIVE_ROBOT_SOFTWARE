@@ -40,6 +40,8 @@ int main(int argc, char *argv[])
     int64_t timesptamp_lid1 = 0;
     int64_t timesptamp_lid2 = 0;
 
+    int64_t timesptamp_proj = 0;
+
     std::vector<Object_env> vect_obj;
     std::vector<Sensor_prm> vect_sensor_prm;
 
@@ -1304,8 +1306,11 @@ int main(int argc, char *argv[])
                             // str_global += std::to_string(new_position2.longitude) + "|" + std::to_string(new_position2.latitude) + "|"; 
                             // std::cout << str_global << std::endl;
 
-                            if(get_redis_str(&redis, "NAV_FIXE_ROAD").compare("TRUE") == 0)
+                            if(get_redis_str(&redis, "NAV_FIXE_ROAD").compare("TRUE") == 0 && time_is_over(get_curr_timestamp(), timesptamp_proj, 1000))
                             {
+                                timesptamp_proj = get_curr_timestamp();
+                                std::cout << "[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]" << std::endl;
+
                                 std::vector<std::string> vect_redis; 
                                 get_redis_multi_str(&redis, "NAV_GLOBAL_POSITION", vect_redis);
                                 std::string str_global = std::to_string(get_curr_timestamp()) + "|";
