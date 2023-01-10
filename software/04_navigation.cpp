@@ -1306,7 +1306,7 @@ int main(int argc, char *argv[])
                             // str_global += std::to_string(new_position2.longitude) + "|" + std::to_string(new_position2.latitude) + "|"; 
                             // std::cout << str_global << std::endl;
 
-                            if(get_redis_str(&redis, "NAV_FIXE_ROAD").compare("TRUE") == 0 && time_is_over(get_curr_timestamp(), timesptamp_proj, 1000))
+                            if(get_redis_str(&redis, "NAV_FIXE_ROAD").compare("TRUE") == 0 && time_is_over(get_curr_timestamp(), timesptamp_proj, 4000))
                             {
                                 timesptamp_proj = get_curr_timestamp();
                                 std::cout << "[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]" << std::endl;
@@ -1385,6 +1385,8 @@ int main(int argc, char *argv[])
                             // [?] Transform target point to motor command.
                             double perfect_motor_speed = sqrt(pow(xs,2)+pow(ys,2));
                             double curr_max_speed      = get_max_speed(&redis, "AUTO", "NO_MODE", vect_road);
+                            set_redis_var(&redis, "NAV_CURR_ROAD_MAX_SPEED", std::to_string(curr_max_speed));
+                            
                             double final_max_speed     = 0.0;
                             if(perfect_motor_speed > curr_max_speed)
                             {
@@ -1413,7 +1415,8 @@ int main(int argc, char *argv[])
                                 else
                                 {
                                     // Va vers gauche
-                                    diff_angle = -(curr_position.g_hdg - final_angle);
+                                    diff_angle = -(curr_position.g_hdg - final_angle
+                                    );
                                 }
                             }
                             else
@@ -2238,6 +2241,7 @@ int main(int argc, char *argv[])
                                     if(speed_with_obj > Final_traj.max_speed) speed_with_obj = Final_traj.max_speed;
                                     if(speed_with_obj > curr_max_speed) speed_with_obj = curr_max_speed;
                                     std::cout << speed_with_obj << " " << curr_max_speed << std::endl;
+                                    speed_with_obj += std::stod(get_redis_str(&redis, "NAV_OPERATOR_MAX_SPEED_BONUS"));
 
                                     /**
                                      * NOTE:

@@ -212,6 +212,9 @@ void init_redis_var(sw::redis::Redis* redis)
     read_yaml(redis, &fsSettings, "ROBOT_TODAY_KILOMETRAGE");
 
     read_yaml(redis, &fsSettings, "NAV_FIXE_ROAD");
+
+    read_yaml(redis, &fsSettings, "NAV_CURR_ROAD_MAX_SPEED");
+    read_yaml(redis, &fsSettings, "NAV_OPERATOR_MAX_SPEED_BONUS");
 }
 
 int64_t get_curr_timestamp()

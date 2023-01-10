@@ -347,6 +347,9 @@ void f_thread_telemetry()
             vect_telemetry_server.push_back(Server_var("s", "KILOMETRAGE_TOTAL"  ,     get_redis_str(&redis, "ROBOT_TOTAL_KILOMETRAGE")));
             vect_telemetry_server.push_back(Server_var("s", "KILOMETRAGE_DAY"    ,     get_redis_str(&redis, "ROBOT_TODAY_KILOMETRAGE")));
 
+            vect_telemetry_server.push_back(Server_var("d", "SPEED_LEVEL"        ,     get_redis_str(&redis, "NAV_CURR_ROAD_MAX_SPEED")));
+            vect_telemetry_server.push_back(Server_var("d", "SPEED_MODIF"        ,get_redis_str(&redis, "NAV_OPERATOR_MAX_SPEED_BONUS")));
+
             send_msg_server(h.socket(), "ROBOT_TELEM", vect_telemetry_server);
             // std::cout << "TELEM SEND" << std::endl;
         }
@@ -878,5 +881,25 @@ void bind_events(sio::socket::ptr current_socket)
         std::cout << "ORDER_NEW_LOCATION -> " << new_position << std::endl;
 
         set_redis_var(&redis, "NAV_GLOBAL_POSITION", new_position);
+    }));
+
+    current_socket->on("ORDER_ROBOT_ANGLE", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+    {
+        std::vector<std::string> vect_global_str;
+        get_redis_multi_str(&redis, "NAV_GLOBAL_POSITION", vect_global_str);
+
+        std::string new_pos = std::to_string(get_curr_timestamp()) + "|" + vect_global_str[1] + "|" + vect_global_str[2] + "|";
+        new_pos             += data->get_map()["ANGLE"]->get_string() + "|";
+
+        set_redis_var(&redis, "NAV_GLOBAL_POSITION", new_pos);
+    }));
+
+     current_socket->on("ORDER_ROBOT_SPEED", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+    {
+        std::string update_speed = data->get_map()["MODE"]->get_string() + "|"; // UP DOWN.
+
+        double curr_update = std::stod(get_redis_str(&redis, "NAV_OPERATOR_MAX_SPEED_BONUS"));
+        curr_update += (update_speed.compare("UP") == 0) ? 1.0 : -1.0;
+        set_redis_var(&redis, "NAV_OPERATOR_MAX_SPEED_BONUS", std::to_string(curr_update));
     }));
 }
