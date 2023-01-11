@@ -23,6 +23,7 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/core/utility.hpp>
 
+void init_redis_var_id(sw::redis::Redis* redis);
 void init_redis_var(sw::redis::Redis* redis);
 void set_redis_var(sw::redis::Redis* redis, std::string channel, std::string value);
 void pub_redis_var(sw::redis::Redis* redis, std::string channel, std::string value);

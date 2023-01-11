@@ -1,5 +1,32 @@
 #include "00_function.h"
 
+void init_redis_var_id(sw::redis::Redis* redis)
+{
+    /* 
+     * L'ensemble des variables utilisé par le system de gestion de ram redis
+     * est stocké sur le fichier "robot_parameter.yaml" et télécharger à chaque
+     * lancement du programme 01.
+     */
+
+    std::string path_file = "../data/robot_id.yaml";
+    
+    cv::FileStorage fsSettings(path_file, cv::FileStorage::READ);
+    if(!fsSettings.isOpened())
+    {
+        pub_redis_var(redis, "EVENT", get_event_str(0, "LOAD_ROBOT_PARAM_ID", "FAIL"));
+        exit(0);
+    }
+
+    pub_redis_var(redis, "EVENT", get_event_str(0, "LOAD_ROBOT_PARAM_ID", "SUCCESS"));
+
+    read_yaml(redis, &fsSettings, "ROBOT_INFO_ID");
+    read_yaml(redis, &fsSettings, "ROBOT_INFO_MODEL");
+    read_yaml(redis, &fsSettings, "ROBOT_INFO_EXPLOITATION");
+    read_yaml(redis, &fsSettings, "ROBOT_INFO_PSEUDO");
+    read_yaml(redis, &fsSettings, "HARD_CAM1_ID");
+    read_yaml(redis, &fsSettings, "HARD_CAM2_ID");
+}
+
 void init_redis_var(sw::redis::Redis* redis)
 {
     /* 

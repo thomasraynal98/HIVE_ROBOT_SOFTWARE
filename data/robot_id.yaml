@@ -1,0 +1,10 @@
+%YAML:1.0   
+---   
+
+ROBOT_INFO_ID                       : "1"
+ROBOT_INFO_EXPLOITATION             : "LA_DEFENSE"
+ROBOT_INFO_MODEL                    : "MK4"
+ROBOT_INFO_PSEUDO                   : "Alfred"
+
+HARD_CAM1_ID                        : "944622073815"
+HARD_CAM2_ID                        : "948122072245"

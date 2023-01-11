@@ -349,6 +349,7 @@ int main(int argc, char *argv[])
 
     if(opt_reset == 0)
     {
+        init_redis_var_id(&redis);
         init_redis_var(&redis);
         
         set_redis_var(&redis, "SOFT_PROCESS_ID_SYS", std::to_string(getpid()));

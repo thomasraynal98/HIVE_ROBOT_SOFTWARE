@@ -1,10 +1,6 @@
 %YAML:1.0   
 ---   
 # GENERAL INFORMATION   
-ROBOT_INFO_ID                       : "1"
-ROBOT_INFO_EXPLOITATION             : "LA_DEFENSE"
-ROBOT_INFO_MODEL                    : "MK4"
-ROBOT_INFO_PSEUDO                   : "Alfred"
 ROBOT_INFO_MCU_MOTOR_ID             : "A"
 ROBOT_INFO_MCU_CARGO_ID             : "B"
 ROBOT_INFO_MCU_INTER_ID             : "C"
@@ -51,11 +47,9 @@ HARD_GPS_FIX_STATE                  : "0"
 HARD_WHEEL_RADIUS                   : "0.095"
 HARD_WHEEL_DISTANCE                 : "0.64"
 HARD_WHEEL_SEPARATION               : "0.21"
-HARD_CAM1_ID                        : "944622073815"
 HARD_CAM1_DX                        : "0.30"
 HARD_CAM1_DY                        : "0.0"
 HARD_CAM1_ANGLE                     : "0.0"
-HARD_CAM2_ID                        : "948122072245"
 HARD_CAM2_DX                        : "-0.30"
 HARD_CAM2_DY                        : "0.0"
 HARD_CAM2_ANGLE                     : "180.0"
