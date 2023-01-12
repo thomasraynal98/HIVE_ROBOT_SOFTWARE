@@ -46,11 +46,6 @@ void init_redis_var(sw::redis::Redis* redis)
 
     pub_redis_var(redis, "EVENT", get_event_str(0, "LOAD_ROBOT_PARAM", "SUCCESS"));
 
-    read_yaml(redis, &fsSettings, "ROBOT_INFO_ID");
-    read_yaml(redis, &fsSettings, "ROBOT_INFO_MODEL");
-    read_yaml(redis, &fsSettings, "ROBOT_INFO_EXPLOITATION");
-    read_yaml(redis, &fsSettings, "ROBOT_INFO_PSEUDO");
-
     read_yaml(redis, &fsSettings, "ROBOT_INFO_MCU_MOTOR_ID");
     read_yaml(redis, &fsSettings, "ROBOT_INFO_MCU_CARGO_ID");
     read_yaml(redis, &fsSettings, "ROBOT_INFO_MCU_INTER_ID");
@@ -173,9 +168,6 @@ void init_redis_var(sw::redis::Redis* redis)
     read_yaml(redis, &fsSettings, "SERVER_MAX_TIME");
     read_yaml(redis, &fsSettings, "ROBOT_INFO_HOME_POSITION");
     read_yaml(redis, &fsSettings, "NAV_AUTO_MODE_PARKING_DIST_M");
-
-    read_yaml(redis, &fsSettings, "HARD_CAM1_ID");
-    read_yaml(redis, &fsSettings, "HARD_CAM2_ID");
 
     read_yaml(redis, &fsSettings, "ENCODED_CAM1");
     read_yaml(redis, &fsSettings, "ENCODED_CAM1_TIMESTAMP");
