@@ -107,7 +107,7 @@ NAV_HDG_WITH_ENCODER                : "DEACTIVATE"
 NAV_HDG_CURR_ROAD                   : "-1"
 NAV_DELTA_HDG_ENCODER               : "0.0"
 NAV_CURRENT_ROAD_COOR               : "0.0|0.0|0.0|0.0|"
-NAV_FIXE_ROAD                       : "FALSE"
+NAV_FIXE_ROAD                       : "TRUE"
 NAV_CURR_ROAD_MAX_SPEED             : "2.0"
 NAV_OPERATOR_MAX_SPEED_BONUS        : "0.0"
 

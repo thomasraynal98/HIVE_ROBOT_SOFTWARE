@@ -536,6 +536,12 @@ void bind_events(sio::socket::ptr current_socket)
         {
             set_redis_var(&redis, "NAV_AUTO_MODE_PARKING", data->get_map()["OPT_DEST"]->get_string());
 
+            bool is_waiting = data->get_map()["WAIT"]->get_bool();
+            if(is_waiting)
+            {
+                std::this_thread::sleep_until(std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(15000));
+            }
+
             std::string destination_str = std::to_string(get_curr_timestamp()) + "|";
             destination_str += (data->get_map()["LONGITUDE"]->get_string()).substr(0, 9) + "|";
             destination_str += (data->get_map()["LATITUDE"]->get_string()).substr(0, 9) + "|";
