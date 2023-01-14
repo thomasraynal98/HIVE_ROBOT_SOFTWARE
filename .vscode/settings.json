@@ -66,6 +66,18 @@
       "typeindex": "cpp",
       "any": "cpp",
       "source_location": "cpp",
-      "*.ipp": "cpp"
+      "*.ipp": "cpp",
+      "hash_map": "cpp",
+      "hash_set": "cpp",
+      "codecvt": "cpp",
+      "compare": "cpp",
+      "concepts": "cpp",
+      "forward_list": "cpp",
+      "future": "cpp",
+      "numbers": "cpp",
+      "semaphore": "cpp",
+      "stop_token": "cpp",
+      "cfenv": "cpp",
+      "valarray": "cpp"
     }
   }
