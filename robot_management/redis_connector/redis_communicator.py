@@ -14,6 +14,9 @@ class RedisConnector():
     def get(self, element: RobotRedisElement) -> Any:
         return self.redis.get(element.value)
 
+    def get_strip_timestamp(self, element: RobotRedisElement) -> Any:
+        return self.get(element).split('|')[1]
+
     def set(self, element: RobotRedisElement, value: Any) -> None:
         self.redis.set(element.value, value)
 
