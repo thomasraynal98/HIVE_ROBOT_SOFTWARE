@@ -46,39 +46,56 @@ class Packet21PrimarySystemStatus(Packet):
     def __init__(self) -> None:
         super().__init__(21)
 
-    # def send(self, stream: SocketDataStream):
-    #     redis_cnt = RedisConnector()
-    #     volt = redis_cnt.get(RobotRedisElement.NAV_BATTERY_VOLTAGE)
-    #     voltPercentage = redis_cnt.get(RobotRedisElement.NAV_BATTERY_PERCENTAGE)
-    #     tempRc1, tempRc2, tempRc3 = redis_cnt.get(RobotRedisElement.HARD_TEMPERATURE_RC_INFO).split('|')[:3]
+    def send(self, stream: SocketDataStream):
+        redis_cnt = RedisConnector()
+        volt = redis_cnt.get(RobotRedisElement.NAV_BATTERY_VOLTAGE)
+        voltPercentage = redis_cnt.get(RobotRedisElement.NAV_BATTERY_PERCENTAGE)
+        tempRc1, tempRc2, tempRc3 = redis_cnt.get(RobotRedisElement.HARD_TEMPERATURE_RC_INFO).split('|')[:3]
 
-    #     statusMcuControlMotor = redis_cnt.get(RobotRedisElement.HARD_MCU_MOTOR_COM_STATE)
-    #     statusMcuControlCargo = redis_cnt.get(RobotRedisElement.HARD_MCU_CARGO_COM_STATE)
-    #     statusMcuControlInter = redis_cnt.get(RobotRedisElement.HARD_MCU_INTER_COM_STATE)
+        statusMcuControlMotor = 1 if redis_cnt.get(RobotRedisElement.HARD_MCU_MOTOR_COM_STATE) == 'CONNECTED' else (-1 if redis_cnt.get(RobotRedisElement.HARD_MCU_MOTOR_COM_STATE) == 'DISCONNECTED' else 2)
+        statusMcuControlCargo = 1 if redis_cnt.get(RobotRedisElement.HARD_MCU_CARGO_COM_STATE) == 'CONNECTED' else (-1 if redis_cnt.get(RobotRedisElement.HARD_MCU_CARGO_COM_STATE) == 'DISCONNECTED' else 2)
+        statusMcuControlInter = 1 if redis_cnt.get(RobotRedisElement.HARD_MCU_INTER_COM_STATE) == 'CONNECTED' else (-1 if redis_cnt.get(RobotRedisElement.HARD_MCU_INTER_COM_STATE) == 'DISCONNECTED' else 2)
+        statusPixhawk         = 1 if redis_cnt.get(RobotRedisElement.HARD_PIXHAWK_COM_STATE)   == 'CONNECTED' else (-1 if redis_cnt.get(RobotRedisElement.HARD_PIXHAWK_COM_STATE)   == 'DISCONNECTED' else 2)
+        statusLocalJoystick   = 1 if redis_cnt.get(RobotRedisElement.HARD_LOCAL_JS_COM_STATE)  == 'CONNECTED' else (-1 if redis_cnt.get(RobotRedisElement.HARD_LOCAL_JS_COM_STATE)  == 'DISCONNECTED' else 2)
 
-    #     stream.send_float(tempRc1)
-    #     stream.send_float(tempRc2)
-    #     stream.send_float(tempRc3)
-    #     stream.send_float(volt)
-    #     stream.send_float(voltPercentage)
+        statusBox1, statusBox2, statusBox3 = [1 if x == "OPEN" else 0 for x in redis_cnt.get_strip_timestamp(RobotRedisElement.HARD_CARGO_STATE).split('|')]
+        
+        stream.send_float(tempRc1)
+        stream.send_float(tempRc2)
+        stream.send_float(tempRc3)
+        stream.send_float(volt)
+        stream.send_float(voltPercentage)
+        stream.send_int(statusMcuControlMotor)
+        stream.send_int(statusMcuControlCargo)
+        stream.send_int(statusMcuControlInter)
+        stream.send_int(statusPixhawk)
+        stream.send_int(statusLocalJoystick)
+        stream.send_int(statusBox1)
+        stream.send_int(statusBox2)
+        stream.send_int(statusBox3)
 
-class Packet22HardwareState(Packet):
+class Packet22ProcessStatus(Packet):
     def __init__(self) -> None:
         super().__init__(22)
 
     def send(self, stream: SocketDataStream):
         redis_cnt = RedisConnector()
 
-class Packet23ProcessStatus(Packet):
+        statusProcess1Sys  = 1 if redis_cnt.get(RobotRedisElement.SOFT_PROCESS_ID_SYS_STATUS)    == 'CONNECTED' else 0
+        statusProcess2Hrd  = 1 if redis_cnt.get(RobotRedisElement.SOFT_PROCESS_ID_HARD_STATUS)   == 'CONNECTED' else 0
+        statusProcess3Srv  = 1
+        statusProcess4Nav  = 1 if redis_cnt.get(RobotRedisElement.SOFT_PROCESS_ID_NAV_STATUS)    == 'CONNECTED' else 0
+        statusProcess5Per  = 1 if redis_cnt.get(RobotRedisElement.SOFT_PROCESS_ID_PERCEP_STATUS) == 'CONNECTED' else 0
+
+        stream.send_int(statusProcess1Sys)
+        stream.send_int(statusProcess2Hrd)
+        stream.send_int(statusProcess3Srv)
+        stream.send_int(statusProcess4Nav)
+        stream.send_int(statusProcess5Per)
+
+class Packet23RobotStatus(Packet):
     def __init__(self) -> None:
         super().__init__(23)
-
-    def send(self, stream: SocketDataStream):
-        redis_cnt = RedisConnector()
-
-class Packet24RobotStatus(Packet):
-    def __init__(self) -> None:
-        super().__init__(24)
 
     def send(self, stream: SocketDataStream):
         redis_cnt = RedisConnector()
@@ -152,10 +169,9 @@ Auth
     10 Token
 Telem
     20 Position, speed, heading: Real pos
-    21 PrimarySystemStatus: Voltage, Tempratures, Harware Connection
-    22 HardwareState: MCU, Trapes
-    23 ProcessStatus: Process Status
-    24 RobotStatus: Robot Mode, Destination, status (Going, Idle, Waiting)
+    21 PrimarySystemStatus: Voltage, Tempratures, Hardware Connection, Trapes
+    22 ProcessStatus: Process Status
+    23 RobotStatus: Robot Mode, Destination, status (Going, Idle, Waiting)
 Evt
     30 Alert: Collision, Stuck, No Path, Hardware, Process Error
     31 AlertInfo: str
