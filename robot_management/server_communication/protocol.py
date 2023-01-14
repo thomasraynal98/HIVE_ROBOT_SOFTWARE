@@ -17,9 +17,9 @@ class Packet:
         raise NotImplementedError()
 
 
-class Packet1RobotAuthentication(Packet):
+class Packet10RobotAuthentication(Packet):
     def __init__(self) -> None:
-        super().__init__(1)
+        super().__init__(10)
 
     def send(self, stream: SocketDataStream):
         stream.send_string(RedisConnector().get(RobotRedisElement.ROBOT_AUTHENTICATION))
@@ -27,7 +27,7 @@ class Packet1RobotAuthentication(Packet):
 
 class Packet20RobotPosition(Packet):
     def __init__(self) -> None:
-        super().__init__(2)
+        super().__init__(20)
 
     def send(self, stream: SocketDataStream):
         redis_cnt = RedisConnector()
@@ -42,11 +42,114 @@ class Packet20RobotPosition(Packet):
         stream.send_int(route)
 
 
-# class Packet2
+class Packet21PrimarySystemStatus(Packet):
+    def __init__(self) -> None:
+        super().__init__(21)
+
+    # def send(self, stream: SocketDataStream):
+    #     redis_cnt = RedisConnector()
+    #     volt = redis_cnt.get(RobotRedisElement.NAV_BATTERY_VOLTAGE)
+    #     voltPercentage = redis_cnt.get(RobotRedisElement.NAV_BATTERY_PERCENTAGE)
+    #     tempRc1, tempRc2, tempRc3 = redis_cnt.get(RobotRedisElement.HARD_TEMPERATURE_RC_INFO).split('|')[:3]
+
+    #     statusMcuControlMotor = redis_cnt.get(RobotRedisElement.HARD_MCU_MOTOR_COM_STATE)
+    #     statusMcuControlCargo = redis_cnt.get(RobotRedisElement.HARD_MCU_CARGO_COM_STATE)
+    #     statusMcuControlInter = redis_cnt.get(RobotRedisElement.HARD_MCU_INTER_COM_STATE)
+
+    #     stream.send_float(tempRc1)
+    #     stream.send_float(tempRc2)
+    #     stream.send_float(tempRc3)
+    #     stream.send_float(volt)
+    #     stream.send_float(voltPercentage)
+
+class Packet22HardwareState(Packet):
+    def __init__(self) -> None:
+        super().__init__(22)
+
+    def send(self, stream: SocketDataStream):
+        redis_cnt = RedisConnector()
+
+class Packet23ProcessStatus(Packet):
+    def __init__(self) -> None:
+        super().__init__(23)
+
+    def send(self, stream: SocketDataStream):
+        redis_cnt = RedisConnector()
+
+class Packet24RobotStatus(Packet):
+    def __init__(self) -> None:
+        super().__init__(24)
+
+    def send(self, stream: SocketDataStream):
+        redis_cnt = RedisConnector()
+
+class Packet30Alert(Packet):
+    def __init__(self) -> None:
+        super().__init__(30)
+
+    def send(self, stream: SocketDataStream):
+        redis_cnt = RedisConnector()
+
+class Packet31AlertInfo(Packet):
+    def __init__(self) -> None:
+        super().__init__(31)
+
+    def send(self, stream: SocketDataStream):
+        redis_cnt = RedisConnector()
+
+class Packet32Event(Packet):
+    def __init__(self) -> None:
+        super().__init__(32)
+
+    def send(self, stream: SocketDataStream):
+        redis_cnt = RedisConnector()
+
+class Packet40ChangeMode(Packet):
+    def __init__(self) -> None:
+        super().__init__(40)
+
+    def send(self, stream: SocketDataStream):
+        redis_cnt = RedisConnector()
+
+class Packet41ManualControlInput(Packet):
+    def __init__(self) -> None:
+        super().__init__(41)
+
+    def send(self, stream: SocketDataStream):
+        redis_cnt = RedisConnector()
+
+class Packet42SetHardwareState(Packet):
+    def __init__(self) -> None:
+        super().__init__(42)
+
+    def send(self, stream: SocketDataStream):
+        redis_cnt = RedisConnector()
+
+class Packet43UpdateData(Packet):
+    def __init__(self) -> None:
+        super().__init__(43)
+
+    def send(self, stream: SocketDataStream):
+        redis_cnt = RedisConnector()
+
+class Packet44ServiceManualControl(Packet):
+    def __init__(self) -> None:
+        super().__init__(44)
+
+    def send(self, stream: SocketDataStream):
+        redis_cnt = RedisConnector()
+
+class Packet45Limit(Packet):
+    def __init__(self) -> None:
+        super().__init__(45)
+
+    def send(self, stream: SocketDataStream):
+        redis_cnt = RedisConnector()
+
 
 """
 Auth
-    Token
+    10 Token
 Telem
     20 Position, speed, heading: Real pos
     21 PrimarySystemStatus: Voltage, Tempratures, Harware Connection
@@ -64,5 +167,6 @@ Actions
     42 SetHardwareState
     43 UpdateData: map
     44 ServiceManualControl: Start, Stop, Restart
+    45 Limit
 
 """
