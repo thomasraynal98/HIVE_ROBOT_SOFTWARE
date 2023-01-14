@@ -22,7 +22,7 @@ class Packet1RobotAuthentication(Packet):
         super().__init__(1)
 
     def send(self, stream: SocketDataStream):
-        stream.send_string(RedisConnector.get(RobotRedisElement.ROBOT_AUTHENTICATION))
+        stream.send_string(RedisConnector().get(RobotRedisElement.ROBOT_AUTHENTICATION))
 
     def receive(self, stream: SocketDataStream):
         raise NotImplementedError()
