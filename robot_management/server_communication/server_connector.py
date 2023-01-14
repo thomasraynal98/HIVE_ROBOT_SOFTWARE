@@ -58,13 +58,13 @@ class SocketDataStream():
         self.server_connector.send(struct.pack('i', int))
 
     def receive_int(self) -> int:
-        struct.unpack(self.server_connector.receive(struct.calcsize('i')))[0]
+        return struct.unpack(self.server_connector.receive(struct.calcsize('i')))[0]
 
     def send_float(self, e: float) -> None:
         self.server_connector.send(struct.pack('f', e))
 
     def receive_float(self) -> float:
-        struct.unpack(self.server_connector.receive(struct.calcsize('f')))[0]
+        return struct.unpack(self.server_connector.receive(struct.calcsize('f')))[0]
 
     def send_string(self, str: str) -> None:
         str_bytes = str.encode('utf-8')

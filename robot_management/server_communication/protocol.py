@@ -1,7 +1,7 @@
 from robot_management.redis_connector.redis_communicator import RedisConnector
 from robot_management.redis_connector.redis_constants import RobotRedisElement
 from robot_management.server_communication.server_connector import ServerConnector, SocketDataStream
-
+import time
 
 class Packet:
     def __init__(self, packet_id: int) -> None:
@@ -40,7 +40,6 @@ class Packet20RobotPosition(Packet):
         stream.send_float(hdg)
         stream.send_float(spd)
         stream.send_int(route)
-
 
 class Packet21PrimarySystemStatus(Packet):
     def __init__(self) -> None:
@@ -132,12 +131,29 @@ class Packet32Event(Packet):
     def send(self, stream: SocketDataStream):
         redis_cnt = RedisConnector()
 
-class Packet40ChangeMode(Packet):
+class Packet40SetDestination(Packet):
     def __init__(self) -> None:
         super().__init__(40)
 
     def send(self, stream: SocketDataStream):
         redis_cnt = RedisConnector()
+
+    def receive(self, stream: SocketDataStream):
+        redis_cnt = RedisConnector()
+
+        redisStr = str(time.time() * 1000) + "|" + stream.receive_float() + "|" + stream.receive_float() + "|";
+        time.sleep(stream.receive_int/1000)
+
+        redis_cnt.set(RobotRedisElement.MISSION_MOTOR_BRAKE,        "TRUE")
+        redis_cnt.set(RobotRedisElement.MISSION_AUTO_TYPE,          "GOTO")
+        redis_cnt.set(RobotRedisElement.MISSION_AUTO_STATE,         "START")
+        redis_cnt.set(RobotRedisElement.NAV_AUTO_DESTINATION,       redisStr)
+        redis_cnt.set(RobotRedisElement.MISSION_UPDATE_GLOBAL_PATH, "TRUE")
+        redis_cnt.set(RobotRedisElement.ROBOT_MODE,                 "AUTO")
+
+        # reception msg publish
+
+        raise NotImplementedError()
 
 class Packet41ManualControlInput(Packet):
     def __init__(self) -> None:
@@ -146,12 +162,35 @@ class Packet41ManualControlInput(Packet):
     def send(self, stream: SocketDataStream):
         redis_cnt = RedisConnector()
 
+    def receive(self, stream: SocketDataStream):
+        redis_cnt = RedisConnector()
+
+        redis_cnt.set(RobotRedisElement.MISSION_MOTOR_BRAKE,         "FALSE")
+        redis_cnt.set(RobotRedisElement.MISSION_AUTO_TYPE,           "MANUAL_MOVE")
+        redis_cnt.set(RobotRedisElement.MISSION_AUTO_STATE,          "IN_PROGRESS")
+        redis_cnt.set(RobotRedisElement.MISSION_UPDATE_GLOBAL_PATH,  "TRUE")
+        redis_cnt.set(RobotRedisElement.ROBOT_MODE,                  "MANUAL")
+
+        redisControlerCommandStr = str(time.time() * 1000) + "|" + stream.receive_float() + "|" + stream.receive_float() + "|" + stream.receive_float() + "|";
+        redis_cnt.set(RobotRedisElement.EVENT_MANUAL_CONTROLER_DATA, redisControlerCommandStr)
+
 class Packet42SetHardwareState(Packet):
     def __init__(self) -> None:
         super().__init__(42)
 
     def send(self, stream: SocketDataStream):
         redis_cnt = RedisConnector()
+
+    def receive(self, stream: SocketDataStream):
+        redis_cnt = RedisConnector()
+
+        idBox_toOpen = stream.receive_int()
+        statusBox = redis_cnt.get_strip_timestamp(RobotRedisElement.MISSION_HARD_CARGO).split('|')
+
+        redisCommandCargoStr = str(time.time() * 1000) + "|"
+        for i in range(3):
+            redisCommandCargoStr += 'OPEN|' if idBox_toOpen == i+1 else statusBox[i] + "|"
+        redis_cnt.set(RobotRedisElement.MISSION_HARD_CARGO,          redisCommandCargoStr)
 
 class Packet43UpdateData(Packet):
     def __init__(self) -> None:
@@ -160,16 +199,13 @@ class Packet43UpdateData(Packet):
     def send(self, stream: SocketDataStream):
         redis_cnt = RedisConnector()
 
-class Packet44ServiceManualControl(Packet):
+    def receive(self, stream: SocketDataStream):
+        redis_cnt = RedisConnector()
+        # Tu dois écrire dans un fichier texte.
+
+class Packet44Limit(Packet):
     def __init__(self) -> None:
         super().__init__(44)
-
-    def send(self, stream: SocketDataStream):
-        redis_cnt = RedisConnector()
-
-class Packet45Limit(Packet):
-    def __init__(self) -> None:
-        super().__init__(45)
 
     def send(self, stream: SocketDataStream):
         redis_cnt = RedisConnector()
@@ -189,11 +225,10 @@ Evt
     32 Event: ReachedWaypoint, ModeChange, CargoOpen, CargoCLose, PathComputed
 
 Actions
-    40 ChangeMode: SetDestination, SetMode (auto, manual)
+    40 SetDestination: Destination, OffsetTime (ms)
     41 ManualControlInput
     42 SetHardwareState
     43 UpdateData: map
-    44 ServiceManualControl: Start, Stop, Restart
-    45 Limit
+    44 Limit
 
 """
