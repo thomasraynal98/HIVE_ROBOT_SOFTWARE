@@ -100,6 +100,17 @@ class Packet23RobotStatus(Packet):
     def send(self, stream: SocketDataStream):
         redis_cnt = RedisConnector()
 
+        destLon, destLat = redis_cnt.get(RobotRedisElement.NAV_AUTO_DESTINATION).split('|')[:2]
+        mode = redis_cnt.get(RobotRedisElement.ROBOT_MODE)
+        missionTitle  = redis_cnt.get(RobotRedisElement.MISSION_AUTO_TYPE) if mode == "AUTO" else redis_cnt.get(RobotRedisElement.MISSION_MANUAL_TYPE)
+        missionStatus = redis_cnt.get(RobotRedisElement.MISSION_AUTO_STATE) if mode == "AUTO" else redis_cnt.get(RobotRedisElement.MISSION_MANUAL_STATE)
+
+        stream.send_float(destLon)
+        stream.send_float(destLat)
+        stream.send_string(mode)
+        stream.send_string(missionTitle)
+        stream.send_string(missionStatus)
+
 class Packet30Alert(Packet):
     def __init__(self) -> None:
         super().__init__(30)
