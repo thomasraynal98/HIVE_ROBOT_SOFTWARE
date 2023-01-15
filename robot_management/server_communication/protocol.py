@@ -1,7 +1,27 @@
+from enum import Enum
 from robot_management.redis_connector.redis_communicator import RedisConnector
 from robot_management.redis_connector.redis_constants import RobotRedisElement
 from robot_management.server_communication.server_connector import ServerConnector, SocketDataStream
 import time
+
+PROTOCOL_VERSION = 1 #! Upgrade on each change 
+
+class AlertType(Enum):
+    # Collision, Stuck, No Path, Hardware, Process Error
+    COLLISION: 0
+    STUCK: 1
+    NO_PATH: 2
+    HARDWARE_ERROR: 3
+    PROCESS_ERROR: 4
+
+class EventType(Enum):
+    #Event: ReachedWaypoint, ModeChange, CargoOpen, CargoCLose, PathComputed
+    WAYPOINT_REACHED: 0
+    OPERATING_MODE_CHANGED: 1
+    CARGO_OPEN: 2
+    CARGO_CLOSE: 3
+    EN_ROUTE: 4
+
 
 class Packet:
     def __init__(self, packet_id: int) -> None:
@@ -23,6 +43,7 @@ class Packet10RobotAuthentication(Packet):
 
     def send(self, stream: SocketDataStream):
         stream.send_string(RedisConnector().get(RobotRedisElement.ROBOT_AUTHENTICATION))
+        stream.send_int(PROTOCOL_VERSION)
 
 
 class Packet20RobotPosition(Packet):
@@ -111,25 +132,29 @@ class Packet23RobotStatus(Packet):
         stream.send_string(missionStatus)
 
 class Packet30Alert(Packet):
-    def __init__(self) -> None:
+    def __init__(self, alert_type: AlertType) -> None:
         super().__init__(30)
+        self.alert_type = alert_type
 
     def send(self, stream: SocketDataStream):
         redis_cnt = RedisConnector()
+        stream.send_int(self.alert_type.value)
 
 class Packet31AlertInfo(Packet):
-    def __init__(self) -> None:
+    def __init__(self, txt: str) -> None:
         super().__init__(31)
+        self.txt = txt
 
     def send(self, stream: SocketDataStream):
-        redis_cnt = RedisConnector()
+        stream.send_string(self.txt)
 
 class Packet32Event(Packet):
-    def __init__(self) -> None:
+    def __init__(self, evt_type: int) -> None:
         super().__init__(32)
+        self.evt_type = evt_type
 
     def send(self, stream: SocketDataStream):
-        redis_cnt = RedisConnector()
+        stream.send_int(self.evt_type)
 
 class Packet40SetDestination(Packet):
     def __init__(self) -> None:
@@ -141,8 +166,8 @@ class Packet40SetDestination(Packet):
     def receive(self, stream: SocketDataStream):
         redis_cnt = RedisConnector()
 
-        redisStr = str(time.time() * 1000) + "|" + stream.receive_float() + "|" + stream.receive_float() + "|";
-        time.sleep(stream.receive_int/1000)
+        redisStr = str(time.time() * 1000) + "|" + stream.receive_float() + "|" + stream.receive_float() + "|"
+        
 
         redis_cnt.set(RobotRedisElement.MISSION_MOTOR_BRAKE,        "TRUE")
         redis_cnt.set(RobotRedisElement.MISSION_AUTO_TYPE,          "GOTO")
@@ -153,7 +178,6 @@ class Packet40SetDestination(Packet):
 
         # reception msg publish
 
-        raise NotImplementedError()
 
 class Packet41ManualControlInput(Packet):
     def __init__(self) -> None:
@@ -172,7 +196,7 @@ class Packet41ManualControlInput(Packet):
         redis_cnt.set(RobotRedisElement.ROBOT_MODE,                  "MANUAL")
 
         redisControlerCommandStr = str(time.time() * 1000) + "|" + stream.receive_float() + "|" + stream.receive_float() + "|" + stream.receive_float() + "|";
-        redis_cnt.set(RobotRedisElement.EVENT_MANUAL_CONTROLER_DATA, redisControlerCommandStr)
+        redis_cnt.set(RobotRedisElement.EVENT_MANUAL_CONTROLLER_DATA, redisControlerCommandStr)
 
 class Packet42SetHardwareState(Packet):
     def __init__(self) -> None:
@@ -184,13 +208,16 @@ class Packet42SetHardwareState(Packet):
     def receive(self, stream: SocketDataStream):
         redis_cnt = RedisConnector()
 
-        idBox_toOpen = stream.receive_int()
-        statusBox = redis_cnt.get_strip_timestamp(RobotRedisElement.MISSION_HARD_CARGO).split('|')
+        #hardware type
+        hw_type = stream.receive_int()
+        if hw_type == 0:
+            idBox_toOpen = stream.receive_int()
+            statusBox = redis_cnt.get_strip_timestamp(RobotRedisElement.MISSION_HARD_CARGO).split('|')
 
-        redisCommandCargoStr = str(time.time() * 1000) + "|"
-        for i in range(3):
-            redisCommandCargoStr += 'OPEN|' if idBox_toOpen == i+1 else statusBox[i] + "|"
-        redis_cnt.set(RobotRedisElement.MISSION_HARD_CARGO,          redisCommandCargoStr)
+            redisCommandCargoStr = str(time.time() * 1000) + "|"
+            for i in range(3):
+                redisCommandCargoStr += 'OPEN|' if idBox_toOpen == i+1 else statusBox[i] + "|"
+            redis_cnt.set(RobotRedisElement.MISSION_HARD_CARGO,          redisCommandCargoStr)
 
 class Packet43UpdateData(Packet):
     def __init__(self) -> None:
@@ -202,6 +229,11 @@ class Packet43UpdateData(Packet):
     def receive(self, stream: SocketDataStream):
         redis_cnt = RedisConnector()
         # Tu dois écrire dans un fichier texte.
+        map = stream.receive_string()
+        # set_redis_var(&redis, "NAV_HMR_DOWNLOAD_ADRESS", data->get_map()["HMR_LINK"]->get_string());
+        # Write_TXT_file("../data/HMD_TEST_VESINET.txt", data->get_map()["FILE_DATA"]->get_string());
+        # set_redis_var(&redis, "NAV_HMR_MAP_UPDATE",      "TRUE");
+        # pub_redis_var(&redis, "EVENT", get_event_str(3, "NEW HMD DOWLOAD", "COMPLETED"));
 
 class Packet44Limit(Packet):
     def __init__(self) -> None:
@@ -209,6 +241,10 @@ class Packet44Limit(Packet):
 
     def send(self, stream: SocketDataStream):
         redis_cnt = RedisConnector()
+
+    def receive(self, stream: SocketDataStream):
+        limit_id = stream.receive_int()
+        limit_value = stream.receive_float()
 
 
 """

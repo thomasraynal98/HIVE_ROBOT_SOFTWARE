@@ -20,4 +20,4 @@ class RedisConnector():
     def set(self, element: RobotRedisElement, value: Any) -> None:
         self.redis.set(element.value, value)
 
-        
+    #TODO subcriber to event channeland send

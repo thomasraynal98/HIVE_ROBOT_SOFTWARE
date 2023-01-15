@@ -5,6 +5,7 @@ ROBOT_INFO_ID                       : "1"
 ROBOT_INFO_EXPLOITATION             : "LA_DEFENSE"
 ROBOT_INFO_MODEL                    : "MK4"
 ROBOT_INFO_PSEUDO                   : "Alfred"
+ROBOT_UUID                          : "3a7d5abc-942b-11ed-a1eb-0242ac120002"
 
 HARD_CAM1_ID                        : "944622073815"
 HARD_CAM2_ID                        : "948122072245"
