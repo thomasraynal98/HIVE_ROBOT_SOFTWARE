@@ -900,12 +900,19 @@ void bind_events(sio::socket::ptr current_socket)
         set_redis_var(&redis, "NAV_GLOBAL_POSITION", new_pos);
     }));
 
-     current_socket->on("ORDER_ROBOT_SPEED", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+    current_socket->on("ORDER_ROBOT_SPEED", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
     {
         std::string update_speed = data->get_map()["MODE"]->get_string() + "|"; // UP DOWN.
 
         double curr_update = std::stod(get_redis_str(&redis, "NAV_OPERATOR_MAX_SPEED_BONUS"));
         curr_update += (update_speed.compare("UP") == 0) ? 1.0 : -1.0;
         set_redis_var(&redis, "NAV_OPERATOR_MAX_SPEED_BONUS", std::to_string(curr_update));
+    }));
+
+     current_socket->on("ORDER_ROBOT_ARRIVED", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+    {
+        set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "TRUE");
+        set_redis_var(&redis, "MISSION_AUTO_STATE",  "COMPLETED");
+        pub_redis_var(&redis, "EVENT", get_event_str(4, "MISSION_AUTO_GOTO", "SUCCESS"));
     }));
 }
