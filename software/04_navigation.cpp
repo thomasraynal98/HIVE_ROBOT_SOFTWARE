@@ -2589,9 +2589,10 @@ int main(int argc, char *argv[])
                                         if(abs(diff_dist_obj_robot_center) < distance_m2)
                                         {
                                             dst_robot_obj = sqrt(pow(100-DirectMap_obs[ii].x,2)+pow(100-DirectMap_obs[ii].y,2))/10;
-                                            if(dst_robot_obj < 3.0)
+                                            if(dst_robot_obj < 1.0)
                                             {
                                                 final_obstacle_detected = true;
+                                                /* J'AI REMOVE !*/
                                              //std::coutt << "OBSTACLE DETECTED" << std::endl;
                                             }
                                         }
@@ -2659,7 +2660,7 @@ int main(int argc, char *argv[])
                                 // ETAPE 8 SECURITY
                                 if(recul_forcer)
                                 {
-                                    if(time_is_over(get_curr_timestamp(), start_recul, 2000))
+                                    if(time_is_over(get_curr_timestamp(), start_recul, 200))
                                     {
                                         recul_forcer = false;
                                     }

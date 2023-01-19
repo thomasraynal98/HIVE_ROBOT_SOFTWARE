@@ -498,7 +498,7 @@ void writing_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                 }
             }
 
-          //std::cout << "SEND : " << msg_box_str << std::endl;
+          std::cout << "SEND : " << msg_box_str << std::endl;
             com_manager->Write(msg_box_str+'\n'); 
         }
     }
