@@ -2881,6 +2881,51 @@ void clear_obj_vect(std::vector<double> curr_local_pos, std::vector<Object_env>&
 	}
 }
 
+void clear_box_event(std::vector<Order_Box>& vect)
+{
+
+    auto it = vect.begin();
+	while (it != vect.end())
+	{
+		// CLEARING DIST.
+		if(time_is_over(get_curr_timestamp(), it->ts, 5000))
+		{
+			// `erase()` invalidates the iterator, use returned iterator
+			it = vect.erase(it);
+		}
+		// Notice that the iterator is incremented only on the else part (why?)
+		else 
+        {
+            // CLEARING TIME.
+            ++it;
+            // if(!it->available)
+            // {
+            //     // FOR NOT AVAILABLE (FAKE OBJ)
+            //     if(time_is_over(get_curr_timestamp(), it->timestamp, 200))
+            //     {
+            //         it = vect.erase(it);
+            //     }
+            //     else
+            //     {
+            //         ++it;
+            //     }
+            // }
+            // else
+            // {
+            //     // FOR AVAILABLE OBJ
+            //     if(time_is_over(get_curr_timestamp(), it->timestamp, clear_time_ms))
+            //     {
+            //         it = vect.erase(it);
+            //     }
+            //     else
+            //     {
+            //         ++it;
+            //     }
+            // }
+        }
+	}
+}
+
 int get_filtred_road_ID(sw::redis::Redis* redis, std::vector<std::tuple<int64_t,int>>& vect_last_curr_road_ID, int max_time_threshold)
 {
     /**

@@ -172,7 +172,7 @@ void f_thread_write_mcu_cargo()
 
     while(true)
     {
-        next += std::chrono::milliseconds((int)ms_for_loop);
+        next += std::chrono::milliseconds((int)5000);
         std::this_thread::sleep_until(next);
 
         writing_process(&redis, "HARD_MCU_CARGO_PORT_NAME", "HARD_MCU_CARGO_COM_STATE", com_mcu_cargo, "CARGO");

@@ -20,12 +20,16 @@ std::thread thread_server;
 std::thread thread_telemetry;
 std::thread thread_stream_video;
 
+std::thread thread_box;
+
 sio::client h;
 
 int64_t timer_end         = get_curr_timestamp();
 bool timer_active         = false;
 int64_t timer_return_home = get_curr_timestamp();
 bool timer_rh_active      = false;
+
+std::vector<Order_Box> vect_Order_Box;
 
 //===================================================================
 // CALLBACK WATCHER:
@@ -89,11 +93,15 @@ void callback_command(std::string channel, std::string msg)
     }
     if(vect_str[2].compare("BOX_OPEN")               == 0)
     {
-        send_event_server(h.socket(), "BOX_OPEN"      , vect_str[3]);
+        // RUN CHRONO OR THREAD.
+        // send_event_server(h.socket(), "BOX_OPEN"      , vect_str[3]);
+        vect_Order_Box.push_back(Order_Box(std::stoi(vect_str[3]), 1));
     }
     if(vect_str[2].compare("BOX_CLOSE")              == 0)
     {
-        send_event_server(h.socket(), "BOX_CLOSE"     , vect_str[3]);
+        // RUN CHRONO OR THREAD.
+        // send_event_server(h.socket(), "BOX_CLOSE"     , vect_str[3]);
+        vect_Order_Box.push_back(Order_Box(std::stoi(vect_str[3]), 0));
     }
     if(vect_str[2].compare("BOX_TIME_OUT")           == 0)
     {
@@ -111,6 +119,54 @@ void f_thread_event()
     sub.on_message(callback_command);
     sub.subscribe("EVENT");
     while(true) {sub.consume();}
+}
+
+//===================================================================
+// THREAD SPECIAL TO FIX BUG MODULE.:
+// Manage le probleme du module.
+//===================================================================
+void f_thread_box()
+{
+    double ms_for_loop = frequency_to_ms(20);
+    auto next = std::chrono::high_resolution_clock::now();
+
+    while(true)
+    {
+        next += std::chrono::milliseconds((int)ms_for_loop);
+        std::this_thread::sleep_until(next);
+
+        for(int i = 0; i < vect_Order_Box.size(); i++)
+        {
+
+            if(time_is_over(get_curr_timestamp(), vect_Order_Box[i].ts, 5000))
+            {
+                bool prob = false;
+
+                for(int ii = 0; ii < vect_Order_Box.size(); ii++)
+                {
+                    if(vect_Order_Box[i].id_box == vect_Order_Box[ii].id_box)
+                    {
+                        if(vect_Order_Box[i].id_state != vect_Order_Box[ii].id_state && !prob)
+                        {
+                            // ORDRE CONTRAIRE.
+                            prob = true;
+                            vect_Order_Box[ii].ts = vect_Order_Box[i].ts;
+                        }
+                    }
+                }
+
+                if(!prob) 
+                {
+                    send_event_server(h.socket(), ((vect_Order_Box[i].id_state == 1) ? "BOX_OPEN" : "BOX_CLOSE"), std::to_string(vect_Order_Box[i].id_box));
+                    std::cout << ((vect_Order_Box[i].id_state == 1) ? "REAL SEND BOX_OPEN " : "REAL SEND BOX_CLOSE ") << vect_Order_Box[i].id_box << std::endl;
+                }
+            }
+        }
+
+
+        // IL FAUT ENLEVER LES ELEMENTS DU VECTEUR QUI ONT PLUS DE XX
+        clear_box_event(vect_Order_Box);
+    }
 }
 
 //===================================================================
@@ -463,11 +519,13 @@ int main(int argc, char *argv[])
     thread_server       = std::thread(&f_thread_server);
     thread_telemetry    = std::thread(&f_thread_telemetry);
     thread_stream_video = std::thread(&f_thread_stream_video);
+    thread_box          = std::thread(&f_thread_box);
 
     thread_event.join();
     thread_server.join();
     thread_telemetry.join();
     thread_stream_video.join();
+    thread_box.join();
 
     return 0;
 }

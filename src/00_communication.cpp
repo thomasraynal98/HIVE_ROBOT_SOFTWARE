@@ -154,7 +154,7 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                         for(int i = 0; i < vect_sum_memory.size(); i++)
                         {
                           //std::cout << "SUM " << i << " : " << vect_sum_memory[i] << std::endl;
-                            if(vect_sum_memory[i] > 3)
+                            if(vect_sum_memory[i] > 20)
                             {
                                 redis_sensor_str += "OPEN|";
                                 new_sensor_vect.push_back("OPEN");

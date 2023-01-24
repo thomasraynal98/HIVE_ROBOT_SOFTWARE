@@ -120,6 +120,19 @@ struct Robot_position
     }
 };
 
+struct Order_Box
+{
+    int id_box;
+    int id_state; // 0 = close, 1 = open
+    int64_t ts;
+
+    Order_Box(int a, int b)
+        : id_box(a)
+        , id_state(b)
+        , ts(get_curr_timestamp())
+        {}
+};
+
 // [!] Pour faire le A*.
 
 struct Path_node{
@@ -142,6 +155,7 @@ struct Path_node{
         {}
 };
 typedef std::tuple<double, Path_node*> TuplePath;
+
 
 struct Roadmap_node{
     Data_road* road;
@@ -283,3 +297,4 @@ int get_filtred_road_ID(sw::redis::Redis* redis, std::vector<std::tuple<int64_t,
 int emergency_collision_detector(std::vector<double> curr_local_pos, std::vector<Object_env>& vect_obj);
 std::string map_local_manual_command(sw::redis::Redis* redis, double max_speed_Ms, std::vector<std::string>& vect_controller_data, int navigation_hz, int opt, double val_a, double val_b, double val_c);
 double get_diff_angle_0_360(double angle_a, double angle_b);
+void clear_box_event(std::vector<Order_Box>& vect);
