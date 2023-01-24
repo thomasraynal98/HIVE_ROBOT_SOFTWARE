@@ -517,7 +517,8 @@ void f_thread_readwrite_pixhawk()
                         }
                     }
                 
-                    if(time_is_over(get_curr_timestamp(), use_hdg_data_ts, 5000) && valid_data != 0)
+                    // if(time_is_over(get_curr_timestamp(), use_hdg_data_ts, 5000) && valid_data != 0)
+                    if(false)
                     {
                         std::vector<std::string> vect_redis_str2;
                         get_redis_multi_str(&redis, "NAV_GLOBAL_POSITION", vect_redis_str2);
@@ -537,6 +538,9 @@ void f_thread_readwrite_pixhawk()
                                     std::string new_pos_str = std::to_string(get_curr_timestamp()) + "|";
                                     new_pos_str += vect_redis_str2[1] + "|";
                                     new_pos_str += vect_redis_str2[2] + "|";
+
+                                    // FOR TEST INDOOR !
+                                    // new_pos_str += std::to_string(angle_gps) + "|";
                                     new_pos_str += std::to_string(angle_gps) + "|";
                                     set_redis_var(&redis, "NAV_GLOBAL_POSITION", new_pos_str);
 
