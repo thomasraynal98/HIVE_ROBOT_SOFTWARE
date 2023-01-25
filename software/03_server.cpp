@@ -5,6 +5,12 @@
 #include <signal.h>
 #include <cstdlib>
 
+#include <iostream>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
 //[!!] OPTION FOR HTTP SERVER.
 // #include <sio_client.h>
 
@@ -19,6 +25,7 @@ std::thread thread_event;
 std::thread thread_server;
 std::thread thread_telemetry;
 std::thread thread_stream_video;
+std::thread thread_internet_access;
 
 std::thread thread_box;
 
@@ -31,6 +38,8 @@ bool timer_rh_active      = false;
 
 std::vector<Order_Box> vect_Order_Box;
 std::vector<Event_save> vect_Event;
+
+bool internet_access = false;
 
 //===================================================================
 // CALLBACK WATCHER:
@@ -56,6 +65,10 @@ void callback_command(std::string channel, std::string msg)
      * D = des informations complémentaires de l'évenement.
      */
 
+    if(vect_str[2].compare("PING"))
+    {
+        send_event_server(h.socket(),"PING"            , "PING");
+    }
     if(vect_str[2].compare("MISSION_PAUSE")          == 0 && vect_str[3].compare("START") == 0)
     {
         if(compare_redis_var(&redis, "SERVER_COM_STATE", "CONNECTED")) send_event_server(h.socket(), "WAIT"          , "START");
@@ -138,6 +151,7 @@ void f_thread_event()
 // THREAD SPECIAL TO FIX BUG MODULE.:
 // Manage le probleme du module.
 //===================================================================
+
 void f_thread_box()
 {
     double ms_for_loop = frequency_to_ms(20);
@@ -255,14 +269,26 @@ void f_thread_server()
                 for(int i = 0; i < vect_Event.size(); i++)
                 {
                     send_event_server(h.socket(), vect_Event[i].title, vect_Event[i].info);
+                    std::cout << "SEND PAST EVENT " << i << std::endl;
                     usleep(50000);
                 }
 
                 vect_Event.clear();
             }
+            else
+            {
+                if(!internet_access)
+                {
+                    // h.sync_close();
+                    // h.clear_con_listeners();
+                    h.close();
+                    usleep(10000);
+                    std::cout << "[" << get_curr_timestamp() << "] [info] Internet n'ai plus disponible. Je deconnecte..." << std::endl;
+                }
+            }
             usleep(10000);
         }
-        
+    
         /**
          * NOTE:
          * Cette fonction ne peux être activer uniquement lorsque timer_rh_active est activé
@@ -311,6 +337,7 @@ void f_thread_telemetry()
 
         if(h.opened() && get_redis_str(&redis, "SERVER_COM_STATE").compare("CONNECTED") == 0)
         {
+            std::cout << "[" << get_curr_timestamp() << "] [info] send telemetry to server." << std::endl;
             std::vector<std::string> vect_str;
             get_redis_multi_str(&redis, "NAV_GLOBAL_POSITION", vect_str);
 
@@ -536,6 +563,47 @@ void f_thread_stream_video()
 }
 
 //===================================================================
+// INTERNET ACCESS.
+// Cette fonction permet de savoir si le robot est connecté 
+// à internet.
+//===================================================================
+
+void f_thread_internet_access()
+{
+    double ms_for_loop = frequency_to_ms(1);
+    auto next = std::chrono::high_resolution_clock::now();
+
+    while(true)
+    {
+        next += std::chrono::milliseconds((int)ms_for_loop);
+        std::this_thread::sleep_until(next);
+
+        int sock = socket(AF_INET, SOCK_STREAM, 0);
+        if (sock < 0) {
+            std::cout << "Error creating socket" << std::endl;
+            // return 1;
+        }
+
+        // Connect to a server
+        sockaddr_in server;
+        server.sin_family = AF_INET;
+        server.sin_addr.s_addr = inet_addr("8.8.8.8"); // Google DNS server
+        server.sin_port = htons(53); // DNS port
+        int result = connect(sock, (sockaddr*)&server, sizeof(server));
+        if (result < 0) {
+            // std::cout << "Not connected to the internet." << std::endl;
+            internet_access = false;
+        } else {
+            // std::cout << "Connected to the internet." << std::endl;
+            internet_access = true;
+        }
+
+        // Cleanup
+        close(sock);
+    }
+}
+
+//===================================================================
 // MAIN PROGRAM
 //===================================================================
 
@@ -548,6 +616,11 @@ int main(int argc, char *argv[])
     thread_telemetry    = std::thread(&f_thread_telemetry);
     thread_stream_video = std::thread(&f_thread_stream_video);
     thread_box          = std::thread(&f_thread_box);
+    thread_internet_access = std::thread(&f_thread_internet_access);
+
+
+    thread_internet_access.join();
+    usleep(1000000);
 
     thread_event.join();
     thread_server.join();
@@ -995,10 +1068,17 @@ void bind_events(sio::socket::ptr current_socket)
         set_redis_var(&redis, "NAV_OPERATOR_MAX_SPEED_BONUS", std::to_string(curr_update));
     }));
 
-     current_socket->on("ORDER_ROBOT_ARRIVED", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+    current_socket->on("ORDER_ROBOT_ARRIVED", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
     {
         set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "TRUE");
         set_redis_var(&redis, "MISSION_AUTO_STATE",  "COMPLETED");
         pub_redis_var(&redis, "EVENT", get_event_str(4, "MISSION_AUTO_GOTO", "SUCCESS"));
+    }));
+
+    current_socket->on("ORDER_PONG", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+    {
+        // std::cout << "|" << std::endl;
+        // usleep(1000000);
+        // pub_redis_var(&redis, "EVENT", get_event_str(4, "PING", "PING"));
     }));
 }

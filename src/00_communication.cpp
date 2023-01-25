@@ -531,7 +531,7 @@ void send_msg_server(sio::socket::ptr current_socket, std::string emit_title, st
             socket_msg->get_map()[vect_msg[i].channel_str] = sio::int_message::create(std::stoul(vect_msg[i].value));
         }
     }
-
+    
     current_socket->emit(emit_title, socket_msg);
 }
 
