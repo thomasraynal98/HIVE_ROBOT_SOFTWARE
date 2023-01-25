@@ -133,6 +133,17 @@ struct Order_Box
         {}
 };
 
+struct Event_save
+{
+    std::string title;
+    std::string info;
+
+    Event_save(std::string a, std::string b)
+        : title(a)
+        , info(b)
+        {}
+};
+
 // [!] Pour faire le A*.
 
 struct Path_node{

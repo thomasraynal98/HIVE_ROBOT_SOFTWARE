@@ -265,6 +265,7 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                 {
                     if(vect_reponse_mcu_motor[1].compare("6") == 0)
                     {
+			std::cout << get_curr_timestamp() << " " << reponse << std::endl;
                         // Message de type 6.
                         double dt_left_m  = tic_to_meter * std::stoi(vect_reponse_mcu_motor[2]);
                         double dt_right_m = tic_to_meter * std::stoi(vect_reponse_mcu_motor[5]);

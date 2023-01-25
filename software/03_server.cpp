@@ -30,6 +30,7 @@ int64_t timer_return_home = get_curr_timestamp();
 bool timer_rh_active      = false;
 
 std::vector<Order_Box> vect_Order_Box;
+std::vector<Event_save> vect_Event;
 
 //===================================================================
 // CALLBACK WATCHER:
@@ -57,39 +58,48 @@ void callback_command(std::string channel, std::string msg)
 
     if(vect_str[2].compare("MISSION_PAUSE")          == 0 && vect_str[3].compare("START") == 0)
     {
-        send_event_server(h.socket(), "WAIT"          , "START");
+        if(compare_redis_var(&redis, "SERVER_COM_STATE", "CONNECTED")) send_event_server(h.socket(), "WAIT"          , "START");
+        else{                                                        vect_Event.push_back(Event_save("WAIT"          , "START"));}
     }
     if(vect_str[2].compare("MISSION_PAUSE")          == 0 && vect_str[3].compare("COMPLETED") == 0)
     {
-        send_event_server(h.socket(), "WAIT"          , "SUCCESS");
+        if(compare_redis_var(&redis, "SERVER_COM_STATE", "CONNECTED")) send_event_server(h.socket(), "WAIT"          , "SUCCESS");
+        else{                                                        vect_Event.push_back(Event_save("WAIT"          , "SUCCESS"));}
     }
     if(vect_str[2].compare("MISSION_PAUSE")          == 0 && vect_str[3].compare("TIMER_END") == 0)
     {
-        send_event_server(h.socket(), "TIMER"         , "END");
+        if(compare_redis_var(&redis, "SERVER_COM_STATE", "CONNECTED")) send_event_server(h.socket(), "TIMER"         , "END");
+        else{                                                        vect_Event.push_back(Event_save("TIMER"         , "END"));}
     }
     if(vect_str[2].compare("MISSION_AUTO_GOTO")      == 0 && vect_str[3].compare("START") == 0)
     {
-        send_event_server(h.socket(), "GOTO"          , "START");
+        if(compare_redis_var(&redis, "SERVER_COM_STATE", "CONNECTED")) send_event_server(h.socket(), "GOTO"          , "START");
+        else{                                                        vect_Event.push_back(Event_save("GOTO"          , "START"));}
     }
     if(vect_str[2].compare("MISSION_AUTO_GOTO")      == 0 && vect_str[3].compare("SUCCESS") == 0)
     {
-        send_event_server(h.socket(), "GOTO"          , "SUCCESS");
+        if(compare_redis_var(&redis, "SERVER_COM_STATE", "CONNECTED")) send_event_server(h.socket(), "GOTO"          , "SUCCESS");
+        else{                                                        vect_Event.push_back(Event_save("GOTO"          , "SUCCESS"));}
     }
     if(vect_str[2].compare("MISSION_AUTO_GOTO")      == 0 && vect_str[3].compare("NEED_OPERATOR_SUPERVISION") == 0)
     {
-        send_event_server(h.socket(), "GOTO"          , "OPERATOR_SUPERVISION_REQUIRED");
+        if(compare_redis_var(&redis, "SERVER_COM_STATE", "CONNECTED")) send_event_server(h.socket(), "GOTO"          , "OPERATOR_SUPERVISION_REQUIRED");
+        else{                                                        vect_Event.push_back(Event_save("GOTO"          , "OPERATOR_SUPERVISION_REQUIRED"));}
     }
     if(vect_str[2].compare("MISSION_AUTO_GOTO")      == 0 && vect_str[3].compare("NEED_OPERATOR_DRIVE") == 0)
     {
-        send_event_server(h.socket(), "GOTO"          , "OPERATOR_DRIVE_REQUIRED");
+        if(compare_redis_var(&redis, "SERVER_COM_STATE", "CONNECTED")) send_event_server(h.socket(), "GOTO"          , "OPERATOR_DRIVE_REQUIRED");
+        else{                                                        vect_Event.push_back(Event_save("GOTO"          , "OPERATOR_DRIVE_REQUIRED"));}
     }
     if(vect_str[2].compare("MISSION_AUTO_GOTO")      == 0 && vect_str[3].compare("NEED_OPERATOR_PARKING") == 0)
     {
-        send_event_server(h.socket(), "GOTO"          , "OPERATOR_PARKING_REQUIRED");
+        if(compare_redis_var(&redis, "SERVER_COM_STATE", "CONNECTED")) send_event_server(h.socket(), "GOTO"          , "OPERATOR_PARKING_REQUIRED");
+        else{                                                        vect_Event.push_back(Event_save("GOTO"          , "OPERATOR_PARKING_REQUIRED"));}
     }
     if(vect_str[2].compare("MISSION_CANCEL_MISSION") == 0 && vect_str[3].compare("SUCCESS") == 0)
     {
-        send_event_server(h.socket(), "CANCEL_MISSION", "SUCCESS");
+        if(compare_redis_var(&redis, "SERVER_COM_STATE", "CONNECTED")) send_event_server(h.socket(), "CANCEL_MISSION", "SUCCESS");
+        else{                                                        vect_Event.push_back(Event_save("CANCEL_MISSION", "SUCCESS"));}
     }
     if(vect_str[2].compare("BOX_OPEN")               == 0)
     {
@@ -105,11 +115,14 @@ void callback_command(std::string channel, std::string msg)
     }
     if(vect_str[2].compare("BOX_TIME_OUT")           == 0)
     {
-        send_event_server(h.socket(), "BOX_TIME_OUT"  , vect_str[3]);
+        if(compare_redis_var(&redis, "SERVER_COM_STATE", "CONNECTED")) send_event_server(h.socket(), "BOX_TIME_OUT", vect_str[3]);
+        else{                                                        vect_Event.push_back(Event_save("BOX_TIME_OUT", vect_str[3]));}
     }
     if(vect_str[2].compare("ERR")                    == 0)
     {
         send_event_server(h.socket(), "ERR", vect_str[3]);
+        if(compare_redis_var(&redis, "SERVER_COM_STATE", "CONNECTED")) send_event_server(h.socket(), "ERR"         , vect_str[3]);
+        else{                                                        vect_Event.push_back(Event_save("ERR"         , vect_str[3]));}
     }
 }
 
@@ -157,8 +170,15 @@ void f_thread_box()
 
                 if(!prob) 
                 {
-                    send_event_server(h.socket(), ((vect_Order_Box[i].id_state == 1) ? "BOX_OPEN" : "BOX_CLOSE"), std::to_string(vect_Order_Box[i].id_box));
-                    std::cout << ((vect_Order_Box[i].id_state == 1) ? "REAL SEND BOX_OPEN " : "REAL SEND BOX_CLOSE ") << vect_Order_Box[i].id_box << std::endl;
+                    if(compare_redis_var(&redis, "SERVER_COM_STATE", "CONNECTED")) 
+                    {
+                        send_event_server(h.socket(), ((vect_Order_Box[i].id_state == 1) ? "BOX_OPEN" : "BOX_CLOSE"), std::to_string(vect_Order_Box[i].id_box));
+                        std::cout << ((vect_Order_Box[i].id_state == 1) ? "REAL SEND BOX_OPEN " : "REAL SEND BOX_CLOSE ") << vect_Order_Box[i].id_box << std::endl;
+                    }
+                    else
+                    {
+                        vect_Event.push_back(Event_save(((vect_Order_Box[i].id_state == 1) ? "BOX_OPEN" : "BOX_CLOSE"), std::to_string(vect_Order_Box[i].id_box)));
+                    }
                 }
             }
         }
@@ -231,6 +251,14 @@ void f_thread_server()
                 pub_redis_var(&redis, "EVENT", get_event_str(3, "CONNECTION_SERVER", "SUCCESS"));
 
                 timer_rh_active = false;
+
+                for(int i = 0; i < vect_Event.size(); i++)
+                {
+                    send_event_server(h.socket(), vect_Event[i].title, vect_Event[i].info);
+                    usleep(50000);
+                }
+
+                vect_Event.clear();
             }
             usleep(10000);
         }
