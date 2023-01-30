@@ -113,7 +113,7 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
         try
         {
             com_manager->ReadLine(reponse, '\n', timeout_ms);
-          //std::cout << "DATA FROM XXX : " << get_curr_timestamp() << reponse << std::endl;
+        //   std::cout << "DATA FROM XXX : " << get_curr_timestamp() << reponse << std::endl;
             // ALL INFORMATION READING BY MCU ESP32.
 
             if(mcu_function_str.compare("CARGO") == 0)
@@ -265,7 +265,7 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                 {
                     if(vect_reponse_mcu_motor[1].compare("6") == 0)
                     {
-			std::cout << get_curr_timestamp() << " " << reponse << std::endl;
+                // std::cout << get_curr_timestamp() << " " << reponse << std::endl;
                         // Message de type 6.
                         double dt_left_m  = tic_to_meter * std::stoi(vect_reponse_mcu_motor[2]);
                         double dt_right_m = tic_to_meter * std::stoi(vect_reponse_mcu_motor[5]);

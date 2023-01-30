@@ -244,6 +244,8 @@ int main(int argc, char *argv[])
     int64_t warning_incline_ts = get_curr_timestamp();
     bool detect_warning_incline = false;
 
+    std::cout << "[" << get_curr_timestamp() << "] [info] navigation program is running." << std::endl;
+
     //==================================================
     // MAIN LOOP :
     // Cette boucle contient l'unique thread du programme
@@ -3178,6 +3180,29 @@ int main(int argc, char *argv[])
                         
                         motor_command_str += std::to_string(v) + "|";
                     }
+                }
+            }
+
+            // -nan protection.
+            std::vector<std::string> vect;
+            bool nan_detect = false;
+
+            for (int i = 1; i < vect.size(); i++) 
+            {
+                double val = std::stod(vect[i]);
+                if (std::isnan(val)) 
+                {
+                    vect[i] = "0.0";
+                    nan_detect = true;
+                }
+            }
+
+            if(nan_detect)
+            {
+                motor_command_str = std::to_string(get_curr_timestamp()) + "|";
+                for(int i = 1; i < vect.size(); i++)
+                {
+                    motor_command_str += vect[i] + "|";
                 }
             }
         }

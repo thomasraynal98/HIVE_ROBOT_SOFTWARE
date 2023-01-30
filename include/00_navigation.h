@@ -209,7 +209,7 @@ struct Sensor_prm{
 
             angle = atan2(b,a);
 
-            std::cout << a << " " << b << " " << dist << " " << angle << std::endl;
+            // std::cout << a << " " << b << " " << dist << " " << angle << std::endl;
             pos_pol = new Vect_2D(dist, angle);
         }
 };
