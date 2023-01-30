@@ -265,7 +265,8 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                 {
                     if(vect_reponse_mcu_motor[1].compare("6") == 0)
                     {
-                // std::cout << get_curr_timestamp() << " " << reponse << std::endl;
+                        // std::cout << get_curr_timestamp() << " " << reponse << std::endl;
+
                         // Message de type 6.
                         double dt_left_m  = tic_to_meter * std::stoi(vect_reponse_mcu_motor[2]);
                         double dt_right_m = tic_to_meter * std::stoi(vect_reponse_mcu_motor[5]);
@@ -308,7 +309,7 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                             std::vector<std::string> vect_redis_str;
                             get_redis_multi_str(redis, "NAV_LOCAL_POSITION", vect_redis_str);
 
-                            double dt_angle    = (dt_central_right_m - dt_central_left_m) / std::stod(get_redis_str(redis, "HARD_WHEEL_DISTANCE"));
+                            double dt_angle    = ((dt_central_right_m - dt_central_left_m) * 0.875) / std::stod(get_redis_str(redis, "HARD_WHEEL_DISTANCE"));
                             double prev_angle  = std::stod(vect_redis_str[3]) - rad_to_deg(dt_angle);
                             if(prev_angle > 360) prev_angle -= 360;
                             if(prev_angle <   0) prev_angle += 360;
