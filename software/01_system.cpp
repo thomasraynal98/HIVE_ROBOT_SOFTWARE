@@ -349,6 +349,8 @@ int main(int argc, char *argv[])
 
     if(opt_reset == 0)
     {
+        std::cout << "Mode Debug running." << std::endl;
+
         init_redis_var_id(&redis);
         init_redis_var(&redis);
         
@@ -361,6 +363,22 @@ int main(int argc, char *argv[])
         thread_save_stats    = std::thread(&f_thread_save_stats);
 
         thread_debug.join();
+        thread_process_check.join();
+        thread_save_stats.join();
+    }
+    else
+    {
+        std::cout << "Mode Headless running." << std::endl;
+        
+        init_redis_var_id(&redis);
+        init_redis_var(&redis);
+        
+        set_redis_var(&redis, "SOFT_PROCESS_ID_SYS", std::to_string(getpid()));
+
+        read_all_kilometrage(&redis, "../data/statistique_utilisation.txt");
+
+        thread_process_check = std::thread(&f_thread_process_check);
+        thread_save_stats    = std::thread(&f_thread_save_stats);
         thread_process_check.join();
         thread_save_stats.join();
     }

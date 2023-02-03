@@ -11,8 +11,6 @@ int main(int argc, char *argv[])
     // SECURITY RESET
     set_redis_var(&redis, "ROBOT_MODE", "MANUAL");
     set_redis_var(&redis, "NAV_HMR_MAP_UPDATE", "TRUE");
-        
-    cv::namedWindow( "DEBUG_DIRECT", 4);
 
     std::vector<Data_node> vect_node;
     std::vector<Data_road> vect_road;
@@ -53,7 +51,16 @@ int main(int argc, char *argv[])
 
     // [?] Cette variable setup ou non le OPENCV de debug.
     bool show_debug = true;
-    if(argc == 2) show_debug = false;
+    if(argc == 2)
+    {
+        std::cout << "Mode Headless running." << std::endl;
+        show_debug = false; 
+    } 
+    else
+    {
+        std::cout << "Mode Debug running." << std::endl;
+        cv::namedWindow( "DEBUG_DIRECT", 4);
+    }
 
     /**
      * NOTE: vect_traj
