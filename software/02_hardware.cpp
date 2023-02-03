@@ -517,8 +517,8 @@ void f_thread_readwrite_pixhawk()
                         }
                     }
                 
-                    // if(time_is_over(get_curr_timestamp(), use_hdg_data_ts, 5000) && valid_data != 0)
-                    if(false)
+                    if(time_is_over(get_curr_timestamp(), use_hdg_data_ts, 5000) && valid_data != 0)
+                    // if(false)
                     {
                         std::vector<std::string> vect_redis_str2;
                         get_redis_multi_str(&redis, "NAV_GLOBAL_POSITION", vect_redis_str2);
@@ -800,10 +800,14 @@ void f_thread_local_joystick()
                             {
                                 xbox_controller.axis_state_vect[axis].x = axes[axis].x;
                                 xbox_controller.axis_state_vect[axis].y = axes[axis].y;
-                                set_redis_var(&redis, "ROBOT_MODE",           "MANUAL");
-                                set_redis_var(&redis, "MISSION_MANUAL_TYPE",  "MANUAL_MOVE");
-                                set_redis_var(&redis, "MISSION_MANUAL_STATE", "IN_PROGRESS");
-                                set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "FALSE");
+
+                                if(compare_redis_var(&redis,"NAV_LOCAL_JS_MODE", "ACTIVATE"))
+                                {
+                                    set_redis_var(&redis, "ROBOT_MODE",           "MANUAL");
+                                    set_redis_var(&redis, "MISSION_MANUAL_TYPE",  "MANUAL_MOVE");
+                                    set_redis_var(&redis, "MISSION_MANUAL_STATE", "IN_PROGRESS");
+                                    set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "FALSE");
+                                }
                             }
                             break;
                         default:
@@ -884,6 +888,7 @@ void f_thread_local_joystick()
 
                     // Send information to redis.
                     std::string redis_str = std::to_string(get_curr_timestamp()) + "|" + xbox_controller.get_str();
+
                     set_redis_var(&redis, "EVENT_LOCAL_JS_DATA", redis_str);
                     
                     fflush(stdout);

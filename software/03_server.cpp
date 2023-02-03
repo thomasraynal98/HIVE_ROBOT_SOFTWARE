@@ -39,7 +39,7 @@ bool timer_rh_active      = false;
 std::vector<Order_Box> vect_Order_Box;
 std::vector<Event_save> vect_Event;
 
-bool internet_access = false;
+bool internet_access = true;
 
 //===================================================================
 // CALLBACK WATCHER:
