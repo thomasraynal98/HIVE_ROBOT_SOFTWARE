@@ -1030,6 +1030,7 @@ void bind_events(sio::socket::ptr current_socket)
                 if(mode_str == 1)
                 {
                     // Allumer.
+                    std::cout << "START PERCEPTION PLEASE" << std::endl;
                     system("cd ../../HIVE_PERCEPTION/SOFTWARE && python3 -m perception &");
                 }
             }   
