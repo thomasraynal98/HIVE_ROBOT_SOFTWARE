@@ -344,10 +344,10 @@ int main(int argc, char *argv[])
 {
     set_redis_var(&redis, "SOFT_PROCESS_ID_SYS", std::to_string(getpid()));
 
-    int opt_reset = 0;
-    if(argc == 2) opt_reset = std::atoi(argv[1]);
+    // int opt_reset = 0;
+    // if(argc == 2) opt_reset = std::atoi(argv[1]);
 
-    if(opt_reset == 0)
+    if(argc == 1)
     {
         std::cout << "Mode Debug running." << std::endl;
 
@@ -376,6 +376,8 @@ int main(int argc, char *argv[])
         set_redis_var(&redis, "SOFT_PROCESS_ID_SYS", std::to_string(getpid()));
 
         read_all_kilometrage(&redis, "../data/statistique_utilisation.txt");
+
+        set_redis_var(&redis, "MISSION_ESTI_TIME_TO_TARGET", "6666");
 
         thread_process_check = std::thread(&f_thread_process_check);
         thread_save_stats    = std::thread(&f_thread_save_stats);
