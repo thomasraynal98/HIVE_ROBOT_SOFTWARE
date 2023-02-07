@@ -162,44 +162,52 @@ void f_thread_box()
         next += std::chrono::milliseconds((int)ms_for_loop);
         std::this_thread::sleep_until(next);
 
-        for(int i = 0; i < vect_Order_Box.size(); i++)
+        if(compare_redis_var(&redis, "HARD_MCU_CARGO_COM_STATE", "CONNECTED"))
         {
 
-            if(time_is_over(get_curr_timestamp(), vect_Order_Box[i].ts, 3000))
+            for(int i = 0; i < vect_Order_Box.size(); i++)
             {
-                bool prob = false;
 
-                for(int ii = 0; ii < vect_Order_Box.size(); ii++)
+                if(time_is_over(get_curr_timestamp(), vect_Order_Box[i].ts, 3000))
                 {
-                    if(vect_Order_Box[i].id_box == vect_Order_Box[ii].id_box)
+                    bool prob = false;
+
+                    for(int ii = 0; ii < vect_Order_Box.size(); ii++)
                     {
-                        if(vect_Order_Box[i].id_state != vect_Order_Box[ii].id_state && !prob)
+                        if(vect_Order_Box[i].id_box == vect_Order_Box[ii].id_box)
                         {
-                            // ORDRE CONTRAIRE.
-                            prob = true;
-                            vect_Order_Box[ii].ts = vect_Order_Box[i].ts;
+                            if(vect_Order_Box[i].id_state != vect_Order_Box[ii].id_state && !prob)
+                            {
+                                // ORDRE CONTRAIRE.
+                                prob = true;
+                                vect_Order_Box[ii].ts = vect_Order_Box[i].ts;
+                            }
+                        }
+                    }
+
+                    if(!prob) 
+                    {
+                        if(compare_redis_var(&redis, "SERVER_COM_STATE", "CONNECTED")) 
+                        {
+                            send_event_server(h.socket(), ((vect_Order_Box[i].id_state == 1) ? "BOX_OPEN" : "BOX_CLOSE"), std::to_string(vect_Order_Box[i].id_box));
+                            std::cout << ((vect_Order_Box[i].id_state == 1) ? "REAL SEND BOX_OPEN " : "REAL SEND BOX_CLOSE ") << vect_Order_Box[i].id_box << std::endl;
+                        }
+                        else
+                        {
+                            vect_Event.push_back(Event_save(((vect_Order_Box[i].id_state == 1) ? "BOX_OPEN" : "BOX_CLOSE"), std::to_string(vect_Order_Box[i].id_box)));
                         }
                     }
                 }
-
-                if(!prob) 
-                {
-                    if(compare_redis_var(&redis, "SERVER_COM_STATE", "CONNECTED")) 
-                    {
-                        send_event_server(h.socket(), ((vect_Order_Box[i].id_state == 1) ? "BOX_OPEN" : "BOX_CLOSE"), std::to_string(vect_Order_Box[i].id_box));
-                        std::cout << ((vect_Order_Box[i].id_state == 1) ? "REAL SEND BOX_OPEN " : "REAL SEND BOX_CLOSE ") << vect_Order_Box[i].id_box << std::endl;
-                    }
-                    else
-                    {
-                        vect_Event.push_back(Event_save(((vect_Order_Box[i].id_state == 1) ? "BOX_OPEN" : "BOX_CLOSE"), std::to_string(vect_Order_Box[i].id_box)));
-                    }
-                }
             }
+
+
+            // IL FAUT ENLEVER LES ELEMENTS DU VECTEUR QUI ONT PLUS DE XX
+            clear_box_event(vect_Order_Box);
         }
-
-
-        // IL FAUT ENLEVER LES ELEMENTS DU VECTEUR QUI ONT PLUS DE XX
-        clear_box_event(vect_Order_Box);
+        else
+        {
+            vect_Order_Box.clear();
+        }
     }
 }
 
