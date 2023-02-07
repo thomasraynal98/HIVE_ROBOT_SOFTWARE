@@ -65,10 +65,10 @@ void callback_command(std::string channel, std::string msg)
      * D = des informations complémentaires de l'évenement.
      */
 
-    if(vect_str[2].compare("PING"))
-    {
-        send_event_server(h.socket(),"PING"            , "PING");
-    }
+    // if(vect_str[2].compare("PING"))
+    // {
+    //     send_event_server(h.socket(),"PING"            , "PING");
+    // }
     if(vect_str[2].compare("MISSION_PAUSE")          == 0 && vect_str[3].compare("START") == 0)
     {
         if(compare_redis_var(&redis, "SERVER_COM_STATE", "CONNECTED")) send_event_server(h.socket(), "WAIT"          , "START");

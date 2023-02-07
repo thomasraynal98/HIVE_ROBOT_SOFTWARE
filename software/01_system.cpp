@@ -369,7 +369,7 @@ int main(int argc, char *argv[])
     else
     {
         std::cout << "Mode Headless running." << std::endl;
-        
+
         init_redis_var_id(&redis);
         init_redis_var(&redis);
         
@@ -382,4 +382,6 @@ int main(int argc, char *argv[])
         thread_process_check.join();
         thread_save_stats.join();
     }
+
+    return 0;
 }
