@@ -516,7 +516,8 @@ void f_thread_readwrite_pixhawk()
                             }
                         }
                     }
-                
+
+                    // TODO: REMOVE if(false)
                     // if(time_is_over(get_curr_timestamp(), use_hdg_data_ts, 5000) && valid_data != 0)
                     if(false)
                     {

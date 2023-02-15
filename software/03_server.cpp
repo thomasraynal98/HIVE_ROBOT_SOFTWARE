@@ -168,7 +168,7 @@ void f_thread_box()
             for(int i = 0; i < vect_Order_Box.size(); i++)
             {
 
-                if(time_is_over(get_curr_timestamp(), vect_Order_Box[i].ts, 5000))
+                if(time_is_over(get_curr_timestamp(), vect_Order_Box[i].ts, 2500))
                 {
                     bool prob = false;
 
