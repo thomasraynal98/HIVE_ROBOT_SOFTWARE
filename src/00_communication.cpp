@@ -265,7 +265,7 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                 {
                     if(vect_reponse_mcu_motor[1].compare("6") == 0)
                     {
-                        // std::cout << get_curr_timestamp() << " " << reponse << std::endl;
+                        std::cout << get_curr_timestamp() << " " << reponse << std::endl;
 
                         // Message de type 6.
                         double dt_left_m  = tic_to_meter * std::stoi(vect_reponse_mcu_motor[2]);
@@ -475,7 +475,14 @@ void writing_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
             }
             
             // std::cout << "SEND : " << msg_motor_str << std::endl;
-            com_manager->Write(msg_motor_str+'\n'); 
+            try
+            {
+                com_manager->Write(msg_motor_str+'\n'); 
+            }
+            catch(...)
+            {
+
+            }
         }
 
         if(mcu_function_str.compare("CARGO") == 0)
@@ -500,8 +507,16 @@ void writing_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                 }
             }
 
-          std::cout << "SEND : " << msg_box_str << std::endl;
-            com_manager->Write(msg_box_str+'\n'); 
+            // std::cout << "SEND : " << msg_box_str << std::endl;
+
+            try
+            {
+                com_manager->Write(msg_box_str+'\n'); 
+            }
+            else(...)
+            {
+
+            }
         }
     }
     
