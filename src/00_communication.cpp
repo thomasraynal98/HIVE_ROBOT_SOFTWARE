@@ -429,6 +429,7 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
             * Your milage may very
             */
             std::cout << "Type:    " << typeid(e).name() << "\n";
+            com_manager->FlushInputBuffer();
         }
         
     }
