@@ -105,7 +105,7 @@ int port_closing_process(sw::redis::Redis* redis, std::string curr_port_name, st
 
 void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::string curr_port_state, LibSerial::SerialPort* com_manager, std::string mcu_function_str)
 {
-    size_t timeout_ms = 1000;
+    size_t timeout_ms = 500;
     std::string reponse;
 
     if(port_is_ready_to_use(redis, curr_port_name, curr_port_state, com_manager))
