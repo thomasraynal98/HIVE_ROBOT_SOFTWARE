@@ -133,6 +133,7 @@ void f_thread_read_mcu_cargo()
 {
     while(true)
     {
+        std::cout << "READING CARGO." << std::end;
         reading_process(&redis, "HARD_MCU_CARGO_PORT_NAME", "HARD_MCU_CARGO_COM_STATE", com_mcu_cargo, "CARGO");
     }
 }

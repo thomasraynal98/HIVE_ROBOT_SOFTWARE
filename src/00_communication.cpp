@@ -122,6 +122,8 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                 std::vector<std::string> vect_reponse_mcu_cargo;
                 get_multi_str(reponse, vect_reponse_mcu_cargo);
 
+                std::cout << "DATA FROM XXX : " << get_curr_timestamp() << reponse << std::endl;
+
                 if(vect_reponse_mcu_cargo.size() == 6)
                 {
                     // Pour setup la nouvelle lecture sur redis.
@@ -420,7 +422,7 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
         }
         catch(...)
         {
-            // std::cout << "PAS REUSSI A LIRE." << std::endl;
+            std::cout << "PAS REUSSI A LIRE." << std::endl;
         }
         
     }
@@ -513,7 +515,7 @@ void writing_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
             {
                 com_manager->Write(msg_box_str+'\n'); 
             }
-            else(...)
+            catch(...)
             {
 
             }
