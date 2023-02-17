@@ -105,7 +105,7 @@ int port_closing_process(sw::redis::Redis* redis, std::string curr_port_name, st
 
 void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::string curr_port_state, LibSerial::SerialPort* com_manager, std::string mcu_function_str)
 {
-    size_t timeout_ms = 500;
+    size_t timeout_ms = 1000;
     std::string reponse;
 
     if(port_is_ready_to_use(redis, curr_port_name, curr_port_state, com_manager))
@@ -113,7 +113,6 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
         try
         {
             com_manager->ReadLine(reponse, '\n', timeout_ms);
-
         //   std::cout << "DATA FROM XXX : " << get_curr_timestamp() << reponse << std::endl;
             // ALL INFORMATION READING BY MCU ESP32.
 
@@ -424,9 +423,12 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
         catch(std::exception const& e)
         {
             std::cout << "Message: " << e.what() << "\n";
+
+        /*
+         * Note this is platform/compiler specific
+         * Your milage may very
+         */
             std::cout << "Type:    " << typeid(e).name() << "\n";
-            com_manager->DrainWriteBuffer();
-            com_manager->FlushIOBuffers();
         }
         
     }
