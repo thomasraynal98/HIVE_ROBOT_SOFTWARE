@@ -420,9 +420,15 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                 }
             }
         }
-        catch(...)
+        catch(std::exception const& e)
         {
-            std::cout << "PAS REUSSI A LIRE." << std::endl;
+            std::cout << "Message: " << e.what() << "\n";
+
+            /*
+            * Note this is platform/compiler specific
+            * Your milage may very
+            */
+            std::cout << "Type:    " << typeid(e).name() << "\n";
         }
         
     }
