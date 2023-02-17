@@ -113,6 +113,7 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
         try
         {
             com_manager->ReadLine(reponse, '\n', timeout_ms);
+
         //   std::cout << "DATA FROM XXX : " << get_curr_timestamp() << reponse << std::endl;
             // ALL INFORMATION READING BY MCU ESP32.
 
@@ -423,13 +424,9 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
         catch(std::exception const& e)
         {
             std::cout << "Message: " << e.what() << "\n";
-
-            /*
-            * Note this is platform/compiler specific
-            * Your milage may very
-            */
             std::cout << "Type:    " << typeid(e).name() << "\n";
-            com_manager->FlushInputBuffer();
+            com_manager->DrainWriteBuffer();
+            com_manager->FlushIOBuffers();
         }
         
     }
