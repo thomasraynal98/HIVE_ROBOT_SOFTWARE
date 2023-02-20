@@ -64,7 +64,7 @@ int port_opening_process(sw::redis::Redis* redis, std::string curr_port_name, st
             {
                 com_manager->Open(get_redis_str(redis, curr_port_name));
                 com_manager->SetBaudRate(LibSerial::BaudRate::BAUD_9600);
-                com_manager->FlushIOBuffers();
+                // com_manager->FlushIOBuffers();
                 set_redis_var(redis, curr_port_state, "CONNECTED");
 
                 return 1;
