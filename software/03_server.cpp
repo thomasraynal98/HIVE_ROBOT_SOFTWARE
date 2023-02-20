@@ -117,7 +117,6 @@ void callback_command(std::string channel, std::string msg)
     if(vect_str[2].compare("BOX_OPEN")               == 0)
     {
         // RUN CHRONO OR THREAD.
-        std::cout << "GET OPEN MSG." << std::endl;
         // send_event_server(h.socket(), "BOX_OPEN"      , vect_str[3]);
         vect_Order_Box.push_back(Order_Box(std::stoi(vect_str[3]), 1));
     }
@@ -191,6 +190,7 @@ void f_thread_box()
                         if(compare_redis_var(&redis, "SERVER_COM_STATE", "CONNECTED")) 
                         {
                             send_event_server(h.socket(), ((vect_Order_Box[i].id_state == 1) ? "BOX_OPEN" : "BOX_CLOSE"), std::to_string(vect_Order_Box[i].id_box));
+                            vect_Order_Box[i].ts = 0;
                             std::cout << ((vect_Order_Box[i].id_state == 1) ? "REAL SEND BOX_OPEN " : "REAL SEND BOX_CLOSE ") << vect_Order_Box[i].id_box << std::endl;
                         }
                         else
