@@ -113,7 +113,7 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
         try
         {
             com_manager->ReadLine(reponse, '\n', timeout_ms);
-        //   std::cout << "DATA FROM XXX : " << get_curr_timestamp() << reponse << std::endl;
+            //   std::cout << "DATA FROM XXX : " << get_curr_timestamp() << reponse << std::endl;
             // ALL INFORMATION READING BY MCU ESP32.
 
             if(mcu_function_str.compare("CARGO") == 0)
@@ -132,7 +132,7 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                     // Pour comparer avec l'ancienne lecture.
                     std::vector<std::string> new_sensor_vect;
 
-                    // Comparer à la mémoire. (1 + 3 x 5)
+                    // Comparer à la mémoire. (1 + 3 x 3)
                     std::vector<std::string> vect_memory;
                     get_redis_multi_str(redis, "HARD_CARGO_STATE_MEMORY", vect_memory);
                     // std::cout << "SIZE " << vect_memory.size() << std::endl;
@@ -156,7 +156,7 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                         for(int i = 0; i < vect_sum_memory.size(); i++)
                         {
                           //std::cout << "SUM " << i << " : " << vect_sum_memory[i] << std::endl;
-                            if(vect_sum_memory[i] > 20)
+                            if(vect_sum_memory[i] >= 2)
                             {
                                 redis_sensor_str += "OPEN|";
                                 new_sensor_vect.push_back("OPEN");

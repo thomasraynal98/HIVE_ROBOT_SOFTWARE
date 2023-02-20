@@ -104,5 +104,6 @@ software/66_tempo.cpp)
 TARGET_LINK_LIBRARIES(66_EXEMPLE
     pthread
     hiredis
+    serial
     redis++
 )
