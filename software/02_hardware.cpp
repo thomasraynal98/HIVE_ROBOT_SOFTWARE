@@ -67,7 +67,7 @@ void function_thread_port_detection()
                             {
                                 com_mcu_temp->ReadLine(reponse, '\n', timeout_ms);
                             }
-                            catch(...){std::cout << "CANT RECEIVE DATA FROM MCU" << std::endl;} // CAN'T RECEIVE DATA FROM MCU.
+                            catch(...){std::cout << prefix_port_temp << " CANT RECEIVE DATA FROM MCU" << std::endl;} // CAN'T RECEIVE DATA FROM MCU.
 
                             if(reponse.length() >= 1)
                             {
