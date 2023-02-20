@@ -117,6 +117,7 @@ void callback_command(std::string channel, std::string msg)
     if(vect_str[2].compare("BOX_OPEN")               == 0)
     {
         // RUN CHRONO OR THREAD.
+        std::cout << "GET OPEN MSG." << std::endl;
         // send_event_server(h.socket(), "BOX_OPEN"      , vect_str[3]);
         vect_Order_Box.push_back(Order_Box(std::stoi(vect_str[3]), 1));
     }
