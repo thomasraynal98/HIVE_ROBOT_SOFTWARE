@@ -113,7 +113,7 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
         try
         {
             com_manager->ReadLine(reponse, '\n', timeout_ms);
-            //   std::cout << "DATA FROM XXX : " << get_curr_timestamp() << reponse << std::endl;
+            std::cout << "DATA FROM XXX : " << get_curr_timestamp() << reponse << std::endl;
             // ALL INFORMATION READING BY MCU ESP32.
 
             if(mcu_function_str.compare("CARGO") == 0)
@@ -122,7 +122,7 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                 std::vector<std::string> vect_reponse_mcu_cargo;
                 get_multi_str(reponse, vect_reponse_mcu_cargo);
 
-                std::cout << "DATA FROM XXX : " << get_curr_timestamp() << reponse << std::endl;
+                // std::cout << "DATA FROM XXX : " << get_curr_timestamp() << reponse << std::endl;
 
                 if(vect_reponse_mcu_cargo.size() == 6)
                 {
