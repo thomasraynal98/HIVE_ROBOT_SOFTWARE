@@ -59,7 +59,7 @@ void function_thread_port_detection()
                 {
                     try{
                         com_mcu_temp->Open(prefix_port_temp);
-                        com_mcu_temp->SetBaudRate(9600);
+                        com_mcu_temp->SetBaudRate(LibSerial::BaudRate::BAUD_9600);
                         if(com_mcu_temp->IsOpen())
                         {
                             std::string reponse;
