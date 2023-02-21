@@ -126,11 +126,11 @@ void callback_command(std::string channel, std::string msg)
         // send_event_server(h.socket(), "BOX_CLOSE"     , vect_str[3]);
         vect_Order_Box.push_back(Order_Box(std::stoi(vect_str[3]), 0));
     }
-    if(vect_str[2].compare("BOX_TIME_OUT")           == 0)
-    {
-        if(compare_redis_var(&redis, "SERVER_COM_STATE", "CONNECTED")) send_event_server(h.socket(), "BOX_TIME_OUT", vect_str[3]);
-        else{                                                        vect_Event.push_back(Event_save("BOX_TIME_OUT", vect_str[3]));}
-    }
+    // if(vect_str[2].compare("BOX_TIME_OUT")           == 0)
+    // {
+    //     if(compare_redis_var(&redis, "SERVER_COM_STATE", "CONNECTED")) send_event_server(h.socket(), "BOX_TIME_OUT", vect_str[3]);
+    //     else{                                                        vect_Event.push_back(Event_save("BOX_TIME_OUT", vect_str[3]));}
+    // }
     if(vect_str[2].compare("ERR")                    == 0)
     {
         send_event_server(h.socket(), "ERR", vect_str[3]);
@@ -796,7 +796,7 @@ void bind_events(sio::socket::ptr current_socket)
 
         if(vect_cargo_state[index].compare("OPEN") == 0)
         {
-            pub_redis_var(&redis, "EVENT", get_event_str(3, "ERR"      , "BOX " + std::to_string(index) + " ALREADY_OPEN"));
+            // pub_redis_var(&redis, "EVENT", get_event_str(3, "ERR"      , "BOX " + std::to_string(index) + " ALREADY_OPEN"));
             pub_redis_var(&redis, "EVENT", get_event_str(3, "BOX_OPEN" , std::to_string(index)));
         }
         else
