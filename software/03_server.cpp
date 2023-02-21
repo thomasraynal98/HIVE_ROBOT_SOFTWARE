@@ -238,7 +238,7 @@ void f_thread_server()
                  * server et permet de lancer un timer qui lancera automatiquement le retour à la maison
                  * du robot en cas de persistance du probleme de connection.
                  */
-                timer_rh_active   = true;
+                timer_rh_active   = false;
                 timer_return_home = get_curr_timestamp() + std::stoi(get_redis_str(&redis, "SERVER_MAX_TIME"));
             }
 
@@ -273,7 +273,7 @@ void f_thread_server()
                 set_redis_var(&redis, "SERVER_COM_STATE", "CONNECTED");
                 pub_redis_var(&redis, "EVENT", get_event_str(3, "CONNECTION_SERVER", "SUCCESS"));
 
-                timer_rh_active = false;
+                // timer_rh_active = false;
 
                 for(int i = 0; i < vect_Event.size(); i++)
                 {
@@ -309,7 +309,7 @@ void f_thread_server()
          */
         if(time_is_over(get_curr_timestamp(), timer_return_home) && timer_rh_active)
         {
-            timer_rh_active = false;
+            // timer_rh_active = false;
             std::vector<std::string> vect_redis_str;
             get_redis_multi_str(&redis, "ROBOT_INFO_HOME_POSITION", vect_redis_str);
 
