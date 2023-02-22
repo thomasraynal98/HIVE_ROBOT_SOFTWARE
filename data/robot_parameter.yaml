@@ -163,3 +163,6 @@ ENCODED_CAM5                        : ""
 ENCODED_CAM5_TIMESTAMP              : "0000000000000"
 ENCODED_CAM6                        : ""
 ENCODED_CAM6_TIMESTAMP              : "0000000000000"
+
+# TEDDY VARIABLE
+LIDAR_CHANGE                        : "false"
