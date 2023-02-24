@@ -25,7 +25,10 @@ int main(int argc, char *argv[])
     set_redis_var(&redis, "EVENT_MANUAL_CONTROLER_DATA", "0000000000000|0.0|0.0|0.0|");
 
     Robot_position curr_position = Robot_position();
-    set_redis_var(&redis, "NAV_GLOBAL_POSITION", "0000000000000|0.0|0.0|0.0|");
+
+    std::vector<std::string> start_pos_msg;
+    get_redis_multi_str(&redis, "ROBOT_INFO_HOME_POSITION", start_pos_msg);
+    set_redis_var(&redis, "NAV_GLOBAL_POSITION", "0000000000000|" + start_pos_msg[0] + "|" + start_pos_msg[1] + "|");
     set_redis_var(&redis, "NAV_LOCAL_POSITION", "0000000000000|0.0|0.0|0.0|");
     // std::vector<Navigation_road> vect_navigation;
 
@@ -113,10 +116,10 @@ int main(int argc, char *argv[])
     // vect_traj_50.push_back(Trajectory(-1.75, 1.0, 0.50));
     // vect_traj_50.push_back(Trajectory( -2.0, 1.0, 0.50));
     // vect_traj_50.push_back(Trajectory( -2.5, 1.0, 0.50));
-    // vect_traj_50.push_back(Trajectory(   -3, 1.0, 0.50));
-    // vect_traj_50.push_back(Trajectory(   -4, 2.0, 0.50));
-    // vect_traj_50.push_back(Trajectory(   -5, 2.0, 0.50));
-    // vect_traj_50.push_back(Trajectory(   -6, 2.5, 0.50));
+    vect_traj_50.push_back(Trajectory(   -3, 1.0, 0.50));
+    vect_traj_50.push_back(Trajectory(   -4, 2.0, 0.50));
+    vect_traj_50.push_back(Trajectory(   -5, 2.0, 0.50));
+    vect_traj_50.push_back(Trajectory(   -6, 2.5, 0.50));
     vect_traj_50.push_back(Trajectory(   -8, 2.0, 0.60));
     vect_traj_50.push_back(Trajectory(  -10, 2.5, 0.60));
     vect_traj_50.push_back(Trajectory(  -15, 2.5, 0.60));
@@ -133,10 +136,10 @@ int main(int argc, char *argv[])
     vect_traj_50.push_back(Trajectory(   15, 2.5, 0.60));
     vect_traj_50.push_back(Trajectory(   10, 2.5, 0.60));
     vect_traj_50.push_back(Trajectory(    8, 2.0, 0.60));
-    // vect_traj_50.push_back(Trajectory(    6, 2.5, 0.50));
-    // vect_traj_50.push_back(Trajectory(    5, 2.0, 0.50));
-    // vect_traj_50.push_back(Trajectory(    4, 2.0, 0.50));
-    // vect_traj_50.push_back(Trajectory(    3, 1.0, 0.50));
+    vect_traj_50.push_back(Trajectory(    6, 2.5, 0.50));
+    vect_traj_50.push_back(Trajectory(    5, 2.0, 0.50));
+    vect_traj_50.push_back(Trajectory(    4, 2.0, 0.50));
+    vect_traj_50.push_back(Trajectory(    3, 1.0, 0.50));
     // vect_traj_50.push_back(Trajectory(  2.5, 1.0, 0.50));
     // vect_traj_50.push_back(Trajectory(  2.0, 1.0, 0.50));
     // vect_traj_50.push_back(Trajectory( 1.75, 1.0, 0.50));
@@ -146,9 +149,9 @@ int main(int argc, char *argv[])
 
     // vect_traj_25.push_back(Trajectory(-1.00, 1.0, 0.30));
     // vect_traj_25.push_back(Trajectory(-1.25, 1.0, 0.30));
-    // vect_traj_25.push_back(Trajectory(-1.50, 1.0, 0.30));
-    // vect_traj_25.push_back(Trajectory(-1.75, 1.0, 0.30));
-    // vect_traj_25.push_back(Trajectory(-2.00, 1.0, 0.30));
+    vect_traj_25.push_back(Trajectory(-1.50, 1.0, 0.30));
+    vect_traj_25.push_back(Trajectory(-1.75, 1.0, 0.30));
+    vect_traj_25.push_back(Trajectory(-2.00, 1.0, 0.30));
     vect_traj_25.push_back(Trajectory(-2.25, 1.0, 0.25));
     vect_traj_25.push_back(Trajectory(-2.50, 1.0, 0.25));
     vect_traj_25.push_back(Trajectory(-2.75, 1.0, 0.25));
@@ -175,9 +178,9 @@ int main(int argc, char *argv[])
     vect_traj_25.push_back(Trajectory( 2.75, 1.0, 0.25));
     vect_traj_25.push_back(Trajectory( 2.50, 1.0, 0.25));
     vect_traj_25.push_back(Trajectory( 2.25, 1.0, 0.25));
-    // vect_traj_25.push_back(Trajectory( 2.00, 1.0, 0.30));
-    // vect_traj_25.push_back(Trajectory( 1.75, 1.0, 0.30));
-    // vect_traj_25.push_back(Trajectory( 1.50, 1.0, 0.30));
+    vect_traj_25.push_back(Trajectory( 2.00, 1.0, 0.30));
+    vect_traj_25.push_back(Trajectory( 1.75, 1.0, 0.30));
+    vect_traj_25.push_back(Trajectory( 1.50, 1.0, 0.30));
     // vect_traj_25.push_back(Trajectory( 1.25, 1.0, 0.30));
     // vect_traj_25.push_back(Trajectory( 1.00, 1.0, 0.30));
 
@@ -194,6 +197,8 @@ int main(int argc, char *argv[])
     vect_traj_10.push_back(Trajectory(  -1.50, 0.8, 0.10));
     vect_traj_10.push_back(Trajectory( -100.0, 0.8, 0.10));
     vect_traj_10.push_back(Trajectory( -600.0, 0.8, 0.10));
+    vect_traj_10.push_back(Trajectory(-1000.0, 0.8, 0.10));
+    vect_traj_10.push_back(Trajectory( 1000.0, 0.8, 0.10));
     vect_traj_10.push_back(Trajectory(  600.0, 0.8, 0.10));
     vect_traj_10.push_back(Trajectory(  100.0, 0.8, 0.10));
     vect_traj_10.push_back(Trajectory(   1.50, 0.8, 0.10));
@@ -263,8 +268,8 @@ int main(int argc, char *argv[])
         next += std::chrono::milliseconds((int)ms_for_loop);
         std::this_thread::sleep_until(next);
 
-        // std::cout << get_elapsed_time(get_curr_timestamp(), monitoring_ts) << " FPS: " <<  1000/((double)get_elapsed_time(get_curr_timestamp(), monitoring_ts)) << std::endl;
-        // monitoring_ts = get_curr_timestamp();
+        std::cout << get_elapsed_time(get_curr_timestamp(), monitoring_ts) << " FPS: " <<  1000/((double)get_elapsed_time(get_curr_timestamp(), monitoring_ts)) << std::endl;
+        monitoring_ts = get_curr_timestamp();
 
         //==============================================
         // HMR : 
@@ -538,6 +543,7 @@ int main(int argc, char *argv[])
             std::vector<std::string> vect_redis_str;
             get_redis_multi_str(&redis, "NAV_LOCAL_POSITION", vect_redis_str);
 
+            // std::cout << "A " << get_curr_timestamp() << std::endl;
             if(!is_same_time(0, std::stoul(vect_redis_str[0])))
             {      
                 std::vector<double> curr_local_pos;
@@ -2000,7 +2006,7 @@ int main(int argc, char *argv[])
                                     std::vector<double> activation_dist_vect;
                                     activation_dist_vect.push_back(5.5);
                                     activation_dist_vect.push_back(4.0);
-                                    activation_dist_vect.push_back(2.3);
+                                    activation_dist_vect.push_back(1.2);
                                     activation_dist_vect.push_back(0.6);
 
                                     for(int y = 0; y < 4 && (!trajectory_found_in_bash); y++)

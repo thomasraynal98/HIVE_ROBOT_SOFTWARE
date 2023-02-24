@@ -75,6 +75,29 @@ struct Js_state {
     }
 };
 
+struct Lidar_brut
+{
+    float angle;
+    float dist;
+    float confidence;
+
+    Lidar_brut(float _angle, float _dist, float _conf)
+        : angle(_angle)
+        , dist(_dist)
+        , confidence(_conf)
+        {}
+};
+
+struct Pixel
+{
+    int i, j;
+
+    Pixel(int _i, int _j)
+        : i(_i)
+        , j(_j)
+        {}
+};
+
 bool port_already_taken(sw::redis::Redis* redis, std::string curr_port_name);
 bool port_is_ready_to_use(sw::redis::Redis* redis, std::string curr_port_name, std::string curr_port_state, LibSerial::SerialPort* com_manager);
 int port_opening_process(sw::redis::Redis* redis, std::string curr_port_name, std::string curr_port_state, LibSerial::SerialPort* com_manager);

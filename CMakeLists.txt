@@ -11,11 +11,12 @@ INCLUDE_DIRECTORIES(pixhawk/mavlink/include/mavlink/v2.0)
 # set good gcc version.
 SET(CMAKE_CXX_STANDARD 17)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pthread -L/usr/local/lib -L/usr/bin/openssl")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pthread -lrealsense2 -L/usr/local/lib -L/usr/bin/openssl")
 
 # found package.
 FIND_PACKAGE(OpenCV 4.2 REQUIRED)
 FIND_PACKAGE(websocketpp REQUIRED)
+find_package(PCL 1.3 REQUIRED COMPONENTS common io)
 
 # FIND_PACKAGE(OpenSSL REQUIRED)
 # [!] Comment for HTTPS.
@@ -95,6 +96,27 @@ TARGET_LINK_LIBRARIES(04_NAVIGATION
     redis++
     sioclient
     serial
+    ${OpenCV_LIBS})
+
+# PROGRAMME 05 : PERCEP
+ADD_EXECUTABLE(05_PERCEPTION
+software/05_perception.cpp
+src/00_function.cpp
+include/00_function.h
+src/00_communication.cpp
+include/00_communication.h
+src/00_navigation.cpp 
+include/00_navigation.h)
+
+TARGET_LINK_LIBRARIES(05_PERCEPTION
+    pthread
+    hiredis
+    redis++
+    sioclient
+    serial
+    /usr/local/lib/libld06kit.a
+    /usr/local/lib/librealsense2.so
+    ${PCL_LIBRARIES}
     ${OpenCV_LIBS})
 
 # PROGRAMME 66 : WTF.

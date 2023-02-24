@@ -66,7 +66,9 @@
       "typeindex": "cpp",
       "any": "cpp",
       "source_location": "cpp",
-      "*.ipp": "cpp"
+      "*.ipp": "cpp",
+      "strstream": "cpp",
+      "cfenv": "cpp"
     },
     "C_Cpp.errorSquiggles": "disabled"
   }
