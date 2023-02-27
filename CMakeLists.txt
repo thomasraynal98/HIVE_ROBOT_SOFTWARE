@@ -16,7 +16,7 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pthread -lrealsense2 -L/usr/
 # found package.
 FIND_PACKAGE(OpenCV 4.2 REQUIRED)
 FIND_PACKAGE(websocketpp REQUIRED)
-find_package(PCL 1.3 REQUIRED COMPONENTS common io)
+# find_package(PCL 1.3 REQUIRED COMPONENTS common io)
 
 # FIND_PACKAGE(OpenSSL REQUIRED)
 # [!] Comment for HTTPS.
@@ -116,7 +116,7 @@ TARGET_LINK_LIBRARIES(05_PERCEPTION
     serial
     /usr/local/lib/libld06kit.a
     /usr/local/lib/librealsense2.so
-    ${PCL_LIBRARIES}
+    # ${PCL_LIBRARIES}
     ${OpenCV_LIBS})
 
 # PROGRAMME 66 : WTF.

@@ -262,7 +262,15 @@ void pub_redis_var(sw::redis::Redis* redis, std::string channel, std::string val
 
 std::string get_redis_str(sw::redis::Redis* redis, std::string channel)
 {
-    return *(redis->get(channel));
+    try
+    {
+        return *(redis->get(channel));
+    }
+    catch(...)
+    {
+        std::cerr << "Error redis from : " << channel << '\n';
+        return "err";
+    } 
 }
 
 int get_redis_multi_str(sw::redis::Redis* redis, std::string channel, std::vector<std::string>& stockage)

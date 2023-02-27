@@ -122,10 +122,10 @@ void front_lidar_selection()
     set_redis_var(&redis, "LIDAR_CHANGE", "false");
 }
 
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
-#include <pcl/io/pcd_io.h>
-#include <pcl/visualization/cloud_viewer.h>
+// #include <pcl/point_cloud.h>
+// #include <pcl/point_types.h>
+// #include <pcl/io/pcd_io.h>
+// #include <pcl/visualization/cloud_viewer.h>
 
 double process_angle(double idx_c1, double idx_r1, double idx_c2, double idx_r2)
 {
