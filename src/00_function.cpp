@@ -236,6 +236,7 @@ void init_redis_var(sw::redis::Redis* redis)
     read_yaml(redis, &fsSettings, "NAV_OPERATOR_MAX_SPEED_BONUS");
 
     read_yaml(redis, &fsSettings, "LIDAR_CHANGE");
+    read_yaml(redis, &fsSettings, "NAV_NEW_ANGLE");
 }
 
 int64_t get_curr_timestamp()

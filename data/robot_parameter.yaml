@@ -111,6 +111,7 @@ NAV_CURRENT_ROAD_COOR               : "0.0|0.0|0.0|0.0|"
 NAV_FIXE_ROAD                       : "TRUE"
 NAV_CURR_ROAD_MAX_SPEED             : "2.0"
 NAV_OPERATOR_MAX_SPEED_BONUS        : "0.0"
+NAV_NEW_ANGLE                       : "0.0"                                                         # IF 0.0 rien.
 
 # ACTION/MISSION   
 MISSION_MOTOR_BRAKE                 : "TRUE"

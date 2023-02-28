@@ -1053,6 +1053,8 @@ void bind_events(sio::socket::ptr current_socket)
         new_position             += (data->get_map()["LATITUDE"]->get_string()).substr(0, 9) + "|";
         new_position             += data->get_map()["HDG"]->get_string() + "|";
 
+        set_redis_var(&redis, "NAV_NEW_ANGLE", data->get_map()["HDG"]->get_string());
+
         std::cout << "ORDER_NEW_LOCATION -> " << new_position << std::endl;
 
         set_redis_var(&redis, "NAV_GLOBAL_POSITION", new_position);
@@ -1065,6 +1067,8 @@ void bind_events(sio::socket::ptr current_socket)
 
         std::string new_pos = std::to_string(get_curr_timestamp()) + "|" + vect_global_str[1] + "|" + vect_global_str[2] + "|";
         new_pos             += data->get_map()["ANGLE"]->get_string() + "|";
+
+        set_redis_var(&redis, "NAV_NEW_ANGLE", data->get_map()["ANGLE"]->get_string());
 
         set_redis_var(&redis, "NAV_GLOBAL_POSITION", new_pos);
     }));

@@ -307,6 +307,8 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
 
                         if(abs(dt_central_left_m) < 1.0 && abs(dt_central_right_m) < 1.0)
                         {
+                            double new_angle_option = std::stod(get_redis_str(redis, "NAV_NEW_ANGLE"));
+
                             // NEW ANGLE.
                             std::vector<std::string> vect_redis_str;
                             get_redis_multi_str(redis, "NAV_LOCAL_POSITION", vect_redis_str);
@@ -329,14 +331,20 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                             std::string new_pos_str   = std::to_string(get_curr_timestamp()) + "|";
                             new_pos_str               += std::to_string(new_pos.longitude) + "|";
                             new_pos_str               += std::to_string(new_pos.latitude)  + "|";
-                            new_pos_str               += std::to_string(prev_angle) + "|";
+
+                            if(new_angle_option == 0.0) new_pos_str += std::to_string(prev_angle) + "|";
+                            else{new_pos_str += std::to_string(new_angle_option) + "|";}
+                            
                             set_redis_var(redis, "NAV_GLOBAL_POSITION", new_pos_str);
 
                             // [B] LOCAL PART.
                             std::string new_local_position = std::to_string(get_curr_timestamp()) + "|";
                             new_local_position += std::to_string(std::stod(vect_redis_str[1]) + dt_moy_m * cos(deg_to_rad(prev_angle))) + "|";
                             new_local_position += std::to_string(std::stod(vect_redis_str[2]) + dt_moy_m * sin(deg_to_rad(prev_angle))) + "|";
-                            new_local_position += std::to_string(prev_angle) + "|";
+                            
+                            if(new_angle_option == 0.0) new_pos_str += std::to_string(prev_angle) + "|";
+                            else{new_pos_str += std::to_string(new_angle_option) + "|";}
+
                             set_redis_var(redis, "NAV_LOCAL_POSITION", new_local_position);
 
                             // Estimer la vitesse actuelle en km/h.
@@ -346,6 +354,9 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                             double speed_kmh = ((dt_moy_m / (elasped_time / 1000)) / 1000) * 3600;
                             std::string curr_speed_str = std::to_string(get_curr_timestamp()) + "|" + std::to_string(speed_kmh) + "|"; 
                             set_redis_var(redis, "NAV_CURR_SPEED", curr_speed_str);
+
+                            // New angle option.
+                            set_redis_var(redis, "NAV_NEW_ANGLE", "0.0");
                         }
                     }
                 }
