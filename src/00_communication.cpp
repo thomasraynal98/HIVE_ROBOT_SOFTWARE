@@ -314,14 +314,14 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
                             get_redis_multi_str(redis, "NAV_LOCAL_POSITION", vect_redis_str);
 
                             double dt_angle    = ((dt_central_right_m - dt_central_left_m) * 0.656) / std::stod(get_redis_str(redis, "HARD_WHEEL_DISTANCE"));
-                            double prev_angle  = std::stod(vect_redis_str[3]) - rad_to_deg(dt_angle);
-                            if(prev_angle > 360) prev_angle -= 360;
-                            if(prev_angle <   0) prev_angle += 360;
+                            double prev_angle_l  = std::stod(vect_redis_str[3]) - rad_to_deg(dt_angle);
+                            if(prev_angle_l > 360) prev_angle_l -= 360;
+                            if(prev_angle_l <   0) prev_angle_l += 360;
 
                             // [A] GLOBAL PART.
                             std::vector<std::string> vect_previous_global_pos;
                             get_redis_multi_str(redis, "NAV_GLOBAL_POSITION", vect_previous_global_pos);
-                            prev_angle  = std::stod(vect_previous_global_pos[3]) - rad_to_deg(dt_angle);
+                            double prev_angle  = std::stod(vect_previous_global_pos[3]) - rad_to_deg(dt_angle);
                             if(prev_angle > 360) prev_angle -= 360;
                             if(prev_angle <   0) prev_angle += 360;
 
@@ -339,11 +339,9 @@ void reading_process(sw::redis::Redis* redis, std::string curr_port_name, std::s
 
                             // [B] LOCAL PART.
                             std::string new_local_position = std::to_string(get_curr_timestamp()) + "|";
-                            new_local_position += std::to_string(std::stod(vect_redis_str[1]) + dt_moy_m * cos(deg_to_rad(prev_angle))) + "|";
-                            new_local_position += std::to_string(std::stod(vect_redis_str[2]) + dt_moy_m * sin(deg_to_rad(prev_angle))) + "|";
-                            
-                            if(new_angle_option == 0.0) new_pos_str += std::to_string(prev_angle) + "|";
-                            else{new_pos_str += std::to_string(new_angle_option) + "|";}
+                            new_local_position += std::to_string(std::stod(vect_redis_str[1]) + dt_moy_m * cos(deg_to_rad(prev_angle_l))) + "|";
+                            new_local_position += std::to_string(std::stod(vect_redis_str[2]) + dt_moy_m * sin(deg_to_rad(prev_angle_l))) + "|";       
+                            new_local_position += std::to_string(prev_angle_l) + "|";
 
                             set_redis_var(redis, "NAV_LOCAL_POSITION", new_local_position);
 
