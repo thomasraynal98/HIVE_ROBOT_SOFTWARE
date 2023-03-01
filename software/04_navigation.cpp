@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 
     std::vector<std::string> start_pos_msg;
     get_redis_multi_str(&redis, "ROBOT_INFO_HOME_POSITION", start_pos_msg);
-    set_redis_var(&redis, "NAV_GLOBAL_POSITION", "0000000000000|" + start_pos_msg[0] + "|" + start_pos_msg[1] + "|0.0|");
+    set_redis_var(&redis, "NAV_GLOBAL_POSITION", "0000000000000|" + start_pos_msg[0] + "|" + start_pos_msg[1] + "|140.0|");
     set_redis_var(&redis, "NAV_LOCAL_POSITION", "0000000000000|0.0|0.0|0.0|");
     // std::vector<Navigation_road> vect_navigation;
 

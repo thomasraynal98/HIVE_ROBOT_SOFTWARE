@@ -521,7 +521,7 @@ void f_thread_readwrite_pixhawk()
 
                     // TODO: REMOVE if(false)
                     // if(time_is_over(get_curr_timestamp(), use_hdg_data_ts, 5000) && valid_data != 0)
-                    if(true)
+                    if(false)
                     {
                         std::vector<std::string> vect_redis_str2;
                         get_redis_multi_str(&redis, "NAV_GLOBAL_POSITION", vect_redis_str2);
