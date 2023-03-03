@@ -197,9 +197,9 @@ void f_thread_cam1()
         std::cout << points.size() << " timestamp : " << get_curr_timestamp() << std::endl;
         set_redis_var(&redis, "ENV_CAM1_OBJECTS", msg_redis);
 
-        cv::namedWindow( "DEBUG_MDL_ENV_SENSING", 4);
-        cv::imshow("DEBUG_MDL_ENV_SENSING", debug_directmap_clone);
-        char d =(char)cv::waitKey(1);
+        // cv::namedWindow( "DEBUG_MDL_ENV_SENSING", 4);
+        // cv::imshow("DEBUG_MDL_ENV_SENSING", debug_directmap_clone);
+        // char d =(char)cv::waitKey(1);
     }
 
 }
