@@ -15,6 +15,7 @@ using namespace std;
 cv::Mat debug_directmap(100, 100, CV_8UC1, cv::Scalar(255));
 cv::Mat debug_directmap_clone(100, 100, CV_8UC1, cv::Scalar(255));
 
+
 // /**
 //  * TODO:
 //  * [ ] 1545 - Detect caméra.
@@ -167,7 +168,7 @@ void f_thread_cam1()
 
         for(int i = 0; i < points.size(); i++)
         {
-            if(-0.2 > vertices[i].y && vertices[i].z != 0 && vertices[i].z < 4.5 && -1.5 < vertices[i].y && abs(vertices[i].x) < 2.5)
+            if(-0.3 > vertices[i].y && vertices[i].z != 0 && vertices[i].z < 4.0 && -1.5 < vertices[i].y && abs(vertices[i].x) < 2.5)
             {
                 cv::circle(debug_directmap_clone, cv::Point((int)(100-(vertices[i].x*20+50)),(int)(vertices[i].z*20)),1, cv::Scalar(debug_directmap_clone.at<uchar>((int)(vertices[i].z*20), (int)(100-(vertices[i].x*20+50)))-1), cv::FILLED, 0,0);
             }
@@ -175,19 +176,20 @@ void f_thread_cam1()
 
         std::string msg_redis = std::to_string(get_curr_timestamp()) + "|";
 
-        int v = 150; // POINT PAR CELL
+        int v = 50; // POINT PAR CELL
+        v = std::stoi(get_redis_str(&redis, "UUU"));
         for(int j=0;j<debug_directmap_clone.rows;j++) 
         {
             for (int i=0;i<debug_directmap_clone.cols;i++)
             {
                 if(debug_directmap_clone.at<uchar>(j,i) < v)
                 {
-                    debug_directmap_clone.at<uchar>(j,i) = 0; //white
+                    debug_directmap_clone.at<uchar>(j,i) = 0; //black
                     msg_redis += "o|" + std::to_string(sqrt((double)(pow(50-i,2)+pow(0-j,2)))/20.0).substr(0,4) + "|" + std::to_string(rad_to_deg(process_angle(0,50,j,i))).substr(0,5) + "|";
                 }
                 else
                 {
-                    debug_directmap_clone.at<uchar>(j,i) = 255; //black
+                    debug_directmap_clone.at<uchar>(j,i) = 255; //white
                 }
             }
         }
@@ -195,9 +197,9 @@ void f_thread_cam1()
         std::cout << points.size() << " timestamp : " << get_curr_timestamp() << std::endl;
         set_redis_var(&redis, "ENV_CAM1_OBJECTS", msg_redis);
 
-        // cv::namedWindow( "DEBUG_MDL_ENV_SENSING", 4);
-        // cv::imshow("DEBUG_MDL_ENV_SENSING", debug_directmap_clone);
-        // char d =(char)cv::waitKey(1);
+        cv::namedWindow( "DEBUG_MDL_ENV_SENSING", 4);
+        cv::imshow("DEBUG_MDL_ENV_SENSING", debug_directmap_clone);
+        char d =(char)cv::waitKey(1);
     }
 
 }
@@ -363,6 +365,8 @@ void f_thread_manager()
 
 int main(int argc, char *argv[])
 {
+    set_redis_var(&redis, "UUU", "50");
+
     // register signal handler, for smooth CTRL+C interrupt
     // signal(SIGINT, sigint_handler);
     if(argc == 2)

@@ -100,7 +100,7 @@ NAV_LOCAL_JS_MODE                   : "DEACTIVATE"
 NAV_BATTERY_VOLTAGE                 : "28.0"
 NAV_BATTERY_PERCENTAGE              : "100.0"
 NAV_MAX_ACCEL                       : "0.3"                                                         # m/s2
-NAV_MAX_DECCEL                      : "1.1"                                                         # m/s2
+NAV_MAX_DECCEL                      : "0.8"                                                         # m/s2
 NAV_IMU_ACC                         : "0000000000000|0.0|0.0|0.0|"                                  # "0000000000000|accX|accY|accZ|"
 NAV_INCLINE_CHANGE                  : "0000000000000"  
 NAV_CURR_SPEED                      : "0000000000000|0.0"                                           # "0000000000000|km/h"
