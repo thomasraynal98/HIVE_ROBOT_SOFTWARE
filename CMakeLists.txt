@@ -12,6 +12,7 @@ INCLUDE_DIRECTORIES(pixhawk/mavlink/include/mavlink/v2.0)
 SET(CMAKE_CXX_STANDARD 17)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pthread -lrealsense2 -L/usr/local/lib -L/usr/bin/openssl")
+# SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pthread -L/usr/local/lib -L/usr/bin/openssl")
 
 # found package.
 FIND_PACKAGE(OpenCV 4.2 REQUIRED)
@@ -119,13 +120,13 @@ TARGET_LINK_LIBRARIES(05_PERCEPTION
     # ${PCL_LIBRARIES}
     ${OpenCV_LIBS})
 
-# PROGRAMME 66 : WTF.
-ADD_EXECUTABLE(66_EXEMPLE
-software/66_tempo.cpp)
+# # PROGRAMME 66 : WTF.
+# ADD_EXECUTABLE(66_EXEMPLE
+# software/66_tempo.cpp)
 
-TARGET_LINK_LIBRARIES(66_EXEMPLE
-    pthread
-    hiredis
-    serial
-    redis++
-)
+# TARGET_LINK_LIBRARIES(66_EXEMPLE
+#     pthread
+#     hiredis
+#     serial
+#     redis++
+# )

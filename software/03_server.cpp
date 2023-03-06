@@ -1075,7 +1075,7 @@ void bind_events(sio::socket::ptr current_socket)
 
     current_socket->on("ORDER_ROBOT_SPEED", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
     {
-        std::string update_speed = data->get_map()["MODE"]->get_string() + "|"; // UP DOWN.
+        std::string update_speed = data->get_map()["MODE"]->get_string(); // UP DOWN.
 
         double curr_update = std::stod(get_redis_str(&redis, "NAV_OPERATOR_MAX_SPEED_BONUS"));
         curr_update += (update_speed.compare("UP") == 0) ? 1.0 : -1.0;

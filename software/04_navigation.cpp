@@ -1936,7 +1936,7 @@ int main(int argc, char *argv[])
                                             // if(min_speed_detect < 0.3) min_speed_detect = 0.3;
 
                                             // TODO NEW: SETUP SPEED EN FONCTION DE LA DISTANCE AVEC L'AVANT DU ROBOT.
-                                            if(abs(angle_diff2) < 65)
+                                            if(abs(angle_diff2) < 60)
                                             {
                                                 double dist_from_front = abs(sqrt(pow(103-idx_col,2)+pow(100-idx_row,2)))/10;
 
@@ -1950,12 +1950,12 @@ int main(int argc, char *argv[])
                                                      * [3] - Entre les deux, la vitesse max evolue
                                                      */
 
-                                                    double max_dist = dbg_curr_speed * 2.0;
+                                                    double max_dist = dbg_curr_speed * 1.5;
                                                     
-                                                    if(dist_from_front < 1.0) min_speed_detect = 0.27;
+                                                    if(dist_from_front < 1.0) min_speed_detect = 0.35;
                                                     if(dist_from_front >= 1.0 && dist_from_front < max_dist)
                                                     {
-                                                        min_speed_detect = ((dist_from_front-1.0)/((dbg_curr_speed*2.0)-1)) + 0.27;
+                                                        min_speed_detect = ((dist_from_front-1.0)/((dbg_curr_speed*2.0)-1)) + 0.35;
                                                         if(min_speed_detect > dbg_curr_speed) min_speed_detect = dbg_curr_speed;
                                                     }
                                                 }
