@@ -168,7 +168,7 @@ void f_thread_cam1()
 
         for(int i = 0; i < points.size(); i++)
         {
-            if(-0.3 > vertices[i].y && vertices[i].z != 0 && vertices[i].z < 4.0 && -1.5 < vertices[i].y && abs(vertices[i].x) < 2.5)
+            if(-0.3 > vertices[i].y && -1.5 < vertices[i].y && vertices[i].z != 0 && vertices[i].z < 4.0 && abs(vertices[i].x) < 2.5)
             {
                 cv::circle(debug_directmap_clone, cv::Point((int)(100-(vertices[i].x*20+50)),(int)(vertices[i].z*20)),1, cv::Scalar(debug_directmap_clone.at<uchar>((int)(vertices[i].z*20), (int)(100-(vertices[i].x*20+50)))-1), cv::FILLED, 0,0);
             }
@@ -197,9 +197,12 @@ void f_thread_cam1()
         std::cout << points.size() << " timestamp : " << get_curr_timestamp() << std::endl;
         set_redis_var(&redis, "ENV_CAM1_OBJECTS", msg_redis);
 
-        // cv::namedWindow( "DEBUG_MDL_ENV_SENSING", 4);
-        // cv::imshow("DEBUG_MDL_ENV_SENSING", debug_directmap_clone);
-        // char d =(char)cv::waitKey(1);
+        if(!headless)
+        {
+            cv::namedWindow( "DEBUG_MDL_ENV_SENSING", 4);
+            cv::imshow("DEBUG_MDL_ENV_SENSING", debug_directmap_clone);
+            char d =(char)cv::waitKey(1); 
+        }
     }
 
 }

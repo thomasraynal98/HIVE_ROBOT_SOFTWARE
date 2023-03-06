@@ -1078,7 +1078,7 @@ void bind_events(sio::socket::ptr current_socket)
         std::string update_speed = data->get_map()["MODE"]->get_string(); // UP DOWN.
 
         double curr_update = std::stod(get_redis_str(&redis, "NAV_OPERATOR_MAX_SPEED_BONUS"));
-        curr_update += (update_speed.compare("UP") == 0) ? 1.0 : -1.0;
+        curr_update += (update_speed.compare("UP") == 0) ? 0.14 : -0.14;
         set_redis_var(&redis, "NAV_OPERATOR_MAX_SPEED_BONUS", std::to_string(curr_update));
     }));
 
