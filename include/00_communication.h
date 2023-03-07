@@ -66,11 +66,21 @@ struct Js_state {
         std::cout << output_show << "\n\n" << std::endl;;
     }
 
-    std::string get_str()
+    std::string get_str(int mapping_type)
     {
         std::string output;
-        for(int i = 0; i < 12; i++) output += std::to_string(button_state[i]) + "|";
-        for(int i = 0; i < 3; i++) output += std::to_string(axis_state_vect[i].x) + "|" + std::to_string(axis_state_vect[i].y) + "|";
+        if(mapping_type==0)
+        {
+            for(int i = 0; i < 12; i++) output += std::to_string(button_state[i]) + "|";
+            for(int i = 0; i < 3; i++) output += std::to_string(axis_state_vect[i].x) + "|" + std::to_string(axis_state_vect[i].y) + "|";
+        }
+        if(mapping_type==1)
+        {
+            for(int i = 0; i < 12; i++) output += std::to_string(button_state[i]) + "|";
+            output += std::to_string(axis_state_vect[0].x) + "|" + std::to_string(axis_state_vect[0].y) + "|";
+            output += std::to_string(axis_state_vect[2].x) + "|" + std::to_string(axis_state_vect[1].y) + "|";
+            output += std::to_string(axis_state_vect[2].y) + "|" + std::to_string(axis_state_vect[1].x) + "|";
+        }
         return output;
     }
 };

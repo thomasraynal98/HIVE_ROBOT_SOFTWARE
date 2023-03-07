@@ -614,12 +614,12 @@ float get_battery_level(float curr_voltage, float battery_voltage)
 
         std::vector<float> border_vect;
         border_vect.push_back(29.5);
-        border_vect.push_back(29.0);
-        border_vect.push_back(28.5);
         border_vect.push_back(28.0);
-        border_vect.push_back(27.5);
         border_vect.push_back(27.0);
+        border_vect.push_back(26.0);
         border_vect.push_back(25.5);
+        border_vect.push_back(25.0);
+        border_vect.push_back(24.5);
         border_vect.push_back(23.5);
         border_vect.push_back(21.5);
         border_vect.push_back(19.5);

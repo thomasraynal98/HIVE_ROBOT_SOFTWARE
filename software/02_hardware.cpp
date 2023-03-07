@@ -26,6 +26,9 @@ LibSerial::SerialPort* com_mcu_inter = new LibSerial::SerialPort;
 
 LibSerial::SerialPort* com_mcu_temp = new LibSerial::SerialPort;
 
+std::string joystick_id = "0";
+int mapping_type = 0;
+
 //===================================================================
 // DETECTION MCU PORT
 // Permet de récuperer les ports utilisés et de définir le hardware
@@ -781,7 +784,7 @@ void f_thread_local_joystick()
             struct axis_state axes[3] = {0};
             size_t axis;
 
-            device = "/dev/input/js0";
+            device = "/dev/input/js" + joystick_id;
             js = open(device, O_RDONLY);
 
             if(js != -1)
@@ -860,27 +863,41 @@ void f_thread_local_joystick()
                     }       
 
                     // PILOTAGE JOYSTICK LOCAL START / STOP
-                    if(xbox_controller.button_state[6])
+                    if(mapping_type == 0)
                     {
-                        set_redis_var(&redis, "NAV_LOCAL_JS_MODE", "ACTIVATE");
-                    } 
-                    if(xbox_controller.button_state[7])
+                        if(xbox_controller.button_state[6])
+                        {
+                            set_redis_var(&redis, "NAV_LOCAL_JS_MODE", "ACTIVATE");
+                        } 
+                        if(xbox_controller.button_state[7])
+                        {
+                            set_redis_var(&redis, "NAV_LOCAL_JS_MODE", "DEACTIVATE");
+                        } 
+                    }
+                    if(mapping_type == 1)
                     {
-                        set_redis_var(&redis, "NAV_LOCAL_JS_MODE", "DEACTIVATE");
-                    } 
+                        if(xbox_controller.button_state[4])
+                        {
+                            set_redis_var(&redis, "NAV_LOCAL_JS_MODE", "ACTIVATE");
+                        } 
+                        if(xbox_controller.button_state[5])
+                        {
+                            set_redis_var(&redis, "NAV_LOCAL_JS_MODE", "DEACTIVATE");
+                        } 
+                    }
 
                     // CHANGE MODE
-                    if(xbox_controller.button_state[11])
-                    {
-                        if(compare_redis_var(&redis, "NAV_MANUAL_MODE", "STANDARD_MAX") == 0)
-                        {
-                            set_redis_var(&redis, "NAV_MANUAL_MODE", "STANDARD_MAX");                      
-                        }
-                        else
-                        {
-                            set_redis_var(&redis, "NAV_MANUAL_MODE", "STANDARD");    
-                        }
-                    } 
+                    // if(xbox_controller.button_state[11])
+                    // {
+                    //     if(compare_redis_var(&redis, "NAV_MANUAL_MODE", "STANDARD_MAX") == 0)
+                    //     {
+                    //         set_redis_var(&redis, "NAV_MANUAL_MODE", "STANDARD_MAX");                      
+                    //     }
+                    //     else
+                    //     {
+                    //         set_redis_var(&redis, "NAV_MANUAL_MODE", "STANDARD");    
+                    //     }
+                    // } 
 
                     // OPEN ALL BOX
                     if(xbox_controller.button_state[4])
@@ -890,7 +907,7 @@ void f_thread_local_joystick()
                     }
 
                     // Send information to redis.
-                    std::string redis_str = std::to_string(get_curr_timestamp()) + "|" + xbox_controller.get_str();
+                    std::string redis_str = std::to_string(get_curr_timestamp()) + "|" + xbox_controller.get_str(mapping_type);
 
                     set_redis_var(&redis, "EVENT_LOCAL_JS_DATA", redis_str);
                     
@@ -932,6 +949,21 @@ void reset_value()
 
 int main(int argc, char *argv[])
 {
+    for (int i = 1; i < argc; i++) 
+    {
+        if(strcmp(argv[i], "-test") == 0) 
+        {
+            // TEST
+            std::cout << "Test flag." << std::endl;
+            i++;
+        } 
+        else if(strcmp(argv[i], "-j") == 0 && i + 1 < argc) 
+        {
+            joystick_id = argv[i+1];
+            mapping_type = 1;
+            i+=1;
+        }
+    }
     set_redis_var(&redis, "SOFT_PROCESS_ID_HARD", std::to_string(getpid()));
 
     reset_value();
