@@ -346,7 +346,7 @@ void f_thread_telemetry()
 
         if(h.opened() && get_redis_str(&redis, "SERVER_COM_STATE").compare("CONNECTED") == 0)
         {
-            std::cout << "[" << get_curr_timestamp() << "] [info] send telemetry to server." << std::endl;
+            // std::cout << "[" << get_curr_timestamp() << "] [info] send telemetry to server." << std::endl;
             std::vector<std::string> vect_str;
             get_redis_multi_str(&redis, "NAV_GLOBAL_POSITION", vect_str);
 

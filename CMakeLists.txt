@@ -11,8 +11,8 @@ INCLUDE_DIRECTORIES(pixhawk/mavlink/include/mavlink/v2.0)
 # set good gcc version.
 SET(CMAKE_CXX_STANDARD 17)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pthread -lrealsense2 -L/usr/local/lib -L/usr/bin/openssl")
-# SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pthread -L/usr/local/lib -L/usr/bin/openssl")
+# SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pthread -lrealsense2 -L/usr/local/lib -L/usr/bin/openssl")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pthread -L/usr/local/lib -L/usr/bin/openssl")
 
 # found package.
 FIND_PACKAGE(OpenCV 4.2 REQUIRED)

@@ -52,6 +52,8 @@ static bool is_running2 = true;
 bool calibration_activate = false;
 int step_calibration = 0;
 
+bool print = true;
+
 void sigint_handler(int)
 {
     is_running1 = false;
@@ -194,7 +196,8 @@ void f_thread_cam1()
             }
         }
 
-        std::cout << points.size() << " timestamp : " << get_curr_timestamp() << std::endl;
+        if(print)
+        {std::cout << points.size() << " timestamp : " << get_curr_timestamp() << std::endl;}
         set_redis_var(&redis, "ENV_CAM1_OBJECTS", msg_redis);
 
         if(!headless)
@@ -271,7 +274,8 @@ void f_thread_lid1()
         else
         {
             std::this_thread::sleep_until(std::chrono::high_resolution_clock::now() + std::chrono::milliseconds((int)500));
-            std::cout << "WAIT " << step_calibration << std::endl;
+            if(print)
+            {std::cout << "WAIT " << step_calibration << std::endl;}
         }
     }
 }
@@ -342,7 +346,8 @@ void f_thread_lid2()
         else
         {
             std::this_thread::sleep_until(std::chrono::high_resolution_clock::now() + std::chrono::milliseconds((int)500));
-            std::cout << "WAITB " << step_calibration << std::endl;
+            if(print)
+            {std::cout << "WAITB " << step_calibration << std::endl;}
         }
     }
 }
@@ -372,6 +377,12 @@ int main(int argc, char *argv[])
 
     // register signal handler, for smooth CTRL+C interrupt
     // signal(SIGINT, sigint_handler);
+    if(argc == 3)
+    {
+        std::cout << "Mode Headless + no print running." << std::endl;
+        headless = true;
+        print = false;
+    }
     if(argc == 2)
     {
         std::cout << "Mode Headless running." << std::endl;

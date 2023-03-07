@@ -54,6 +54,13 @@ int main(int argc, char *argv[])
 
     // [?] Cette variable setup ou non le OPENCV de debug.
     bool show_debug = true;
+    bool print = true;
+    if(argc == 3)
+    {
+        std::cout << "Mode Headless + no print running." << std::endl;
+        show_debug = false; 
+        print = false;
+    } 
     if(argc == 2)
     {
         std::cout << "Mode Headless running." << std::endl;
@@ -268,7 +275,8 @@ int main(int argc, char *argv[])
         next += std::chrono::milliseconds((int)ms_for_loop);
         std::this_thread::sleep_until(next);
 
-        std::cout << get_elapsed_time(get_curr_timestamp(), monitoring_ts) << " FPS: " <<  1000/((double)get_elapsed_time(get_curr_timestamp(), monitoring_ts)) << std::endl;
+        if(print)
+        {std::cout << get_elapsed_time(get_curr_timestamp(), monitoring_ts) << " FPS: " <<  1000/((double)get_elapsed_time(get_curr_timestamp(), monitoring_ts)) << std::endl;}
         monitoring_ts = get_curr_timestamp();
 
         //==============================================
@@ -1324,14 +1332,17 @@ int main(int argc, char *argv[])
                             if(get_redis_str(&redis, "NAV_FIXE_ROAD").compare("TRUE") == 0 && time_is_over(get_curr_timestamp(), timesptamp_proj, 4000))
                             {
                                 timesptamp_proj = get_curr_timestamp();
-                                std::cout << "[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]" << std::endl;
+                                if(print)
+                                {std::cout << "[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]" << std::endl;}
 
                                 std::vector<std::string> vect_redis; 
                                 get_redis_multi_str(&redis, "NAV_GLOBAL_POSITION", vect_redis);
                                 std::string str_global = std::to_string(get_curr_timestamp()) + "|";
                                 str_global += std::to_string(new_position2.longitude+0.0000001) + "|" + std::to_string(new_position2.latitude) + "|"; 
                                 str_global += vect_redis[3] + "|";
-                                std::cout << str_global << std::endl;
+
+                                if(print)
+                                {std::cout << str_global << std::endl;}
 
                                 if(!std::isnan(new_position2.longitude) && new_position2.longitude != -1)
                                 {
@@ -2188,7 +2199,8 @@ int main(int argc, char *argv[])
                                     // END ALGORYTHME.
                                 }
 
-                                std::cout << "count traj tested: " << trajectory_tested << " total time : " << get_elapsed_time(get_curr_timestamp(), start_trajectory_selection_ts) << std::endl;
+                                if(print)
+                                {std::cout << "count traj tested: " << trajectory_tested << " total time : " << get_elapsed_time(get_curr_timestamp(), start_trajectory_selection_ts) << std::endl;}
                                 if(trajectory_found_in_bash) 
                                 {
                                     // std::cout << Final_traj.r << " " << Final_traj.pt_M << " " << Final_traj.security_dist << std::endl;                                     
@@ -2255,7 +2267,8 @@ int main(int argc, char *argv[])
                                     
                                     if(speed_with_obj > Final_traj.max_speed) speed_with_obj = Final_traj.max_speed;
                                     if(speed_with_obj > curr_max_speed) speed_with_obj = curr_max_speed;
-                                    std::cout << speed_with_obj << " " << curr_max_speed << std::endl;
+                                    if(print)
+                                    {std::cout << speed_with_obj << " " << curr_max_speed << std::endl;}
                                     speed_with_obj += std::stod(get_redis_str(&redis, "NAV_OPERATOR_MAX_SPEED_BONUS"));
 
                                     /**
