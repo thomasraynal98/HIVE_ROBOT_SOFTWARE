@@ -778,13 +778,18 @@ void f_thread_local_joystick()
              */
             set_redis_var(&redis, "HARD_LOCAL_JS_COM_STATE", "PORT_DETECTED");
 
-            const char *device;
+            char *device;
             int js;
             struct js_event event;
             struct axis_state axes[3] = {0};
             size_t axis;
 
-            device = "/dev/input/js" + std::string(joystick_id);
+            if(joystick_id.compare("0") == 0) device = "/dev/input/js0";
+            if(joystick_id.compare("1") == 0) device = "/dev/input/js1";
+            if(joystick_id.compare("2") == 0) device = "/dev/input/js2";
+            if(joystick_id.compare("3") == 0) device = "/dev/input/js3";
+            if(joystick_id.compare("4") == 0) device = "/dev/input/js4";
+
             js = open(device, O_RDONLY);
 
             if(js != -1)
