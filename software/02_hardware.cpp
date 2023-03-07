@@ -784,7 +784,7 @@ void f_thread_local_joystick()
             struct axis_state axes[3] = {0};
             size_t axis;
 
-            device = "/dev/input/js" + joystick_id;
+            device = "/dev/input/js" + std::to_string(joystick_id);
             js = open(device, O_RDONLY);
 
             if(js != -1)
