@@ -905,11 +905,11 @@ void f_thread_local_joystick()
                     // } 
 
                     // OPEN ALL BOX
-                    if(xbox_controller.button_state[4])
-                    {
-                        std::string new_mission_cargo_str = std::to_string(get_curr_timestamp()) + "|OPEN|OPEN|OPEN|";
-                        set_redis_var(&redis, "MISSION_HARD_CARGO", new_mission_cargo_str);
-                    }
+                    // if(xbox_controller.button_state[4])
+                    // {
+                    //     std::string new_mission_cargo_str = std::to_string(get_curr_timestamp()) + "|OPEN|OPEN|OPEN|";
+                    //     set_redis_var(&redis, "MISSION_HARD_CARGO", new_mission_cargo_str);
+                    // }
 
                     // Send information to redis.
                     std::string redis_str = std::to_string(get_curr_timestamp()) + "|" + xbox_controller.get_str(mapping_type);

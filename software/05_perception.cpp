@@ -168,7 +168,7 @@ void f_thread_cam1()
 
         debug_directmap_clone = debug_directmap.clone();
 
-        for(int i = 0; i < points.size(); i++)
+        for(int i = points.size()/4; i < points.size()/4*3; i++)
         {
             if(-0.3 > vertices[i].y && -1.5 < vertices[i].y && vertices[i].z != 0 && vertices[i].z < 4.0 && abs(vertices[i].x) < 2.5)
             {
