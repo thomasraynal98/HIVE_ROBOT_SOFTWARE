@@ -470,6 +470,8 @@ void f_thread_telemetry()
             vect_telemetry_server.push_back(Server_var("d", "SPEED_LEVEL"        ,     get_redis_str(&redis, "NAV_CURR_ROAD_MAX_SPEED")));
             vect_telemetry_server.push_back(Server_var("d", "SPEED_MODIF"        ,get_redis_str(&redis, "NAV_OPERATOR_MAX_SPEED_BONUS")));
 
+            vect_telemetry_server.push_back(Server_var("s", "TIMER_END"         ,                             std::to_string(timer_end)));
+
             send_msg_server(h.socket(), "ROBOT_TELEM", vect_telemetry_server);
             // std::cout << "TELEM SEND" << std::endl;
         }
@@ -1087,6 +1089,12 @@ void bind_events(sio::socket::ptr current_socket)
         set_redis_var(&redis, "MISSION_MOTOR_BRAKE", "TRUE");
         set_redis_var(&redis, "MISSION_AUTO_STATE",  "COMPLETED");
         pub_redis_var(&redis, "EVENT", get_event_str(4, "MISSION_AUTO_GOTO", "SUCCESS"));
+    }));
+
+    current_socket->on("ORDER_TIMER_END", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
+    {
+        timer_active = false;
+        pub_redis_var(&redis, "EVENT", get_event_str(4, "MISSION_PAUSE", "TIMER_END"));
     }));
 
     current_socket->on("ORDER_PONG", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
