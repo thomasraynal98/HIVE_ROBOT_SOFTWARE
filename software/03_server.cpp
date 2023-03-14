@@ -1093,6 +1093,7 @@ void bind_events(sio::socket::ptr current_socket)
 
     current_socket->on("ORDER_TIMER_END", sio::socket::event_listener_aux([&](std::string const& name, sio::message::ptr const& data, bool isAck, sio::message::list &ack_resp)
     {
+        timer_end = 0;
         timer_active = false;
         pub_redis_var(&redis, "EVENT", get_event_str(4, "MISSION_PAUSE", "TIMER_END"));
     }));
